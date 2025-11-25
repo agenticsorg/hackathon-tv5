@@ -8,25 +8,14 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 
 import { initCommand, toolsCommand, statusCommand, infoCommand } from './commands/index.js';
 import { startSseServer } from './mcp/sse.js';
 import { BANNER, DISCORD_URL, WEBSITE_URL, HACKATHON_NAME } from './constants.js';
 import { logger } from './utils/index.js';
 
-// Get package version
-let version = '1.0.0';
-try {
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = dirname(__filename);
-  const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'));
-  version = pkg.version;
-} catch {
-  // Use default version
-}
+// Package version
+const version = '1.0.0';
 
 const program = new Command();
 

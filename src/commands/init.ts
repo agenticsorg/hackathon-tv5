@@ -137,13 +137,13 @@ async function runInteractive(options: InitOptions): Promise<HackathonConfig> {
     }))
   ]);
 
-  const { selectedTools } = await prompt<{ selectedTools: string[] }>({
+  const { selectedTools } = await (prompt as any)({
     type: 'multiselect',
     name: 'selectedTools',
     message: 'Select tools to install:',
     choices: toolChoices,
     initial: options.tools || []
-  });
+  }) as { selectedTools: string[] };
 
   // MCP configuration
   const { enableMcp } = await prompt<{ enableMcp: boolean }>({
