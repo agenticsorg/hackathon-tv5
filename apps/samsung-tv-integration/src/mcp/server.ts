@@ -17,6 +17,7 @@ import {
   updateDeviceToken,
   getDeviceByIP,
 } from '../utils/config.js';
+import { LEARNING_TOOLS, handleLearningToolCall } from './learning-tools.js';
 
 // Active TV client instances
 const clients = new Map<string, SamsungTVClient>();
@@ -43,8 +44,8 @@ function getClient(deviceId?: string): SamsungTVClient | null {
   return client;
 }
 
-// MCP Tool definitions
-export const MCP_TOOLS = [
+// Core TV MCP Tool definitions
+const TV_TOOLS = [
   {
     name: 'samsung_tv_discover',
     description: 'Discover Samsung Smart TVs on the local network using SSDP',
@@ -252,6 +253,9 @@ export const MCP_TOOLS = [
     },
   },
 ];
+
+// Combined MCP Tools (TV control + Learning system)
+export const MCP_TOOLS = [...TV_TOOLS, ...LEARNING_TOOLS];
 
 /**
  * Handle MCP tool calls
@@ -480,6 +484,10 @@ export async function handleToolCall(toolName: string, args: Record<string, unkn
       }
 
       default:
+        // Check if it's a learning tool
+        if (toolName.startsWith('samsung_tv_learn_') || toolName.startsWith('samsung_tv_smart_')) {
+          return handleLearningToolCall(toolName, args);
+        }
         return { success: false, error: `Unknown tool: ${toolName}` };
     }
   } catch (error) {

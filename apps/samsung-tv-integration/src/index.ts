@@ -73,3 +73,47 @@ export {
   handlers as mcpHandlers,
   processRequest,
 } from './mcp/server.js';
+
+// Learning System
+export {
+  PreferenceLearningSystem,
+} from './learning/preference-learning.js';
+
+export {
+  LearningPersistence,
+  IndexedDBPersistence,
+} from './learning/persistence.js';
+
+export {
+  SmartTVClient,
+  createSmartTVClientFromIP,
+} from './learning/smart-tv-client.js';
+
+export {
+  ContentEmbeddingCache,
+  generateContentEmbedding,
+  cosineSimilarity,
+  batchSimilarity,
+  generatePreferenceEmbedding,
+  generateStateEmbedding,
+} from './learning/embeddings.js';
+
+export {
+  LEARNING_TOOLS,
+  handleLearningToolCall,
+} from './mcp/learning-tools.js';
+
+export type {
+  ContentMetadata,
+  ContentType,
+  Genre,
+  ViewingSession,
+  UserPreference,
+  LearningAction,
+  LearningState,
+  Recommendation,
+  ViewingPattern,
+  LearningConfig,
+  LearningFeedback,
+  LearningStats,
+} from './learning/types.js';
