@@ -1,9 +1,0 @@
-node_modules
-dist
-.turbo
-.env
-.env.local
-coverage
-*.log
-.DS_Store
-.cache

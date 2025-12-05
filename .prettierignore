@@ -1,7 +1,0 @@
-.next
-dist
-node_modules
-*.lock
-*.log
-**/public/**
-**/.vercel/**

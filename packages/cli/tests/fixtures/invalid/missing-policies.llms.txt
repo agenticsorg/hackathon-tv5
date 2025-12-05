@@ -1,9 +1,0 @@
-# Invalid: missing policies section
-version: "1.0"
-profile: ARW-1
-
-site:
-  name: Test Site
-  homepage: https://example.com
-
-# Policies section is completely missing
