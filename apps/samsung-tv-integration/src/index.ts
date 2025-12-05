@@ -117,3 +117,19 @@ export type {
   LearningFeedback,
   LearningStats,
 } from './learning/types.js';
+
+// Content Discovery
+export {
+  TMDbClient,
+  createTMDbClient,
+  DISCOVERY_TOOLS,
+  handleDiscoveryToolCall,
+  initContentDiscovery,
+} from './content/index.js';
+
+export type {
+  TMDbConfig,
+  TMDbMovie,
+  TMDbTVShow,
+  TMDbSearchResult,
+} from './content/index.js';

@@ -18,6 +18,7 @@ import {
   getDeviceByIP,
 } from '../utils/config.js';
 import { LEARNING_TOOLS, handleLearningToolCall } from './learning-tools.js';
+import { DISCOVERY_TOOLS, handleDiscoveryToolCall } from '../content/discovery-tools.js';
 
 // Active TV client instances
 const clients = new Map<string, SamsungTVClient>();
@@ -254,8 +255,8 @@ const TV_TOOLS = [
   },
 ];
 
-// Combined MCP Tools (TV control + Learning system)
-export const MCP_TOOLS = [...TV_TOOLS, ...LEARNING_TOOLS];
+// Combined MCP Tools (TV control + Learning system + Content Discovery)
+export const MCP_TOOLS = [...TV_TOOLS, ...LEARNING_TOOLS, ...DISCOVERY_TOOLS];
 
 /**
  * Handle MCP tool calls
@@ -487,6 +488,10 @@ export async function handleToolCall(toolName: string, args: Record<string, unkn
         // Check if it's a learning tool
         if (toolName.startsWith('samsung_tv_learn_') || toolName.startsWith('samsung_tv_smart_')) {
           return handleLearningToolCall(toolName, args);
+        }
+        // Check if it's a content discovery tool
+        if (toolName.startsWith('content_')) {
+          return handleDiscoveryToolCall(toolName, args);
         }
         return { success: false, error: `Unknown tool: ${toolName}` };
     }

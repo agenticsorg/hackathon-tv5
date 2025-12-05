@@ -52,6 +52,8 @@ export const ContentMetadataSchema = z.object({
   rating: z.number().min(0).max(10).optional(),
   popularity: z.number().min(0).max(100).optional(),
   description: z.string().optional(),
+  posterUrl: z.string().optional(), // poster image URL
+  backdropUrl: z.string().optional(), // backdrop image URL
   actors: z.array(z.string()).default([]),
   directors: z.array(z.string()).default([]),
   keywords: z.array(z.string()).default([]),
