@@ -1,0 +1,88 @@
+# Cloud Run service configuration
+# Media Discovery Platform - Production deployment
+
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: media-discovery
+  labels:
+    app: media-discovery
+    version: v1
+  annotations:
+    run.googleapis.com/description: "AI-native media discovery platform with natural language search"
+    run.googleapis.com/ingress: all
+spec:
+  template:
+    metadata:
+      annotations:
+        # Performance optimizations
+        run.googleapis.com/startup-cpu-boost: "true"
+        run.googleapis.com/cpu-throttling: "false"
+        run.googleapis.com/execution-environment: gen2
+
+        # Scaling configuration
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "20"
+
+        # Request handling
+        run.googleapis.com/container-dependencies: "{}"
+
+    spec:
+      containerConcurrency: 80
+      timeoutSeconds: 300
+
+      containers:
+        - image: gcr.io/PROJECT_ID/media-discovery:latest
+          ports:
+            - containerPort: 8080
+
+          resources:
+            limits:
+              cpu: "2"
+              memory: "2Gi"
+
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: NEXT_TELEMETRY_DISABLED
+              value: "1"
+
+            # TMDB API (from Secret Manager)
+            - name: NEXT_PUBLIC_TMDB_ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: tmdb-access-token
+                  key: latest
+
+            # OpenAI API (from Secret Manager)
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openai-api-key
+                  key: latest
+
+            # RuVector endpoint
+            - name: RUVECTOR_ENDPOINT
+              value: "https://ruvector-SERVICE_ID.run.app"
+
+          # Health checks
+          startupProbe:
+            httpGet:
+              path: /api/health
+              port: 8080
+            initialDelaySeconds: 0
+            periodSeconds: 2
+            timeoutSeconds: 2
+            failureThreshold: 30
+
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 8080
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+  traffic:
+    - percent: 100
+      latestRevision: true

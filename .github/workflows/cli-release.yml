@@ -1,0 +1,217 @@
+name: CLI Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 0.1.0)'
+        required: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          # Linux x64
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            platform: linux-x64
+            archive: tar.gz
+
+          # Linux ARM64
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            platform: linux-arm64
+            archive: tar.gz
+
+          # macOS x64 (Intel)
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            platform: darwin-x64
+            archive: tar.gz
+
+          # macOS ARM64 (Apple Silicon)
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            platform: darwin-arm64
+            archive: tar.gz
+
+          # Windows x64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            platform: win32-x64
+            archive: zip
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
+
+      - name: Install cross-compilation tools (Linux ARM64)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+
+      - name: Build binary
+        working-directory: packages/cli
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Prepare binary (Unix)
+        if: matrix.archive == 'tar.gz'
+        working-directory: packages/cli
+        run: |
+          mkdir -p dist
+          cp target/${{ matrix.target }}/release/arw dist/
+          chmod +x dist/arw
+          cp README.md dist/ || true
+          cp ../../LICENSE dist/ || true
+
+      - name: Prepare binary (Windows)
+        if: matrix.archive == 'zip'
+        working-directory: packages/cli
+        shell: bash
+        run: |
+          mkdir -p dist
+          cp target/${{ matrix.target }}/release/arw.exe dist/
+          cp README.md dist/ || true
+          cp ../../LICENSE dist/ || true
+
+      - name: Create archive (tar.gz)
+        if: matrix.archive == 'tar.gz'
+        working-directory: packages/cli/dist
+        run: |
+          tar -czf arw-${{ matrix.platform }}.tar.gz *
+          shasum -a 256 arw-${{ matrix.platform }}.tar.gz > arw-${{ matrix.platform }}.tar.gz.sha256
+
+      - name: Create archive (zip)
+        if: matrix.archive == 'zip'
+        working-directory: packages/cli/dist
+        shell: bash
+        run: |
+          7z a arw-${{ matrix.platform }}.zip *
+          sha256sum arw-${{ matrix.platform }}.zip > arw-${{ matrix.platform }}.zip.sha256
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: arw-${{ matrix.platform }}
+          path: |
+            packages/cli/dist/arw-${{ matrix.platform }}.*
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Display structure of downloaded files
+        run: ls -R artifacts
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: ARW CLI v${{ steps.version.outputs.version }}
+          draft: false
+          prerelease: false
+          files: |
+            artifacts/**/*
+          body: |
+            # ARW CLI v${{ steps.version.outputs.version }}
+
+            ## Installation
+
+            ```bash
+            npx @agent-ready-web/cli@${{ steps.version.outputs.version }}
+            ```
+
+            ## Downloads
+
+            Pre-built binaries are available for:
+            - **Linux** (x64, ARM64)
+            - **macOS** (Intel, Apple Silicon)
+            - **Windows** (x64)
+
+            ## Checksums
+
+            SHA256 checksums are provided for all binaries.
+
+            ## Documentation
+
+            See the [README](https://github.com/nolandubeau/agent-ready-web/blob/main/packages/cli/README.md) for usage instructions.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-npm:
+    name: Publish to npm
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Build WASM module
+        working-directory: packages/cli
+        run: |
+          cargo build --release --target wasm32-unknown-unknown --features wasm
+          wasm-pack build --target nodejs --out-dir npm/pkg --features wasm
+
+      - name: Install tar (required by install.js)
+        working-directory: packages/cli/npm
+        run: npm install tar adm-zip
+
+      - name: Publish to npm
+        working-directory: packages/cli/npm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Test npx installation
+        run: |
+          sleep 30  # Wait for npm to propagate
+          npx @agent-ready-web/cli --help

@@ -1,0 +1,33 @@
+{
+  "name": "arw-chrome-extension",
+  "version": "1.0.0",
+  "description": "Chrome extension for inspecting Agent-Ready Web (ARW) compliance",
+  "type": "module",
+  "scripts": {
+    "lint": "echo 'No linting configured yet'",
+    "test": "echo 'No tests configured yet'",
+    "build": "echo 'No build step needed - extension runs directly'",
+    "dev": "echo 'Load unpacked extension from chrome://extensions/'"
+  },
+  "keywords": [
+    "chrome-extension",
+    "arw",
+    "agent-ready-web",
+    "llms.txt",
+    "machine-views",
+    "ai",
+    "agents"
+  ],
+  "author": "Agent-Ready Web Team",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/agent-ready-web/agent-ready-web"
+  },
+  "manifest": {
+    "version": 3,
+    "description": "Chrome Manifest V3 extension for ARW inspection"
+  }
+}

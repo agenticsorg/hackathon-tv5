@@ -1,0 +1,49 @@
+{
+  "name": "@arw/media-discovery",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-native media discovery platform with natural language search and preference learning",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "embed:sync": "tsx scripts/sync-embeddings.ts",
+    "deploy": "gcloud run deploy media-discovery --source ."
+  },
+  "dependencies": {
+    "@ai-sdk/google": "^1.0.0",
+    "@ai-sdk/openai": "^1.0.0",
+    "@tanstack/react-query": "^5.60.0",
+    "ai": "^4.0.0",
+    "clsx": "^2.1.0",
+    "next": "^15.0.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "ruvector": "^0.1.31",
+    "tailwind-merge": "^2.5.0",
+    "tmdb-ts": "^2.0.3",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "autoprefixer": "^10.4.20",
+    "dotenv": "^17.2.3",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^15.0.0",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

@@ -1,0 +1,93 @@
+version: 0.1
+profile: ARW-1
+
+site:
+  name: 'AI Media Discovery'
+  description: 'Discover movies and TV shows through natural language prompts and personalized recommendations'
+  homepage: 'https://media-discovery.example.com'
+  contact: 'ai@media-discovery.example.com'
+
+# Main content areas
+content:
+  - url: /
+    machine_view: /llms/home.llm.md
+    purpose: browse
+    priority: high
+    description: 'Homepage with trending and personalized content'
+
+  - url: /search
+    machine_view: /llms/search.llm.md
+    purpose: search
+    priority: high
+    description: 'Natural language search for movies and TV shows'
+
+  - url: /discover
+    machine_view: /llms/discover.llm.md
+    purpose: browse
+    priority: medium
+    description: 'Browse content by genre, year, and rating'
+
+  - url: /movie/[id]
+    machine_view: /api/movie/[id]/llm
+    purpose: details
+    priority: medium
+    description: 'Movie details page'
+
+  - url: /tv/[id]
+    machine_view: /api/tv/[id]/llm
+    purpose: details
+    priority: medium
+    description: 'TV show details page'
+
+# Available actions for AI agents
+actions:
+  - id: semantic_search
+    name: 'Semantic Search'
+    endpoint: /api/search
+    method: POST
+    description: 'Search for movies and TV shows using natural language'
+    example_prompts:
+      - 'exciting sci-fi movies like Inception'
+      - 'heartwarming comedy for family movie night'
+      - 'dark thriller with plot twists'
+      - 'something to watch when I want to feel inspired'
+
+  - id: get_recommendations
+    name: 'Get Recommendations'
+    endpoint: /api/recommendations
+    method: POST
+    description: 'Get personalized content recommendations based on preferences'
+
+  - id: discover_content
+    name: 'Discover Content'
+    endpoint: /api/discover
+    method: GET
+    description: 'Browse trending and popular content'
+
+# Protocols supported
+protocols:
+  - name: 'Media Discovery REST API'
+    type: rest
+    endpoint: /api
+    docs: /api/docs
+
+# Usage policies
+policies:
+  training:
+    allowed: false
+    note: 'Content metadata from TMDB. Training not permitted.'
+
+  inference:
+    allowed: true
+    restrictions:
+      - attribution_required
+      - non_commercial
+
+  attribution:
+    required: true
+    format: link
+    template: 'Powered by AI Media Discovery'
+
+  rate_limits:
+    authenticated: '1000 requests per minute'
+    unauthenticated: '100 requests per minute'

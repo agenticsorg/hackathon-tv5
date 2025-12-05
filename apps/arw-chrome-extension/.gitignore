@@ -1,0 +1,29 @@
+# Node modules (if dependencies added later)
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Extension packaging
+*.zip
+*.crx
+*.pem
+
+# Temporary files
+tmp/
+temp/

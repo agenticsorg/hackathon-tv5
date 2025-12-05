@@ -1,0 +1,624 @@
+name: ARW Specification Formats
+description: Output styles for Agent-Ready Web (ARW) specification components including llms.txt, machine views, actions, and policy files.
+version: 1.0.0
+
+styles:
+  # ============================================================================
+  # 1. llms.txt Discovery File
+  # ============================================================================
+  - name: llms.txt
+    description: YAML discovery manifest listing content, actions, and policies
+    when: Creating or updating /llms.txt discovery files
+    format: |
+      version: 0.1
+      site:
+        title: "{{SITE_NAME}}"
+        description: "{{SITE_DESCRIPTION}}"
+        languages: {{LANGUAGES}}
+        contact: "{{CONTACT_EMAIL}}"
+        homepage: "{{HOMEPAGE_URL}}"
+
+      content:
+        # Product pages
+        - url: {{CONTENT_URL_1}}
+          purpose: {{PURPOSE}}  # product_information, technical_documentation, customer_support
+          machine_view: {{MACHINE_VIEW_URL_1}}
+          last_modified: "{{LAST_MODIFIED}}"
+          priority: {{PRIORITY}}  # high, medium, low
+
+        - url: {{CONTENT_URL_2}}
+          purpose: {{PURPOSE}}
+          machine_view: {{MACHINE_VIEW_URL_2}}
+          last_modified: "{{LAST_MODIFIED}}"
+
+      actions:
+        # OAuth-enforced actions
+        - id: {{ACTION_ID}}
+          name: "{{ACTION_NAME}}"
+          endpoint: {{ACTION_ENDPOINT}}
+          method: {{HTTP_METHOD}}  # POST, GET, PUT, DELETE
+          auth: oauth2
+          description: "{{ACTION_DESCRIPTION}}"
+
+      policies:
+        allow_training: {{ALLOW_TRAINING}}  # true/false
+        allow_inference: {{ALLOW_INFERENCE}}  # true/false
+        require_attribution: {{REQUIRE_ATTRIBUTION}}  # true/false
+        rate_limit: "{{RATE_LIMIT}}"  # e.g., "100/hour"
+        terms_url: "{{TERMS_URL}}"
+
+    example: |
+      version: 0.1
+      site:
+        title: "CloudCart"
+        description: "Modern e-commerce platform for developers"
+        languages: ["en", "es", "fr"]
+        contact: "ai@cloudcart.example.com"
+        homepage: "https://cloudcart.example.com"
+
+      content:
+        # Product catalog
+        - url: https://cloudcart.example.com/products/wireless-keyboard
+          purpose: product_information
+          machine_view: https://cloudcart.example.com/products/wireless-keyboard.llm.md
+          last_modified: "2025-01-15"
+          priority: high
+
+        - url: https://cloudcart.example.com/docs/api/authentication
+          purpose: technical_documentation
+          machine_view: https://cloudcart.example.com/docs/api/authentication.llm.md
+          last_modified: "2025-01-10"
+          priority: medium
+
+      actions:
+        # Order management
+        - id: create_order
+          name: "Create Order"
+          endpoint: https://cloudcart.example.com/api/actions/create-order
+          method: POST
+          auth: oauth2
+          description: "Place a new order with products and shipping info"
+
+        # Support actions
+        - id: create_support_ticket
+          name: "Create Support Ticket"
+          endpoint: https://cloudcart.example.com/api/actions/create-ticket
+          method: POST
+          auth: oauth2
+          description: "Submit a customer support request"
+
+      policies:
+        allow_training: false
+        allow_inference: true
+        require_attribution: true
+        rate_limit: "100/hour"
+        terms_url: "https://cloudcart.example.com/terms/ai-usage"
+
+  # ============================================================================
+  # 2. llms.txt with Protocol Interoperability
+  # ============================================================================
+  - name: llms.txt-with-protocols
+    description: Discovery file advertising ARW content plus ACP, MCP, and A2A endpoints
+    when: Creating llms.txt that advertises multiple protocol capabilities
+    format: |
+      version: 0.1
+      site:
+        title: "{{SITE_NAME}}"
+        description: "{{SITE_DESCRIPTION}}"
+
+      # ARW content discovery
+      content:
+        - url: {{CONTENT_URL}}
+          machine_view: {{MACHINE_VIEW_URL}}
+          purpose: {{PURPOSE}}
+
+      # ARW declarative actions
+      actions:
+        - id: {{ACTION_ID}}
+          endpoint: {{ACTION_ENDPOINT}}
+          method: {{HTTP_METHOD}}
+          auth: {{AUTH_TYPE}}
+
+      # Agentic Commerce Protocol (ACP)
+      agentic_commerce:
+        protocol: "acp/2025-09-29"
+        checkout_api:
+          base_url: "{{BASE_URL}}"
+          openapi_spec: "{{OPENAPI_SPEC_URL}}"
+          endpoints:
+            create_session: "/checkout_sessions"
+            get_session: "/checkout_sessions/{id}"
+            update_session: "/checkout_sessions/{id}"
+            complete_session: "/checkout_sessions/{id}/complete"
+            cancel_session: "/checkout_sessions/{id}/cancel"
+        payment_delegation:
+          endpoint: "/agentic_commerce/delegate_payment"
+          provider: "stripe"
+        schemas:
+          checkout_session: "{{CHECKOUT_SCHEMA_URL}}"
+        supported_currencies: {{CURRENCIES}}
+        supported_payment_methods: {{PAYMENT_METHODS}}
+
+      # Model Context Protocol (MCP)
+      mcp_servers:
+        - name: "{{MCP_SERVER_NAME}}"
+          description: "{{MCP_DESCRIPTION}}"
+          endpoint: "{{MCP_ENDPOINT}}"
+          transport: "{{TRANSPORT}}"  # sse, websocket
+          capabilities: {{CAPABILITIES}}
+          schema_url: "{{SCHEMA_URL}}"
+
+      # Agent2Agent Protocol (A2A)
+      a2a_agents:
+        - name: "{{A2A_AGENT_NAME}}"
+          description: "{{A2A_DESCRIPTION}}"
+          agent_card_url: "{{AGENT_CARD_URL}}"
+          endpoint: "{{A2A_ENDPOINT}}"
+          protocol: "a2a/v1"
+
+      policies:
+        allow_training: {{ALLOW_TRAINING}}
+        allow_inference: {{ALLOW_INFERENCE}}
+        require_attribution: {{REQUIRE_ATTRIBUTION}}
+
+    example: |
+      version: 0.1
+      site:
+        title: "CloudCart"
+
+      content:
+        - url: https://cloudcart.example.com/products/wireless-keyboard
+          machine_view: https://cloudcart.example.com/products/wireless-keyboard.llm.md
+          purpose: product_information
+
+      actions:
+        - id: add_to_wishlist
+          endpoint: https://cloudcart.example.com/api/actions/add-to-wishlist
+          method: POST
+          auth: oauth2
+
+      agentic_commerce:
+        protocol: "acp/2025-09-29"
+        checkout_api:
+          base_url: "https://cloudcart.example.com"
+          openapi_spec: "https://cloudcart.example.com/acp/openapi.agentic_checkout.yaml"
+          endpoints:
+            create_session: "/checkout_sessions"
+            complete_session: "/checkout_sessions/{id}/complete"
+        payment_delegation:
+          endpoint: "/agentic_commerce/delegate_payment"
+          provider: "stripe"
+        schemas:
+          checkout_session: "https://cloudcart.example.com/acp/schema.agentic_checkout.json"
+        supported_currencies: ["usd", "eur", "gbp"]
+        supported_payment_methods: ["card", "apple_pay", "google_pay", "link"]
+
+      mcp_servers:
+        - name: "cloudcart-product-catalog"
+          description: "MCP server for product search and information"
+          endpoint: "mcp://cloudcart.example.com/mcp/products"
+          transport: "sse"
+          capabilities: ["product_search", "product_details", "inventory_check"]
+          schema_url: "https://cloudcart.example.com/mcp/products/schema.json"
+
+      a2a_agents:
+        - name: "cloudcart-product-assistant"
+          description: "Helps users find and compare products"
+          agent_card_url: "https://cloudcart.example.com/a2a/agents/product-assistant.json"
+          endpoint: "https://cloudcart.example.com/a2a/agents/product-assistant"
+          protocol: "a2a/v1"
+
+      policies:
+        allow_training: false
+        allow_inference: true
+        require_attribution: true
+
+  # ============================================================================
+  # 3. Machine View (.llm.md)
+  # ============================================================================
+  - name: machine-view
+    description: Markdown representation of content optimized for LLM consumption
+    when: Creating .llm.md machine view files
+    format: |
+      <!-- chunk: {{CHUNK_ID_1}} -->
+      # {{PAGE_TITLE}}
+
+      {{SUMMARY_PARAGRAPH}}
+
+      **Key Details:**
+      - {{DETAIL_1}}
+      - {{DETAIL_2}}
+      - {{DETAIL_3}}
+
+      <!-- chunk: {{CHUNK_ID_2}} -->
+      ## {{SECTION_HEADING}}
+
+      {{SECTION_CONTENT}}
+
+      <!-- chunk: {{CHUNK_ID_3}} -->
+      ## {{SECTION_HEADING_2}}
+
+      {{SECTION_CONTENT_2}}
+
+      ---
+
+      **Last Updated:** {{LAST_UPDATED}}
+      **Source:** {{SOURCE_URL}}
+
+    example: |
+      <!-- chunk: product-details -->
+      # Wireless Mechanical Keyboard
+
+      Premium wireless mechanical keyboard with hot-swappable Cherry MX Brown switches, designed for developers and content creators.
+
+      **Key Details:**
+      - **Price:** $129.99
+      - **Stock:** In Stock (47 units)
+      - **SKU:** KB-WL-001
+      - **Rating:** 5.0/5 (324 reviews)
+
+      <!-- chunk: product-specs -->
+      ## Specifications
+
+      - **Connection:** Bluetooth 5.0 & USB-C
+      - **Battery:** Up to 40 hours wireless use
+      - **Switch Type:** Cherry MX Brown (tactile)
+      - **Backlight:** RGB with 16.8M colors
+      - **Layout:** 87-key TKL (tenkeyless)
+      - **Keycaps:** Double-shot PBT
+      - **Weight:** 850g
+
+      <!-- chunk: product-description -->
+      ## Description
+
+      Experience professional-grade typing with our wireless mechanical keyboard. Hot-swappable switches let you customize your typing experience without soldering. The compact tenkeyless design saves desk space while maintaining full functionality.
+
+      Features include:
+      - Per-key RGB lighting with multiple preset modes
+      - N-key rollover for accurate multi-key input
+      - Detachable USB-C cable for wired mode
+      - Compatible with Windows, macOS, and Linux
+
+      <!-- chunk: product-shipping -->
+      ## Shipping & Returns
+
+      - **Free shipping** on orders over $50
+      - **Standard shipping:** 5-7 business days
+      - **Express shipping:** 2-3 business days
+      - **30-day return policy** with free return shipping
+
+      ---
+
+      **Last Updated:** 2025-01-15
+      **Source:** https://cloudcart.example.com/products/wireless-keyboard
+
+  # ============================================================================
+  # 4. Schema.org JSON-LD Action Declarations
+  # ============================================================================
+  - name: schema-org-actions
+    description: JSON-LD action declarations using Schema.org vocabulary
+    when: Adding declarative actions to HTML pages
+    format: |
+      <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "{{SCHEMA_TYPE}}",
+        "name": "{{RESOURCE_NAME}}",
+        "potentialAction": [
+          {
+            "@type": "{{ACTION_TYPE}}",
+            "name": "{{ACTION_NAME}}",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "{{ACTION_URL}}",
+              "httpMethod": "{{HTTP_METHOD}}",
+              "encodingType": "application/json",
+              "contentType": "application/json"
+            },
+            "object": {
+              "@type": "{{OBJECT_TYPE}}",
+              "requiredProperty": {{REQUIRED_PROPERTIES}}
+            },
+            "instrument": "{{AUTH_MECHANISM}}",
+            "actionStatus": "PotentialActionStatus",
+            "description": "{{ACTION_DESCRIPTION}}"
+          }
+        ]
+      }
+      </script>
+
+    example: |
+      <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": "Wireless Mechanical Keyboard",
+        "sku": "KB-WL-001",
+        "offers": {
+          "@type": "Offer",
+          "price": "129.99",
+          "priceCurrency": "USD"
+        },
+        "potentialAction": [
+          {
+            "@type": "BuyAction",
+            "name": "Add to Cart",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://cloudcart.example.com/api/actions/add-to-cart",
+              "httpMethod": "POST",
+              "encodingType": "application/json",
+              "contentType": "application/json"
+            },
+            "object": {
+              "@type": "Product",
+              "identifier": "KB-WL-001"
+            },
+            "instrument": "oauth2:user",
+            "actionStatus": "PotentialActionStatus",
+            "description": "Adds this product to the user's shopping cart"
+          },
+          {
+            "@type": "CompareAction",
+            "name": "Compare with Similar Products",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://cloudcart.example.com/api/actions/compare-products?sku={product_sku}",
+              "httpMethod": "GET"
+            },
+            "instrument": "none",
+            "description": "Returns similar products for comparison"
+          }
+        ]
+      }
+      </script>
+
+  # ============================================================================
+  # 5. Policy Declaration File
+  # ============================================================================
+  - name: policy-json
+    description: Machine-readable usage policy declarations
+    when: Creating /policy.json or ai-policy.json files
+    format: |
+      {
+        "version": "0.1",
+        "publisher": {
+          "name": "{{PUBLISHER_NAME}}",
+          "contact": "{{CONTACT_EMAIL}}",
+          "website": "{{WEBSITE_URL}}"
+        },
+        "training": {
+          "allowed": {{TRAINING_ALLOWED}},
+          "scope": "{{TRAINING_SCOPE}}",
+          "restrictions": "{{TRAINING_RESTRICTIONS}}"
+        },
+        "inference": {
+          "allowed": {{INFERENCE_ALLOWED}},
+          "scope": "{{INFERENCE_SCOPE}}",
+          "restrictions": "{{INFERENCE_RESTRICTIONS}}"
+        },
+        "attribution": {
+          "required": {{ATTRIBUTION_REQUIRED}},
+          "format": "{{ATTRIBUTION_FORMAT}}",
+          "link_required": {{LINK_REQUIRED}}
+        },
+        "rate_limiting": {
+          "requests_per_hour": {{REQUESTS_PER_HOUR}},
+          "applies_to": "{{APPLIES_TO}}"
+        },
+        "compliance": {
+          "terms_url": "{{TERMS_URL}}",
+          "privacy_url": "{{PRIVACY_URL}}",
+          "enforcement": "{{ENFORCEMENT_MECHANISM}}"
+        }
+      }
+
+    example: |
+      {
+        "version": "0.1",
+        "publisher": {
+          "name": "CloudCart Inc.",
+          "contact": "ai@cloudcart.example.com",
+          "website": "https://cloudcart.example.com"
+        },
+        "training": {
+          "allowed": false,
+          "scope": "none",
+          "restrictions": "Content may not be used for model training without explicit written permission"
+        },
+        "inference": {
+          "allowed": true,
+          "scope": "all_content",
+          "restrictions": "Must respect rate limits and provide attribution"
+        },
+        "attribution": {
+          "required": true,
+          "format": "Source: CloudCart - [page title]",
+          "link_required": true
+        },
+        "rate_limiting": {
+          "requests_per_hour": 100,
+          "applies_to": "per_agent_identifier"
+        },
+        "compliance": {
+          "terms_url": "https://cloudcart.example.com/terms/ai-usage",
+          "privacy_url": "https://cloudcart.example.com/privacy",
+          "enforcement": "advisory"
+        }
+      }
+
+  # ============================================================================
+  # 6. Sitemap for LLMs
+  # ============================================================================
+  - name: sitemap-llm-json
+    description: JSON sitemap optimized for machine consumption
+    when: Creating /sitemap.llm.json files
+    format: |
+      {
+        "version": "0.1",
+        "generated": "{{TIMESTAMP}}",
+        "items": [
+          {
+            "url": "{{PAGE_URL}}",
+            "machine_view": "{{MACHINE_VIEW_URL}}",
+            "priority": {{PRIORITY}},
+            "last_modified": "{{LAST_MODIFIED}}",
+            "chunks": "{{CHUNKING_STRATEGY}}",
+            "content_type": "{{CONTENT_TYPE}}",
+            "estimated_tokens": {{TOKEN_COUNT}}
+          }
+        ]
+      }
+
+    example: |
+      {
+        "version": "0.1",
+        "generated": "2025-01-15T10:30:00Z",
+        "items": [
+          {
+            "url": "https://cloudcart.example.com/products/wireless-keyboard",
+            "machine_view": "https://cloudcart.example.com/products/wireless-keyboard.llm.md",
+            "priority": 0.9,
+            "last_modified": "2025-01-15",
+            "chunks": "h2-split",
+            "content_type": "product_information",
+            "estimated_tokens": 850
+          },
+          {
+            "url": "https://cloudcart.example.com/docs/api/authentication",
+            "machine_view": "https://cloudcart.example.com/docs/api/authentication.llm.md",
+            "priority": 0.8,
+            "last_modified": "2025-01-10",
+            "chunks": "h2-split",
+            "content_type": "technical_documentation",
+            "estimated_tokens": 1200
+          },
+          {
+            "url": "https://cloudcart.example.com/support/shipping-returns",
+            "machine_view": "https://cloudcart.example.com/support/shipping-returns.llm.md",
+            "priority": 0.6,
+            "last_modified": "2025-01-08",
+            "chunks": "h3-split",
+            "content_type": "customer_support",
+            "estimated_tokens": 600
+          }
+        ]
+      }
+
+  # ============================================================================
+  # 7. HTML Link Tags for ARW
+  # ============================================================================
+  - name: html-link-tags
+    description: HTML meta and link tags for ARW integration
+    when: Adding ARW metadata to HTML head sections
+    format: |
+      <head>
+        <!-- ARW Machine View Link -->
+        <link rel="alternate"
+              type="text/x-llm+markdown"
+              href="{{MACHINE_VIEW_URL}}"
+              title="Machine-readable version" />
+
+        <!-- ARW Sitemap Link -->
+        <link rel="llm-sitemap"
+              type="application/json"
+              href="{{SITEMAP_URL}}" />
+
+        <!-- ARW Discovery Link -->
+        <link rel="llms-discovery"
+              type="text/yaml"
+              href="/llms.txt" />
+      </head>
+
+    example: |
+      <head>
+        <title>Wireless Mechanical Keyboard - CloudCart</title>
+
+        <!-- Standard SEO -->
+        <meta name="description" content="Premium wireless mechanical keyboard with Cherry MX Brown switches" />
+        <link rel="canonical" href="https://cloudcart.example.com/products/wireless-keyboard" />
+
+        <!-- Open Graph -->
+        <meta property="og:title" content="Wireless Mechanical Keyboard" />
+        <meta property="og:description" content="Premium wireless mechanical keyboard" />
+        <meta property="og:url" content="https://cloudcart.example.com/products/wireless-keyboard" />
+
+        <!-- ARW Machine View Link -->
+        <link rel="alternate"
+              type="text/x-llm+markdown"
+              href="https://cloudcart.example.com/products/wireless-keyboard.llm.md"
+              title="Machine-readable version" />
+
+        <!-- ARW Sitemap Link -->
+        <link rel="llm-sitemap"
+              type="application/json"
+              href="https://cloudcart.example.com/sitemap.llm.json" />
+
+        <!-- ARW Discovery Link -->
+        <link rel="llms-discovery"
+              type="text/yaml"
+              href="/llms.txt" />
+      </head>
+
+  # ============================================================================
+  # 8. HTTP Response Headers for ARW
+  # ============================================================================
+  - name: arw-http-headers
+    description: Observability headers for ARW machine views
+    when: Implementing HTTP response headers for .llm.md endpoints
+    format: |
+      HTTP/1.1 200 OK
+      Content-Type: text/x-llm+markdown; charset=utf-8
+      AI-Attribution: required; link={{ATTRIBUTION_URL}}
+      AI-Usage-Policy: {{POLICY_URL}}
+      AI-Chunk-Map: {{CHUNK_MAP_URL}}
+      AI-Rate-Limit: {{RATE_LIMIT}}
+      Vary: Accept, User-Agent
+      Cache-Control: public, max-age={{CACHE_SECONDS}}
+
+    example: |
+      HTTP/1.1 200 OK
+      Content-Type: text/x-llm+markdown; charset=utf-8
+      AI-Attribution: required; link=https://cloudcart.example.com
+      AI-Usage-Policy: https://cloudcart.example.com/policy.json
+      AI-Chunk-Map: https://cloudcart.example.com/products/wireless-keyboard/chunks.json
+      AI-Rate-Limit: 100/hour
+      Vary: Accept, User-Agent
+      Cache-Control: public, max-age=3600
+      Last-Modified: Wed, 15 Jan 2025 10:30:00 GMT
+
+      <!-- chunk: product-details -->
+      # Wireless Mechanical Keyboard
+      ...
+
+usage_notes: |
+  # ARW Output Style Usage
+
+  This output style helps Claude generate properly formatted ARW specification components.
+
+  ## When to Use Each Style
+
+  1. **llms.txt**: Use when creating site-wide discovery files
+  2. **llms.txt-with-protocols**: Use when site supports ACP, MCP, or A2A
+  3. **machine-view**: Use when creating .llm.md content files
+  4. **schema-org-actions**: Use when adding actions to HTML pages
+  5. **policy-json**: Use when defining usage policies
+  6. **sitemap-llm-json**: Use when creating LLM-optimized sitemaps
+  7. **html-link-tags**: Use when updating HTML head sections
+  8. **arw-http-headers**: Use when implementing machine view endpoints
+
+  ## Key Principles
+
+  - **YAML for discovery** (llms.txt) - Simple, human-readable
+  - **Markdown for content** (.llm.md) - Token-efficient, semantic
+  - **JSON-LD for actions** - Standard Schema.org vocabulary
+  - **JSON for policies** - Machine-readable, structured
+  - **HTTP headers for observability** - Standard web protocols
+
+  ## Progressive Implementation
+
+  1. Start with llms.txt
+  2. Add machine views for key pages
+  3. Declare actions with JSON-LD 
+  4. Implement OAuth for sensitive actions 
+  5. Add protocol interoperability (as needed)

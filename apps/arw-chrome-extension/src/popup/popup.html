@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARW Inspector</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <h1 class="title">ARW Inspector</h1>
+        <div id="compliance-badge" class="badge badge-unknown">
+          <span id="badge-text">Checking...</span>
+        </div>
+      </div>
+      <p class="subtitle">Agent-Ready Web Compliance</p>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content" class="main-content">
+      <!-- Loading State -->
+      <div id="loading-state" class="state-container">
+        <div class="spinner"></div>
+        <p>Inspecting page...</p>
+      </div>
+
+      <!-- Error State -->
+      <div id="error-state" class="state-container" style="display: none;">
+        <div class="error-icon">⚠️</div>
+        <p class="error-message" id="error-message">No inspection data available</p>
+      </div>
+
+      <!-- Results Container -->
+      <div id="results-container" class="results-container" style="display: none;">
+        <!-- URL Info -->
+        <section class="section">
+          <h2 class="section-title">Page Information</h2>
+          <div class="info-row">
+            <span class="info-label">URL:</span>
+            <span class="info-value" id="page-url">-</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Inspected:</span>
+            <span class="info-value" id="inspection-time">-</span>
+          </div>
+        </section>
+
+        <!-- ARW Features -->
+        <section class="section">
+          <h2 class="section-title">ARW Features</h2>
+
+          <!-- llms.txt -->
+          <div class="feature-item">
+            <div class="feature-header">
+              <span class="feature-icon" id="llms-icon">⭕</span>
+              <span class="feature-name">llms.txt</span>
+              <span class="feature-status" id="llms-status">Not Found</span>
+            </div>
+            <div class="feature-details" id="llms-details"></div>
+          </div>
+
+          <!-- .well-known Files -->
+          <div class="feature-item">
+            <div class="feature-header">
+              <span class="feature-icon" id="wellknown-icon">⭕</span>
+              <span class="feature-name">.well-known</span>
+              <span class="feature-status" id="wellknown-status">Not Found</span>
+            </div>
+            <div class="feature-details" id="wellknown-details"></div>
+          </div>
+
+          <!-- Machine Views -->
+          <div class="feature-item">
+            <div class="feature-header">
+              <span class="feature-icon" id="machineview-icon">⭕</span>
+              <span class="feature-name">Machine Views</span>
+              <span class="feature-status" id="machineview-status">Not Found</span>
+            </div>
+            <div class="feature-details" id="machineview-details"></div>
+          </div>
+
+          <!-- robots.txt -->
+          <div class="feature-item">
+            <div class="feature-header">
+              <span class="feature-icon" id="robots-icon">⭕</span>
+              <span class="feature-name">robots.txt</span>
+              <span class="feature-status" id="robots-status">Not Found</span>
+            </div>
+            <div class="feature-details" id="robots-details"></div>
+          </div>
+
+          <!-- Meta Tags -->
+          <div class="feature-item" id="metatags-container" style="display: none;">
+            <div class="feature-header">
+              <span class="feature-icon">✓</span>
+              <span class="feature-name">ARW Meta Tags</span>
+              <span class="feature-status" id="metatags-count">0</span>
+            </div>
+            <div class="feature-details" id="metatags-details"></div>
+          </div>
+        </section>
+
+        <!-- Errors -->
+        <section class="section" id="errors-section" style="display: none;">
+          <h2 class="section-title">Errors</h2>
+          <div id="errors-list" class="errors-list"></div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <a href="https://github.com/agent-ready-web" target="_blank" class="footer-link">
+        Learn about Agent-Ready Web
+      </a>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

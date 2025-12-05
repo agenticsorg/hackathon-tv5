@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARW Inspector</title>
+  <link rel="stylesheet" href="sidepanel.css">
+  <link rel="stylesheet" href="geo-styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <h1 class="title">ARW Inspector</h1>
+        <div class="badges">
+          <div id="compliance-badge" class="badge badge-unknown">
+            <span id="badge-text">Checking...</span>
+          </div>
+          <div id="geo-badge" class="badge badge-geo badge-unknown">
+            <span id="geo-badge-text">GEO: --</span>
+          </div>
+        </div>
+      </div>
+      <p class="page-url" id="page-url">-</p>
+    </header>
+
+    <!-- Tab Navigation -->
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-tab="machine-view">
+        Machine View
+      </button>
+      <button class="tab-btn" data-tab="geo">
+        GEO Score
+      </button>
+      <button class="tab-btn" data-tab="token-cost">
+        Token Cost
+      </button>
+      <button class="tab-btn" data-tab="protocols">
+        Protocols
+      </button>
+      <button class="tab-btn" data-tab="discovery">
+        Discovery
+      </button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Loading State -->
+      <div id="loading-state" class="state-container">
+        <div class="spinner"></div>
+        <p>Inspecting page...</p>
+      </div>
+
+      <!-- Error State -->
+      <div id="error-state" class="state-container" style="display: none;">
+        <div class="error-icon">⚠️</div>
+        <p class="error-message" id="error-message">No inspection data available</p>
+        <button class="btn btn-primary" id="retry-btn">Retry Inspection</button>
+      </div>
+
+      <!-- Machine View Tab -->
+      <div id="machine-view-tab" class="tab-content active" style="display: none;">
+        <div class="section">
+          <div class="section-header">
+            <h2 class="section-title">Machine View Content</h2>
+            <div class="section-actions">
+              <button class="btn btn-sm" id="copy-machine-view">Copy</button>
+              <button class="btn btn-sm" id="open-machine-view">Open</button>
+            </div>
+          </div>
+
+          <div id="machine-view-status" class="status-bar">
+            <span class="status-icon" id="mv-status-icon">⭕</span>
+            <span class="status-text" id="mv-status-text">Checking for machine view...</span>
+          </div>
+
+          <div id="machine-view-content" class="markdown-content">
+            <p class="placeholder">No machine view available for this page</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Token Cost Tab -->
+      <div id="token-cost-tab" class="tab-content" style="display: none;">
+        <div class="section">
+          <h2 class="section-title">Token Cost Comparison</h2>
+
+          <div class="comparison-grid">
+            <!-- HTML Version -->
+            <div class="comparison-card">
+              <div class="card-header html">
+                <span class="card-icon">🌐</span>
+                <h3>HTML Version</h3>
+              </div>
+              <div class="card-body">
+                <div class="metric">
+                  <span class="metric-label">Size</span>
+                  <span class="metric-value" id="html-size">-</span>
+                </div>
+                <div class="metric">
+                  <span class="metric-label">Estimated Tokens</span>
+                  <span class="metric-value" id="html-tokens">-</span>
+                </div>
+                <div class="metric">
+                  <span class="metric-label">Est. Cost (GPT-4)</span>
+                  <span class="metric-value" id="html-cost">-</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Machine View Version -->
+            <div class="comparison-card">
+              <div class="card-header machine">
+                <span class="card-icon">🤖</span>
+                <h3>Machine View</h3>
+              </div>
+              <div class="card-body">
+                <div class="metric">
+                  <span class="metric-label">Size</span>
+                  <span class="metric-value" id="mv-size">-</span>
+                </div>
+                <div class="metric">
+                  <span class="metric-label">Estimated Tokens</span>
+                  <span class="metric-value" id="mv-tokens">-</span>
+                </div>
+                <div class="metric">
+                  <span class="metric-label">Est. Cost (GPT-4)</span>
+                  <span class="metric-value" id="mv-cost">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Savings Summary -->
+          <div class="savings-summary" id="savings-summary">
+            <h3>Savings with Machine View</h3>
+            <div class="savings-grid">
+              <div class="saving-item">
+                <span class="saving-value" id="size-reduction">-</span>
+                <span class="saving-label">Size Reduction</span>
+              </div>
+              <div class="saving-item">
+                <span class="saving-value" id="token-reduction">-</span>
+                <span class="saving-label">Token Reduction</span>
+              </div>
+              <div class="saving-item">
+                <span class="saving-value" id="cost-savings">-</span>
+                <span class="saving-label">Cost Savings</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Monthly Projection -->
+          <div class="projection-section">
+            <h3>Monthly Projection</h3>
+            <div class="projection-input">
+              <label for="monthly-requests">Requests per month:</label>
+              <input type="number" id="monthly-requests" value="10000" min="1">
+            </div>
+            <div class="projection-results">
+              <div class="projection-item">
+                <span class="projection-label">Bandwidth Saved</span>
+                <span class="projection-value" id="bandwidth-saved">-</span>
+              </div>
+              <div class="projection-item">
+                <span class="projection-label">Tokens Saved</span>
+                <span class="projection-value" id="tokens-saved">-</span>
+              </div>
+              <div class="projection-item">
+                <span class="projection-label">Cost Saved</span>
+                <span class="projection-value" id="cost-saved">-</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Protocols Tab -->
+      <div id="protocols-tab" class="tab-content" style="display: none;">
+        <div class="section">
+          <h2 class="section-title">ARW Protocols & Actions</h2>
+
+          <!-- AI Headers -->
+          <div class="protocol-group">
+            <h3 class="protocol-group-title">AI Headers</h3>
+            <div id="ai-headers-list" class="protocol-list">
+              <p class="placeholder">No AI headers detected</p>
+            </div>
+          </div>
+
+          <!-- Available Actions -->
+          <div class="protocol-group">
+            <h3 class="protocol-group-title">Available Actions</h3>
+            <div id="actions-list" class="actions-list">
+              <p class="placeholder">No actions available</p>
+            </div>
+          </div>
+
+          <!-- Permissions -->
+          <div class="protocol-group">
+            <h3 class="protocol-group-title">Permissions</h3>
+            <div id="permissions-list" class="permissions-grid">
+              <div class="permission-item">
+                <span class="permission-icon" id="training-icon">⭕</span>
+                <span class="permission-label">AI Training</span>
+                <span class="permission-value" id="training-value">Unknown</span>
+              </div>
+              <div class="permission-item">
+                <span class="permission-icon" id="inference-icon">⭕</span>
+                <span class="permission-label">AI Inference</span>
+                <span class="permission-value" id="inference-value">Unknown</span>
+              </div>
+              <div class="permission-item">
+                <span class="permission-icon" id="attribution-icon">⭕</span>
+                <span class="permission-label">Attribution</span>
+                <span class="permission-value" id="attribution-value">Unknown</span>
+              </div>
+              <div class="permission-item">
+                <span class="permission-icon" id="ratelimit-icon">⭕</span>
+                <span class="permission-label">Rate Limit</span>
+                <span class="permission-value" id="ratelimit-value">Unknown</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- OAuth/Auth Actions -->
+          <div class="protocol-group">
+            <h3 class="protocol-group-title">Authentication</h3>
+            <div id="auth-section" class="auth-section">
+              <p class="placeholder">No authentication protocols detected</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GEO Tab -->
+      <div id="geo-tab" class="tab-content" style="display: none;">
+        <div class="section">
+          <h2 class="section-title">GEO Analysis</h2>
+          <p class="section-subtitle">Generative Engine Optimization Score</p>
+
+          <!-- GEO Score Display -->
+          <div class="geo-score-container">
+            <div class="geo-score-circle">
+              <svg class="score-ring" width="200" height="200">
+                <circle class="score-ring-circle" stroke="#e5e7eb" stroke-width="12" fill="transparent" r="90" cx="100" cy="100"/>
+                <circle id="geo-score-ring" class="score-ring-progress" stroke="#2563eb" stroke-width="12" fill="transparent" r="90" cx="100" cy="100" stroke-dasharray="565" stroke-dashoffset="565"/>
+              </svg>
+              <div class="score-text">
+                <div class="score-value" id="geo-score-value">--</div>
+                <div class="score-label">GEO Score</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Subscores -->
+          <div class="geo-subscores-grid">
+            <div class="geo-subscore">
+              <span class="subscore-value" id="geo-authority">--</span>
+              <span class="subscore-name">Authority</span>
+            </div>
+            <div class="geo-subscore">
+              <span class="subscore-value" id="geo-evidence">--</span>
+              <span class="subscore-name">Evidence</span>
+            </div>
+            <div class="geo-subscore">
+              <span class="subscore-value" id="geo-semantic">--</span>
+              <span class="subscore-name">Semantic Clarity</span>
+            </div>
+            <div class="geo-subscore">
+              <span class="subscore-value" id="geo-arw-readiness">--</span>
+              <span class="subscore-name">ARW Readiness</span>
+            </div>
+          </div>
+
+          <!-- Detailed Metrics -->
+          <div class="geo-details">
+            <div class="detail-row">
+              <span class="detail-label">External Links:</span>
+              <span class="detail-value" id="geo-ext-links">--</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">External Domains:</span>
+              <span class="detail-value" id="geo-ext-domains">--</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Statistics:</span>
+              <span class="detail-value" id="geo-statistics">--</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Quotations:</span>
+              <span class="detail-value" id="geo-quotations">--</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Entities:</span>
+              <span class="detail-value" id="geo-entities">--</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Word Count:</span>
+              <span class="detail-value" id="geo-word-count">--</span>
+            </div>
+          </div>
+
+          <!-- Analysis Info -->
+          <div class="geo-info-box">
+            <div class="info-row">
+              <span class="info-label">Profile:</span>
+              <span class="info-value" id="geo-profile">ARW-2.2</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Status:</span>
+              <span class="info-value" id="geo-status">Ready to analyze</span>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="geo-actions">
+            <button class="btn btn-primary" id="open-full-analysis">
+              Open Full Analysis
+            </button>
+          </div>
+
+          <!-- Note -->
+          <div class="geo-note">
+            <p><strong>Note:</strong> GEO analysis runs automatically on page load. For AI-enhanced analysis with LLM, click "Open Full Analysis" to use the ARW Inspector app.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Discovery Tab -->
+      <div id="discovery-tab" class="tab-content" style="display: none;">
+        <div class="section">
+          <h2 class="section-title">Discovery Results</h2>
+
+          <!-- Discovery Timeline -->
+          <div class="discovery-timeline" id="discovery-timeline">
+            <!-- llms.txt -->
+            <div class="discovery-item">
+              <div class="discovery-header">
+                <span class="discovery-icon" id="llms-icon">⭕</span>
+                <span class="discovery-name">llms.txt</span>
+                <span class="discovery-status" id="llms-status">Checking...</span>
+              </div>
+              <div class="discovery-details" id="llms-details"></div>
+            </div>
+
+            <!-- .well-known -->
+            <div class="discovery-item">
+              <div class="discovery-header">
+                <span class="discovery-icon" id="wellknown-icon">⭕</span>
+                <span class="discovery-name">.well-known/arw-manifest.json</span>
+                <span class="discovery-status" id="wellknown-status">Checking...</span>
+              </div>
+              <div class="discovery-details" id="wellknown-details"></div>
+            </div>
+
+            <!-- robots.txt -->
+            <div class="discovery-item">
+              <div class="discovery-header">
+                <span class="discovery-icon" id="robots-icon">⭕</span>
+                <span class="discovery-name">robots.txt</span>
+                <span class="discovery-status" id="robots-status">Checking...</span>
+              </div>
+              <div class="discovery-details" id="robots-details"></div>
+            </div>
+
+            <!-- Machine Views -->
+            <div class="discovery-item">
+              <div class="discovery-header">
+                <span class="discovery-icon" id="machineview-icon">⭕</span>
+                <span class="discovery-name">Machine Views</span>
+                <span class="discovery-status" id="machineview-status">Checking...</span>
+              </div>
+              <div class="discovery-details" id="machineview-details"></div>
+            </div>
+
+            <!-- Meta Tags -->
+            <div class="discovery-item">
+              <div class="discovery-header">
+                <span class="discovery-icon" id="meta-icon">⭕</span>
+                <span class="discovery-name">ARW Meta Tags</span>
+                <span class="discovery-status" id="meta-status">Checking...</span>
+              </div>
+              <div class="discovery-details" id="meta-details"></div>
+            </div>
+          </div>
+
+          <!-- Content Structure -->
+          <div class="content-structure" id="content-structure" style="display: none;">
+            <h3>Content Structure</h3>
+            <div class="tree-view" id="content-tree"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <span class="footer-text">Inspected: <span id="inspection-time">-</span></span>
+      <a href="https://github.com/agent-ready-web" target="_blank" class="footer-link">
+        Learn about ARW
+      </a>
+    </footer>
+  </div>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>

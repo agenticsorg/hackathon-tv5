@@ -1,0 +1,148 @@
+name: CLI Tests
+
+on:
+  push:
+    branches: [main, preview, 'claude/**']
+    paths:
+      - 'tools/npx-arw/**'
+      - '.github/workflows/cli-tests.yml'
+  pull_request:
+    branches: [main, preview]
+    paths:
+      - 'tools/npx-arw/**'
+      - '.github/workflows/cli-tests.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test & Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          components: rustfmt, clippy
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-
+
+      - name: Cache cargo index
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-git-
+
+      - name: Cache cargo build
+        uses: actions/cache@v4
+        with:
+          path: tools/npx-arw/target
+          key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-build-
+
+      - name: Check formatting
+        working-directory: ./tools/npx-arw
+        run: cargo fmt -- --check
+
+      - name: Run clippy
+        working-directory: ./tools/npx-arw
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Run tests
+        working-directory: ./tools/npx-arw
+        run: cargo test --verbose
+
+      - name: Build release binary
+        working-directory: ./tools/npx-arw
+        run: cargo build --release --verbose
+
+  wasm-test:
+    name: WASM Build Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          target: wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-wasm-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-wasm-registry-
+
+      - name: Cache cargo index
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-wasm-git-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-wasm-git-
+
+      - name: Build WASM (Node.js target)
+        working-directory: ./tools/npx-arw
+        run: wasm-pack build --target nodejs --out-dir npm/pkg
+
+      - name: Run WASM tests
+        working-directory: ./tools/npx-arw
+        run: wasm-pack test --node --headless
+
+  multi-platform:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Build binary
+        working-directory: ./tools/npx-arw
+        run: cargo build --release
+
+      - name: Test binary (Unix)
+        if: runner.os != 'Windows'
+        working-directory: ./tools/npx-arw
+        run: |
+          ./target/release/arw --version
+          ./target/release/arw --help
+
+      - name: Test binary (Windows)
+        if: runner.os == 'Windows'
+        working-directory: ./tools/npx-arw
+        run: |
+          .\target\release\arw.exe --version
+          .\target\release\arw.exe --help

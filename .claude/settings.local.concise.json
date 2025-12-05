@@ -1,0 +1,5 @@
+{
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": ["firecrawl-mcp"],
+  "outputStyle": "One Word Output"
+}

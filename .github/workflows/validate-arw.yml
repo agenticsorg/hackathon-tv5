@@ -1,0 +1,83 @@
+name: Validate ARW Manifest
+
+on:
+  push:
+    branches: [main, preview, 'claude/**']
+    paths:
+      - 'apps/www/public/llms.txt'
+      - 'packages/schemas/**'
+      - 'packages/validators/**'
+  pull_request:
+    branches: [main, preview]
+    paths:
+      - 'apps/www/public/llms.txt'
+      - 'packages/schemas/**'
+      - 'packages/validators/**'
+  workflow_dispatch:
+
+jobs:
+  validate-python:
+    name: Validate with Python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install jsonschema pyyaml
+
+      - name: Validate ARW manifest
+        run: |
+          python packages/validators/validate-arw.py apps/www/public/llms.txt --schema packages/schemas/arw_model.json
+
+  validate-node:
+    name: Validate with Node.js
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm install ajv ajv-formats yaml
+
+      - name: Validate ARW manifest
+        run: |
+          node packages/validators/validate-arw.mjs apps/www/public/llms.txt packages/schemas/arw_model.json
+
+  validate-well-known:
+    name: Validate .well-known files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm install ajv ajv-formats
+
+      - name: Check .well-known files exist
+        run: |
+          test -f apps/www/public/.well-known/arw-manifest.json || { echo "Missing arw-manifest.json"; exit 1; }
+          test -f apps/www/public/.well-known/arw-policies.json || { echo "Missing arw-policies.json"; exit 1; }
+          test -f apps/www/public/.well-known/arw-content-index.json || { echo "Missing arw-content-index.json"; exit 1; }
+          echo "✅ All .well-known files present"
+
+      - name: Validate JSON syntax
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('apps/www/public/.well-known/arw-manifest.json', 'utf8'))" && echo "✅ arw-manifest.json is valid JSON"
+          node -e "JSON.parse(require('fs').readFileSync('apps/www/public/.well-known/arw-policies.json', 'utf8'))" && echo "✅ arw-policies.json is valid JSON"
+          node -e "JSON.parse(require('fs').readFileSync('apps/www/public/.well-known/arw-content-index.json', 'utf8'))" && echo "✅ arw-content-index.json is valid JSON"

@@ -1,0 +1,58 @@
+name: ARW Validate
+
+run-name: ARW Validate - ${{ inputs.domain }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      domain:
+        description: 'Base domain to validate (e.g., https://example.com)'
+        required: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install validator dependencies
+        working-directory: ./tools/arw-validator
+        run: npm install
+
+      - name: Generate report filename
+        id: filename
+        run: |
+          # Sanitize domain for filename (remove protocol, replace special chars with dashes)
+          DOMAIN_CLEAN=$(echo "${{ github.event.inputs.domain }}" | sed 's|https\?://||' | sed 's|[^a-zA-Z0-9]|-|g' | sed 's|-\+|-|g' | sed 's|^-||' | sed 's|-$||')
+          TIMESTAMP=$(date -u +"%Y%m%d-%H%M%S")
+          FILENAME="arw-report-${DOMAIN_CLEAN}-${TIMESTAMP}.txt"
+          echo "filename=${FILENAME}" >> $GITHUB_OUTPUT
+          echo "domain_clean=${DOMAIN_CLEAN}" >> $GITHUB_OUTPUT
+          echo "timestamp=${TIMESTAMP}" >> $GITHUB_OUTPUT
+
+      - name: Run validator
+        working-directory: ./tools/arw-validator
+        run: |
+          node bin/arw-validate.js "${{ github.event.inputs.domain }}" 2>&1 | tee "../../${{ steps.filename.outputs.filename }}" || true
+
+      - name: Add metadata to report
+        if: always()
+        run: |
+          echo "" >> "${{ steps.filename.outputs.filename }}"
+          echo "---" >> "${{ steps.filename.outputs.filename }}"
+          echo "Validation Date: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> "${{ steps.filename.outputs.filename }}"
+          echo "Domain: ${{ github.event.inputs.domain }}" >> "${{ steps.filename.outputs.filename }}"
+          echo "Workflow: ${{ github.workflow }}" >> "${{ steps.filename.outputs.filename }}"
+          echo "Run ID: ${{ github.run_id }}" >> "${{ steps.filename.outputs.filename }}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: arw-report-${{ steps.filename.outputs.domain_clean }}-${{ steps.filename.outputs.timestamp }}
+          path: ${{ steps.filename.outputs.filename }}
