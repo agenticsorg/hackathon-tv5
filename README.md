@@ -2,6 +2,7 @@
 
 [![Agentics](https://img.shields.io/badge/Agentics-TV5_Hackathon-orange.svg)](https://agentics.org/hackathon)
 [![RuVector](https://img.shields.io/badge/RuVector-PostgreSQL-green.svg)](https://www.npmjs.com/package/@ruvector/postgres-cli)
+[![Docker](https://img.shields.io/badge/Docker-ruvector--postgres-blue.svg)](https://hub.docker.com/r/ruvnet/ruvector-postgres)
 [![npm](https://img.shields.io/badge/npm-ruvector-red.svg)](https://www.npmjs.com/package/ruvector)
 [![Discord](https://img.shields.io/badge/Discord-Agentics-7289da.svg)](https://discord.agentics.org)
 
@@ -250,12 +251,19 @@ const strategy = router.route(query, {
 The benchmarks use **ruvector-postgres** — a drop-in pgvector replacement with **53+ SQL functions**:
 
 ```bash
-# Setup RuVector PostgreSQL extension (replaces pgvector)
-npm install -g @ruvector/postgres-cli
-ruvector-pg install
+# Option 1: Docker (recommended)
+docker pull ruvnet/ruvector-postgres
+docker run -d --name ruvector-pg \
+  -e POSTGRES_PASSWORD=secret \
+  -p 5432:5432 \
+  ruvnet/ruvector-postgres:latest
 
-# Or via Docker
-docker run -d -e POSTGRES_PASSWORD=secret -p 5432:5432 ruvector/postgres:latest
+# Option 2: CLI install into existing PostgreSQL
+npm install -g @ruvector/postgres-cli
+ruvector-pg install --method native
+
+# Option 3: npx (no install required)
+npx @ruvector/postgres-cli@latest install --method docker --port 5432
 
 # Run media gateway benchmarks
 psql -d postgres -f benchmarks/ruvector_benchmark_optimized.sql
@@ -319,6 +327,7 @@ hackathon-tv5/
 ## 🔗 Links
 
 - **RuVector:** [github.com/ruvnet/ruvector](https://github.com/ruvnet/ruvector)
+- **Docker Hub:** [ruvnet/ruvector-postgres](https://hub.docker.com/r/ruvnet/ruvector-postgres)
 - **npm:** [npmjs.com/package/ruvector](https://www.npmjs.com/package/ruvector)
 - **PostgreSQL CLI:** [@ruvector/postgres-cli](https://www.npmjs.com/package/@ruvector/postgres-cli)
 - **Hackathon:** [agentics.org/hackathon](https://agentics.org/hackathon)
