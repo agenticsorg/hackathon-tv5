@@ -552,11 +552,49 @@ npm test         # Run 75+ TDD tests
 
 ---
 
-### 🎬 Phase 4: Demo & Presentation (Week 4)
+### 🎬 Phase 4: Demo & Presentation — IN PROGRESS
 
-*Final Polish & Submission*
+*Progressive Demo Implementation*
 
-- [ ] Demo application with learning dashboard
+> **🖥️ Demo UI LIVE:** https://nexus-ummid-demo-181630922804.us-central1.run.app
+> **📡 API:** https://nexus-ummid-api-181630922804.us-central1.run.app
+
+#### Completed (Option 1: Simple Discovery UI)
+- [x] **Discovery UI deployed to Cloud Run**
+- [x] Semantic search with local filtering fallback
+- [x] Genre quick filters (Action, Comedy, Drama, Sci-Fi, Thriller)
+- [x] 17 movie/series titles in catalog
+- [x] Detail modal with platform validation buttons
+- [x] AI enrichment integration
+- [x] Cloud Build CI/CD pipeline for demo UI
+- [x] Netlify configuration for alternative hosting
+
+#### Next Steps (Progressive Complexity)
+
+**Option 2: Full Discovery Experience** (Next)
+- [ ] User profile with preferences storage
+- [ ] "For You" personalized recommendations
+- [ ] Watch history tracking
+- [ ] Multi-criteria filtering (year, rating, duration)
+- [ ] Mood-based discovery ("I want to feel...")
+
+**Option 3: Real Metadata Integration** (Future)
+- [ ] TMDb API integration for real movie data
+- [ ] High-quality poster images
+- [ ] Trailer playback integration
+- [ ] Real-time availability checking
+- [ ] Cross-platform watch links
+
+#### Demo Files
+| File | Purpose |
+|------|---------|
+| `apps/demo-ui/index.html` | Discovery UI (Alpine.js + Tailwind) |
+| `apps/demo-ui/Dockerfile` | Cloud Run container |
+| `apps/demo-ui/cloudbuild.yaml` | CI/CD pipeline |
+| `apps/metadata-api/docs/PHASE4_DEMO_PLAN.md` | Implementation plan |
+| `netlify.toml` | Alternative Netlify deployment |
+
+#### Final Deliverables (Pending)
 - [ ] Performance validation (400M user simulation)
 - [ ] Presentation materials (slides, talking points)
 - [ ] Video walkthrough (5-10 min)
@@ -582,6 +620,7 @@ npm test         # Run 75+ TDD tests
 | **Claude-Flow** | Orchestration | ✅ Hive Mind + SPARC modes |
 | **Semantic Search** | <100ms latency | ✅ Integrated |
 | **Production Deploy** | Cloud Run live | ✅ **LIVE** |
+| **Demo UI** | Discovery interface | ✅ **LIVE** |
 | **Code Coverage** | >95% | 🎯 Phase 4 |
 
 ---
