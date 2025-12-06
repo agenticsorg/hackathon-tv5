@@ -1,4 +1,5 @@
-import { Client as SSDPClient } from 'node-ssdp';
+import ssdp from 'node-ssdp';
+const SSDPClient = ssdp.Client;
 import { SamsungTVDevice } from './types.js';
 import { generateDeviceId } from '../utils/helpers.js';
 
@@ -147,7 +148,7 @@ function extractModel(server: string | undefined): string | undefined {
  * Continuous discovery that emits events when TVs are found
  */
 export class TVDiscoveryService {
-  private client: SSDPClient;
+  private client: InstanceType<typeof SSDPClient>;
   private devices: Map<string, SamsungTVDevice> = new Map();
   private isRunning = false;
   private intervalId?: ReturnType<typeof setInterval>;
