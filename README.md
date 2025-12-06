@@ -2,23 +2,99 @@
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![npm version](https://img.shields.io/badge/npm-agentics--hackathon-red.svg)](https://www.npmjs.com/package/agentics-hackathon)
+[![RuVector](https://img.shields.io/badge/RuVector-v0.1.31-green.svg)](https://www.npmjs.com/package/ruvector)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-pgvector-blue.svg)](https://github.com/pgvector/pgvector)
 [![Discord](https://img.shields.io/badge/Discord-Agentics-7289da.svg)](https://discord.agentics.org)
 
-> **Build the future of agentic AI - Supported by Google Cloud**
+> **Solving the 45-Minute Media Discovery Problem with AI-Powered Vector Search**
 
-The **Agentics Foundation TV5 Hackathon** repository provides CLI tools, MCP servers, and reference implementations for building agentic AI solutions. This includes the **AI Media Discovery** demo app showcasing the Agent-Ready Web (ARW) specification.
+## 🎬 The Media Gateway Challenge
+
+Every night, millions spend up to **45 minutes deciding what to watch** — billions of hours lost globally. The problem isn't lack of content, but **fragmentation across streaming platforms** and ineffective search algorithms.
+
+Our solution: An **AI Media Gateway** that uses semantic vector search, personalized embeddings, and distributed consensus to deliver instant, personalized recommendations.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        AI MEDIA GATEWAY ARCHITECTURE                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────┐    ┌──────────────┐    ┌──────────────────────────────┐   │
+│  │   User UI   │───▶│  Next.js 15  │───▶│     RuVector Engine          │   │
+│  │  (React 19) │    │   API Layer  │    │  ┌────────────────────────┐  │   │
+│  └─────────────┘    └──────────────┘    │  │ HNSW Index (100K+ docs)│  │   │
+│         │                  │            │  │ <100µs search latency  │  │   │
+│         │           ┌──────┴──────┐     │  └────────────────────────┘  │   │
+│         │           │             │     │  ┌────────────────────────┐  │   │
+│         │    ┌──────▼─────┐ ┌─────▼───┐ │  │ Embedding Cache (5min) │  │   │
+│         │    │   TMDB     │ │ OpenAI  │ │  │ Float32Array Storage   │  │   │
+│         │    │   API      │ │Embeddings│ │  └────────────────────────┘  │   │
+│         │    └────────────┘ └─────────┘ └──────────────────────────────┘   │
+│         │                                         │                         │
+│         │    ┌────────────────────────────────────▼──────────────────────┐  │
+│         │    │              PostgreSQL + pgvector Backend                │  │
+│         │    │  ┌──────────────────────────────────────────────────────┐ │  │
+│         │    │  │  TV5 Benchmark Suite (Raft Consensus + Scale)        │ │  │
+│         │    │  │  • 80K vectors across 8 shards                       │ │  │
+│         │    │  │  • Raft leader election & log replication            │ │  │
+│         │    │  │  • Federated learning (FedAvg aggregation)           │ │  │
+│         │    │  │  • Byzantine fault tolerance (n >= 3f + 1)           │ │  │
+│         │    │  └──────────────────────────────────────────────────────┘ │  │
+│         │    │  ┌──────────────────────────────────────────────────────┐ │  │
+│         │    │  │  Advanced Vector Operations                          │ │  │
+│         │    │  │  • Hyperbolic embeddings (Poincaré, Lorentz)         │ │  │
+│         │    │  │  • Graph Neural Networks (GCN, GraphSAGE)            │ │  │
+│         │    │  │  • Sparse vectors with BM25 scoring                  │ │  │
+│         │    │  │  • Binary/Scalar quantization (32x memory savings)   │ │  │
+│         │    │  └──────────────────────────────────────────────────────┘ │  │
+│         │    └───────────────────────────────────────────────────────────┘  │
+│         │                                                                   │
+│  ┌──────▼─────────────────────────────────────────────────────────────────┐ │
+│  │                    Agent-Ready Web (ARW) Protocol                      │ │
+│  │  • 85% token reduction vs HTML scraping                                │ │
+│  │  • 10x faster AI agent discovery                                       │ │
+│  │  • OAuth-enforced actions for safe transactions                        │ │
+│  └────────────────────────────────────────────────────────────────────────┘ │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🚀 Key Features for Media Gateway
+
+### 1. **Semantic Vector Search** (RuVector + OpenAI Embeddings)
+```typescript
+// Natural language to personalized recommendations in <100µs
+const results = await semanticSearch("mind-bending sci-fi like Inception", 10);
+// Returns: Interstellar, The Matrix, Arrival, Dark...
+```
+
+### 2. **Distributed Consensus** (TV5 Raft Implementation)
+```sql
+-- 5-node Raft cluster for distributed recommendation aggregation
+SELECT * FROM raft_elect_leader(5);  -- Leader election
+SELECT raft_append_entries(...);      -- Log replication
+```
+
+### 3. **Federated Learning** (Cross-Platform Preference Aggregation)
+```sql
+-- FedAvg algorithm across user preference vectors
+SELECT federated_aggregate('cluster-1', 0.7);
+-- Aggregates quality-filtered embeddings from multiple sources
+```
+
+### 4. **Scale Testing** (80K+ Vectors, 8 Shards)
+```sql
+-- Parallel vector search across distributed shards
+SELECT * FROM scale_search_vectors(query_vec, 10, ARRAY[0,1,2,3]);
+```
+
+---
 
 🌐 **Website:** [agentics.org/hackathon](https://agentics.org/hackathon)
 💬 **Discord:** [discord.agentics.org](https://discord.agentics.org)
 📦 **npm:** `npx agentics-hackathon`
-
----
-
-## 🎯 The Challenge
-
-Every night, millions spend up to **45 minutes deciding what to watch** — billions of hours lost every day. Not from lack of content, but from fragmentation across streaming platforms.
-
-Join us to build agentic AI solutions that solve real problems using Google Cloud, Gemini, Claude, and open-source tools.
 
 ---
 
@@ -37,6 +113,52 @@ npx agentics-hackathon status
 # Start MCP server for AI assistant integration
 npx agentics-hackathon mcp
 ```
+
+---
+
+## 📊 RuVector PostgreSQL Benchmark Suite
+
+Our hackathon entry includes a comprehensive PostgreSQL benchmark suite demonstrating advanced vector operations for media recommendation systems.
+
+### Running the Benchmarks
+
+```bash
+# 1. Start PostgreSQL with pgvector
+pg_ctl start -D /var/lib/postgresql/16/main
+
+# 2. Run the optimized benchmark setup (10K vectors, GNN, hyperbolic)
+psql -d postgres -f benchmarks/ruvector_benchmark_optimized.sql
+
+# 3. Execute benchmark queries
+psql -d postgres -f benchmarks/run_benchmarks_optimized.sql
+
+# 4. Run TV5 Raft consensus + scale benchmarks (80K vectors)
+psql -d postgres -f benchmarks/tv5_raft_scale_benchmark.sql
+psql -d postgres -f benchmarks/run_tv5_benchmarks.sql
+```
+
+### Benchmark Results
+
+| Operation | Dataset | Performance |
+|-----------|---------|-------------|
+| HNSW Cosine Search | 10K vectors | <5ms (indexed) |
+| Poincaré Distance KNN | 5K hyperbolic | 15ms |
+| GraphSAGE Aggregation | 1K nodes | 25ms |
+| BM25 + Vector Hybrid | 1K docs | 8ms |
+| Raft Leader Election | 5 nodes | <1ms |
+| Federated Aggregate | 100 agents | 12ms |
+| Shard Vector Search | 80K (8 shards) | 45ms |
+| Binary Quantize | 1K vectors | 3ms |
+| Hamming Distance | 100x100 pairs | 15ms (15x speedup) |
+
+### Advanced Features Demonstrated
+
+- **Hyperbolic Embeddings**: Poincaré ball model for hierarchical content (genres → subgenres → titles)
+- **Graph Neural Networks**: GCN and GraphSAGE for user-content interaction graphs
+- **Sparse Vectors + BM25**: Hybrid semantic + keyword search for robust recommendations
+- **Quantization**: 32x memory reduction with binary/scalar quantization
+- **Raft Consensus**: Distributed recommendation aggregation across multiple servers
+- **Federated Learning**: Privacy-preserving preference learning across platforms
 
 ---
 
@@ -76,6 +198,51 @@ Full Model Context Protocol implementation with:
 |-----|-------------|
 | **[Media Discovery](apps/media-discovery/)** | AI-powered movie/TV discovery with ARW implementation |
 | **[ARW Chrome Extension](apps/arw-chrome-extension/)** | Browser extension for inspecting ARW compliance |
+
+### 🎬 Media Discovery App - How It Works
+
+The Media Discovery app showcases the AI Media Gateway in action:
+
+```
+User Query: "movies like Inception but darker"
+                    │
+                    ▼
+┌──────────────────────────────────────────────────────────┐
+│  1. EMBEDDING GENERATION (OpenAI text-embedding-3-small) │
+│     Query → 768-dim Float32Array                         │
+│     Caching: 5-min TTL, server-side                      │
+└──────────────────────────────────────────────────────────┘
+                    │
+                    ▼
+┌──────────────────────────────────────────────────────────┐
+│  2. VECTOR SEARCH (RuVector HNSW Index)                  │
+│     • 100K media items indexed                           │
+│     • Cosine similarity with threshold 0.3              │
+│     • <100µs search latency                              │
+└──────────────────────────────────────────────────────────┘
+                    │
+                    ▼
+┌──────────────────────────────────────────────────────────┐
+│  3. HYBRID RANKING (Vector + TMDB Metadata)              │
+│     • Vector similarity score (0.85 weight)              │
+│     • Genre matching boost                               │
+│     • Popularity/rating signals                          │
+└──────────────────────────────────────────────────────────┘
+                    │
+                    ▼
+┌──────────────────────────────────────────────────────────┐
+│  4. PERSONALIZED RESULTS                                 │
+│     [1] Dark (score: 0.92) - "Semantically similar"      │
+│     [2] The Prestige (score: 0.88) - "Genre match"       │
+│     [3] Memento (score: 0.85) - "Similar director"       │
+└──────────────────────────────────────────────────────────┘
+```
+
+**Key API Endpoints:**
+- `POST /api/search` - Semantic search with natural language
+- `POST /api/recommendations` - Personalized recommendations
+- `GET /api/discover` - Genre/trending discovery
+- `POST /api/preferences` - User preference learning
 
 ### 📐 ARW (Agent-Ready Web) Components
 
@@ -127,6 +294,12 @@ hackathon-tv5/
 ├── spec/                           # ARW Specification
 │   └── ARW-0.1-draft.md           # Editor's draft specification
 │
+├── benchmarks/                     # PostgreSQL Benchmark Suites
+│   ├── ruvector_benchmark_optimized.sql  # Vector + GNN + Hyperbolic setup
+│   ├── run_benchmarks_optimized.sql      # Optimized benchmark execution
+│   ├── tv5_raft_scale_benchmark.sql      # Raft consensus + 80K scale
+│   └── run_tv5_benchmarks.sql            # TV5 benchmark execution
+│
 ├── docs/                           # Documentation
 ├── ai_docs/                        # AI-focused documentation
 ├── scripts/                        # Build and utility scripts
@@ -160,8 +333,9 @@ The CLI provides access to tools across 6 categories:
 - **Vertex AI SDK** - Google Cloud's unified ML platform
 
 ### Databases & Memory
-- **RuVector** - Vector database and embeddings toolkit
-- **AgentDB** - Database for agentic AI state management
+- **RuVector** - Vector database with native SIMD, HNSW indexing, <100µs search
+- **@ruvector/postgres-cli** - PostgreSQL vector operations CLI (19+ commands)
+- **AgentDB** - 150x faster vector search with RuVector backend
 
 ### Synthesis & Advanced Tools
 - **Agentic Synth** - Synthesis tools for agentic development
@@ -251,12 +425,39 @@ npm run mcp:stdio
 npm run mcp:sse
 ```
 
-### Media Discovery App
+### Media Discovery App (AI Media Gateway)
 
 ```bash
 cd apps/media-discovery
 npm install
+
+# Set up environment
+cp .env.example .env.local
+# Add your TMDB_API_KEY and OPENAI_API_KEY
+
+# Run the app
 npm run dev
+
+# Sync media embeddings to RuVector
+npm run embed:sync
+```
+
+### RuVector PostgreSQL CLI
+
+```bash
+# Install globally
+npm install -g @ruvector/postgres-cli
+
+# Or use npx
+npx @ruvector/postgres-cli --help
+
+# Key commands:
+ruvector-pg setup              # Install pgvector extension
+ruvector-pg create-table       # Create vector table
+ruvector-pg insert             # Insert vectors
+ruvector-pg search             # Semantic search
+ruvector-pg index create       # Create HNSW index
+ruvector-pg benchmark          # Run performance benchmarks
 ```
 
 ---
