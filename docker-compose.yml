@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database with RuVector extension
+  # ruvector-postgres provides SIMD-optimized vector operations for emotion embeddings
+  db:
+    image: ruvnet/ruvector-postgres:latest
+    platform: linux/amd64
+    container_name: emotistream-db
+    environment:
+      POSTGRES_DB: emotistream
+      POSTGRES_USER: emotistream
+      POSTGRES_PASSWORD: emotistream_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    command: >
+      bash -c "
+        rm -f /docker-entrypoint-initdb.d/init.sql 2>/dev/null || true;
+        docker-entrypoint.sh postgres
+      "
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U emotistream -d emotistream"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - emotistream-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./apps/emotistream
+      dockerfile: Dockerfile
+    container_name: emotistream-api
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: emotistream
+      DB_USER: emotistream
+      DB_PASSWORD: emotistream_pass
+      USE_POSTGRES: "true"
+      JWT_SECRET: ${JWT_SECRET:-emotistream-jwt-secret-change-in-production}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      TMDB_ACCESS_TOKEN: ${TMDB_ACCESS_TOKEN:-}
+    ports:
+      - "4000:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:4000/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - emotistream-network
+
+  # Frontend Web App
+  frontend:
+    build:
+      context: ./apps/emotistream-web
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:4000/api/v1
+    container_name: emotistream-web
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - emotistream-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  emotistream-network:
+    driver: bridge

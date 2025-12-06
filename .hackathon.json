@@ -1,0 +1,26 @@
+{
+  "projectName": "hackathon-tv5",
+  "track": "multi-agent-systems",
+  "tools": {
+    "claudeCode": true,
+    "geminiCli": false,
+    "claudeFlow": false,
+    "agenticFlow": false,
+    "flowNexus": false,
+    "adk": false,
+    "googleCloudCli": false,
+    "vertexAi": false,
+    "ruvector": true,
+    "agentDb": true,
+    "agenticSynth": false,
+    "strangeLoops": false,
+    "sparc": true,
+    "lionpride": false,
+    "agenticFramework": false,
+    "openaiAgents": false
+  },
+  "mcpEnabled": true,
+  "discordLinked": true,
+  "initialized": true,
+  "createdAt": "2025-12-05T16:53:23.282Z"
+}
