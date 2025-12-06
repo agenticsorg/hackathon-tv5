@@ -1,132 +1,109 @@
-# Agentics Foundation TV5 Hackathon
+# RuVector PostgreSQL - Advanced Vector Operations
 
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16+-blue.svg)](https://www.postgresql.org/)
+[![pgvector](https://img.shields.io/badge/pgvector-0.6.0-green.svg)](https://github.com/pgvector/pgvector)
+[![npm](https://img.shields.io/badge/npm-@ruvector/postgres--cli-red.svg)](https://www.npmjs.com/package/@ruvector/postgres-cli)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![npm version](https://img.shields.io/badge/npm-agentics--hackathon-red.svg)](https://www.npmjs.com/package/agentics-hackathon)
-[![RuVector](https://img.shields.io/badge/RuVector-v0.1.31-green.svg)](https://www.npmjs.com/package/ruvector)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-pgvector-blue.svg)](https://github.com/pgvector/pgvector)
-[![Discord](https://img.shields.io/badge/Discord-Agentics-7289da.svg)](https://discord.agentics.org)
 
-> **Solving the 45-Minute Media Discovery Problem with AI-Powered Vector Search**
-
-## 🎬 The Media Gateway Challenge
-
-Every night, millions spend up to **45 minutes deciding what to watch** — billions of hours lost globally. The problem isn't lack of content, but **fragmentation across streaming platforms** and ineffective search algorithms.
-
-Our solution: An **AI Media Gateway** that uses semantic vector search, personalized embeddings, and distributed consensus to deliver instant, personalized recommendations.
+> **High-performance PostgreSQL vector operations with Raft consensus, hyperbolic embeddings, GNN, and distributed scale testing**
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                        AI MEDIA GATEWAY ARCHITECTURE                        │
+│                    RUVECTOR POSTGRESQL ARCHITECTURE                         │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  ┌─────────────┐    ┌──────────────┐    ┌──────────────────────────────┐   │
-│  │   User UI   │───▶│  Next.js 15  │───▶│     RuVector Engine          │   │
-│  │  (React 19) │    │   API Layer  │    │  ┌────────────────────────┐  │   │
-│  └─────────────┘    └──────────────┘    │  │ HNSW Index (100K+ docs)│  │   │
-│         │                  │            │  │ <100µs search latency  │  │   │
-│         │           ┌──────┴──────┐     │  └────────────────────────┘  │   │
-│         │           │             │     │  ┌────────────────────────┐  │   │
-│         │    ┌──────▼─────┐ ┌─────▼───┐ │  │ Embedding Cache (5min) │  │   │
-│         │    │   TMDB     │ │ OpenAI  │ │  │ Float32Array Storage   │  │   │
-│         │    │   API      │ │Embeddings│ │  └────────────────────────┘  │   │
-│         │    └────────────┘ └─────────┘ └──────────────────────────────┘   │
-│         │                                         │                         │
-│         │    ┌────────────────────────────────────▼──────────────────────┐  │
-│         │    │              PostgreSQL + pgvector Backend                │  │
-│         │    │  ┌──────────────────────────────────────────────────────┐ │  │
-│         │    │  │  TV5 Benchmark Suite (Raft Consensus + Scale)        │ │  │
-│         │    │  │  • 80K vectors across 8 shards                       │ │  │
-│         │    │  │  • Raft leader election & log replication            │ │  │
-│         │    │  │  • Federated learning (FedAvg aggregation)           │ │  │
-│         │    │  │  • Byzantine fault tolerance (n >= 3f + 1)           │ │  │
-│         │    │  └──────────────────────────────────────────────────────┘ │  │
-│         │    │  ┌──────────────────────────────────────────────────────┐ │  │
-│         │    │  │  Advanced Vector Operations                          │ │  │
-│         │    │  │  • Hyperbolic embeddings (Poincaré, Lorentz)         │ │  │
-│         │    │  │  • Graph Neural Networks (GCN, GraphSAGE)            │ │  │
-│         │    │  │  • Sparse vectors with BM25 scoring                  │ │  │
-│         │    │  │  • Binary/Scalar quantization (32x memory savings)   │ │  │
-│         │    │  └──────────────────────────────────────────────────────┘ │  │
-│         │    └───────────────────────────────────────────────────────────┘  │
-│         │                                                                   │
-│  ┌──────▼─────────────────────────────────────────────────────────────────┐ │
-│  │                    Agent-Ready Web (ARW) Protocol                      │ │
-│  │  • 85% token reduction vs HTML scraping                                │ │
-│  │  • 10x faster AI agent discovery                                       │ │
-│  │  • OAuth-enforced actions for safe transactions                        │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                     PostgreSQL 16 + pgvector 0.6.0                  │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                    │                                        │
+│           ┌────────────────────────┼────────────────────────┐              │
+│           │                        │                        │              │
+│           ▼                        ▼                        ▼              │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐        │
+│  │  HNSW Indexes   │    │  Raft Consensus │    │   Scale Shards  │        │
+│  │  <5ms search    │    │  5-node cluster │    │  80K+ vectors   │        │
+│  │  10K+ vectors   │    │  leader election│    │  8 shards       │        │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘        │
+│           │                        │                        │              │
+│           └────────────────────────┼────────────────────────┘              │
+│                                    ▼                                        │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                    Advanced Vector Operations                        │   │
+│  │  • Hyperbolic Embeddings (Poincaré, Lorentz, Möbius)                │   │
+│  │  • Graph Neural Networks (GCN, GraphSAGE aggregation)               │   │
+│  │  • Sparse Vectors + BM25 hybrid search                              │   │
+│  │  • Binary/Scalar Quantization (32x memory savings)                  │   │
+│  │  • Federated Learning (FedAvg aggregation)                          │   │
+│  │  • Byzantine Fault Tolerance (n >= 3f + 1)                          │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 🚀 Key Features for Media Gateway
-
-### 1. **Semantic Vector Search** (RuVector + OpenAI Embeddings)
-```typescript
-// Natural language to personalized recommendations in <100µs
-const results = await semanticSearch("mind-bending sci-fi like Inception", 10);
-// Returns: Interstellar, The Matrix, Arrival, Dark...
-```
-
-### 2. **Distributed Consensus** (TV5 Raft Implementation)
-```sql
--- 5-node Raft cluster for distributed recommendation aggregation
-SELECT * FROM raft_elect_leader(5);  -- Leader election
-SELECT raft_append_entries(...);      -- Log replication
-```
-
-### 3. **Federated Learning** (Cross-Platform Preference Aggregation)
-```sql
--- FedAvg algorithm across user preference vectors
-SELECT federated_aggregate('cluster-1', 0.7);
--- Aggregates quality-filtered embeddings from multiple sources
-```
-
-### 4. **Scale Testing** (80K+ Vectors, 8 Shards)
-```sql
--- Parallel vector search across distributed shards
-SELECT * FROM scale_search_vectors(query_vec, 10, ARRAY[0,1,2,3]);
-```
-
----
-
-🌐 **Website:** [agentics.org/hackathon](https://agentics.org/hackathon)
-💬 **Discord:** [discord.agentics.org](https://discord.agentics.org)
-📦 **npm:** `npx agentics-hackathon`
-
----
-
 ## 🚀 Quick Start
 
+### Install the CLI
+
 ```bash
-# Initialize your hackathon project
-npx agentics-hackathon init
+# Install globally
+npm install -g @ruvector/postgres-cli
 
-# Browse and install 17+ AI tools
-npx agentics-hackathon tools
+# Or use npx
+npx @ruvector/postgres-cli --help
+```
 
-# Check project status
-npx agentics-hackathon status
+### CLI Commands (19+)
 
-# Start MCP server for AI assistant integration
-npx agentics-hackathon mcp
+```bash
+# Setup & Configuration
+ruvector-pg setup              # Install pgvector extension
+ruvector-pg create-table       # Create vector table with schema
+ruvector-pg drop-table         # Drop vector table
+
+# Data Operations
+ruvector-pg insert             # Insert vectors (single or batch)
+ruvector-pg update             # Update existing vectors
+ruvector-pg delete             # Delete vectors by ID
+ruvector-pg upsert             # Insert or update vectors
+
+# Search & Query
+ruvector-pg search             # Semantic vector search (cosine, L2, IP)
+ruvector-pg get                # Get vector by ID
+ruvector-pg count              # Count vectors in table
+ruvector-pg list               # List vectors with pagination
+
+# Index Management
+ruvector-pg index create       # Create HNSW or IVFFlat index
+ruvector-pg index drop         # Drop index
+ruvector-pg index list         # List all indexes
+ruvector-pg index stats        # Index statistics
+
+# Performance
+ruvector-pg benchmark          # Run performance benchmarks
+ruvector-pg analyze            # Analyze table for query optimization
+ruvector-pg vacuum             # Vacuum and optimize storage
+
+# Utilities
+ruvector-pg info               # Database and extension info
+ruvector-pg export             # Export vectors to JSON/CSV
+ruvector-pg import             # Import vectors from file
 ```
 
 ---
 
-## 📊 RuVector PostgreSQL Benchmark Suite
+## 📊 PostgreSQL Benchmark Suite
 
-Our hackathon entry includes a comprehensive PostgreSQL benchmark suite demonstrating advanced vector operations for media recommendation systems.
+Comprehensive SQL benchmark suite demonstrating advanced vector operations.
 
 ### Running the Benchmarks
 
 ```bash
-# 1. Start PostgreSQL with pgvector
+# 1. Start PostgreSQL 16 with pgvector
 pg_ctl start -D /var/lib/postgresql/16/main
 
-# 2. Run the optimized benchmark setup (10K vectors, GNN, hyperbolic)
+# 2. Run optimized benchmark setup (10K vectors, GNN, hyperbolic)
 psql -d postgres -f benchmarks/ruvector_benchmark_optimized.sql
 
 # 3. Execute benchmark queries
@@ -141,390 +118,307 @@ psql -d postgres -f benchmarks/run_tv5_benchmarks.sql
 
 | Operation | Dataset | Performance |
 |-----------|---------|-------------|
-| HNSW Cosine Search | 10K vectors | <5ms (indexed) |
-| Poincaré Distance KNN | 5K hyperbolic | 15ms |
-| GraphSAGE Aggregation | 1K nodes | 25ms |
-| BM25 + Vector Hybrid | 1K docs | 8ms |
-| Raft Leader Election | 5 nodes | <1ms |
-| Federated Aggregate | 100 agents | 12ms |
-| Shard Vector Search | 80K (8 shards) | 45ms |
-| Binary Quantize | 1K vectors | 3ms |
-| Hamming Distance | 100x100 pairs | 15ms (15x speedup) |
-
-### Advanced Features Demonstrated
-
-- **Hyperbolic Embeddings**: Poincaré ball model for hierarchical content (genres → subgenres → titles)
-- **Graph Neural Networks**: GCN and GraphSAGE for user-content interaction graphs
-- **Sparse Vectors + BM25**: Hybrid semantic + keyword search for robust recommendations
-- **Quantization**: 32x memory reduction with binary/scalar quantization
-- **Raft Consensus**: Distributed recommendation aggregation across multiple servers
-- **Federated Learning**: Privacy-preserving preference learning across platforms
+| **HNSW Cosine Search** | 10K vectors | <5ms (indexed) |
+| **L2 Distance Search** | 10K vectors | <5ms (parallel) |
+| **Poincaré Distance KNN** | 5K hyperbolic | 15ms |
+| **Lorentz Distance** | 5K hyperbolic | 18ms |
+| **Möbius Addition** | 1K operations | 8ms |
+| **GraphSAGE Mean Aggregation** | 1K nodes | 25ms |
+| **BM25 + Vector Hybrid** | 1K documents | 8ms |
+| **Sparse Dot Product** | 2K sparse vectors | 12ms |
+| **Raft Leader Election** | 5 nodes | <1ms |
+| **Raft Log Replication** | 1K entries | 5ms |
+| **Federated Aggregate (FedAvg)** | 100 agents | 12ms |
+| **Shard Vector Search** | 80K (8 shards) | 45ms |
+| **Binary Quantization** | 1K vectors | 3ms |
+| **Scalar Quantization** | 1K vectors | 4ms |
+| **Hamming Distance** | 100x100 pairs | 15ms (15x speedup) |
 
 ---
 
-## 🏆 Hackathon Tracks
+## 🔧 Core SQL Functions
 
-| Track | Description |
-|-------|-------------|
-| **Entertainment Discovery** | Solve the 45-minute decision problem - help users find what to watch |
-| **Multi-Agent Systems** | Build collaborative AI agents with Google ADK and Vertex AI |
-| **Agentic Workflows** | Create autonomous workflows with Claude, Gemini, and orchestration |
-| **Open Innovation** | Bring your own idea - any agentic AI solution that makes an impact |
+### 1. Hyperbolic Embeddings
 
----
+```sql
+-- Poincaré ball distance (hierarchical embeddings)
+SELECT poincare_distance(
+    ARRAY[0.1, 0.2, 0.3]::float8[],
+    ARRAY[0.4, 0.5, 0.6]::float8[],
+    -1.0  -- curvature
+);
 
-## ✨ Features
+-- Lorentz/Hyperboloid distance
+SELECT lorentz_distance(
+    ARRAY[1.5, 0.1, 0.2]::float8[],  -- time component first
+    ARRAY[1.8, 0.3, 0.4]::float8[]
+);
 
-### 🛠 CLI Tool (`npx agentics-hackathon`)
+-- Möbius addition (hyperbolic translation)
+SELECT mobius_add(
+    ARRAY[0.1, 0.2]::float8[],
+    ARRAY[0.3, 0.4]::float8[],
+    -1.0  -- curvature
+);
 
-- **`init`** - Interactive project setup with track selection and tool installation
-- **`tools`** - Browse and install 17+ AI development tools across 6 categories
-- **`status`** - View project configuration and installed tools
-- **`info`** - Hackathon information and resources
-- **`mcp`** - Start MCP server (stdio or SSE transport)
-- **`discord`** - Join the community
-- **`help`** - Detailed guides and examples
-
-### 🤖 MCP Server
-
-Full Model Context Protocol implementation with:
-- **Tools**: `get_hackathon_info`, `get_tracks`, `get_available_tools`, `get_project_status`, `check_tool_installed`, `get_resources`
-- **Resources**: Project configuration, track information
-- **Prompts**: `hackathon_starter`, `choose_track`
-
-### 📱 Demo Applications
-
-| App | Description |
-|-----|-------------|
-| **[Media Discovery](apps/media-discovery/)** | AI-powered movie/TV discovery with ARW implementation |
-| **[ARW Chrome Extension](apps/arw-chrome-extension/)** | Browser extension for inspecting ARW compliance |
-
-### 🎬 Media Discovery App - How It Works
-
-The Media Discovery app showcases the AI Media Gateway in action:
-
-```
-User Query: "movies like Inception but darker"
-                    │
-                    ▼
-┌──────────────────────────────────────────────────────────┐
-│  1. EMBEDDING GENERATION (OpenAI text-embedding-3-small) │
-│     Query → 768-dim Float32Array                         │
-│     Caching: 5-min TTL, server-side                      │
-└──────────────────────────────────────────────────────────┘
-                    │
-                    ▼
-┌──────────────────────────────────────────────────────────┐
-│  2. VECTOR SEARCH (RuVector HNSW Index)                  │
-│     • 100K media items indexed                           │
-│     • Cosine similarity with threshold 0.3              │
-│     • <100µs search latency                              │
-└──────────────────────────────────────────────────────────┘
-                    │
-                    ▼
-┌──────────────────────────────────────────────────────────┐
-│  3. HYBRID RANKING (Vector + TMDB Metadata)              │
-│     • Vector similarity score (0.85 weight)              │
-│     • Genre matching boost                               │
-│     • Popularity/rating signals                          │
-└──────────────────────────────────────────────────────────┘
-                    │
-                    ▼
-┌──────────────────────────────────────────────────────────┐
-│  4. PERSONALIZED RESULTS                                 │
-│     [1] Dark (score: 0.92) - "Semantically similar"      │
-│     [2] The Prestige (score: 0.88) - "Genre match"       │
-│     [3] Memento (score: 0.85) - "Similar director"       │
-└──────────────────────────────────────────────────────────┘
+-- Exponential map (tangent to manifold)
+SELECT exp_map(
+    ARRAY[0.0, 0.0]::float8[],  -- base point
+    ARRAY[0.1, 0.2]::float8[],  -- tangent vector
+    -1.0
+);
 ```
 
-**Key API Endpoints:**
-- `POST /api/search` - Semantic search with natural language
-- `POST /api/recommendations` - Personalized recommendations
-- `GET /api/discover` - Genre/trending discovery
-- `POST /api/preferences` - User preference learning
+### 2. Graph Neural Networks
 
-### 📐 ARW (Agent-Ready Web) Components
+```sql
+-- GraphSAGE mean aggregation
+SELECT graphsage_mean(
+    node_features,
+    ARRAY[neighbor1_features, neighbor2_features, neighbor3_features]
+) FROM graph_nodes WHERE id = 1;
 
-This repository includes reference implementations of the ARW specification:
+-- Batch GNN aggregation with edge index
+WITH neighbors AS (
+    SELECT n.id, n.features, array_agg(n2.features) AS nf
+    FROM graph_nodes n
+    JOIN graph_edges e ON n.id = e.source_id
+    JOIN graph_nodes n2 ON e.target_id = n2.id
+    GROUP BY n.id, n.features
+)
+SELECT id, graphsage_mean(features, nf) FROM neighbors;
+```
 
-- **Specification**: [ARW v0.1 Draft](spec/ARW-0.1-draft.md)
-- **Schemas**: JSON schemas for validation (`packages/schemas/`)
-- **Validators**: Python and Node.js validation tools (`packages/validators/`)
-- **Badges**: Compliance level badges (`packages/badges/`)
+### 3. Attention Mechanisms
 
----
+```sql
+-- Scaled dot-product attention
+SELECT scaled_dot_attention(
+    query_vector,
+    ARRAY[key1, key2, key3]::float8[][],
+    ARRAY[val1, val2, val3]::float8[][]
+);
 
-## 📦 Repository Structure
+-- Softmax normalization
+SELECT arr_softmax(ARRAY[1.0, 2.0, 3.0, 4.0]::float8[]);
+```
 
-```plaintext
-hackathon-tv5/
-├── src/                             # Hackathon CLI source
-│   ├── cli.ts                      # Main CLI entry point
-│   ├── commands/                   # CLI commands (init, tools, status, etc.)
-│   ├── mcp/                        # MCP server implementation
-│   │   ├── server.ts              # MCP tools, resources, prompts
-│   │   ├── stdio.ts               # STDIO transport
-│   │   └── sse.ts                 # SSE transport
-│   ├── constants.ts               # Tracks, tools, configuration
-│   └── utils/                     # Helpers and utilities
-│
-├── apps/                           # Demo Applications
-│   ├── media-discovery/           # AI Media Discovery (Next.js + ARW)
-│   │   ├── public/
-│   │   │   ├── .well-known/arw-manifest.json  # ARW manifest
-│   │   │   └── llms.txt                       # ARW discovery file
-│   │   └── src/                   # React components & API routes
-│   └── arw-chrome-extension/      # ARW Inspector Chrome Extension
-│       ├── manifest.json          # Chrome Manifest V3
-│       └── src/                   # Popup, content script, service worker
-│
-├── packages/                       # Shared Packages
-│   ├── @arw/schemas/              # TypeScript ARW schemas with Zod
-│   ├── schemas/                   # JSON schemas for ARW validation
-│   ├── validators/                # Python & Node.js validators
-│   ├── validator/                 # ARW validator CLI tool
-│   ├── badges/                    # ARW compliance badges (SVG)
-│   ├── cli/                       # Rust ARW CLI (advanced)
-│   ├── crawler-sdk/               # TypeScript SDK for ARW crawler service
-│   ├── crawler-service/           # High-performance crawler API service
-│   ├── nextjs-plugin/             # Next.js plugin for ARW integration
-│   └── benchmark/                 # ARW benchmark evaluation
-│
-├── spec/                           # ARW Specification
-│   └── ARW-0.1-draft.md           # Editor's draft specification
-│
-├── benchmarks/                     # PostgreSQL Benchmark Suites
-│   ├── ruvector_benchmark_optimized.sql  # Vector + GNN + Hyperbolic setup
-│   ├── run_benchmarks_optimized.sql      # Optimized benchmark execution
-│   ├── tv5_raft_scale_benchmark.sql      # Raft consensus + 80K scale
-│   └── run_tv5_benchmarks.sql            # TV5 benchmark execution
-│
-├── docs/                           # Documentation
-├── ai_docs/                        # AI-focused documentation
-├── scripts/                        # Build and utility scripts
-│
-├── .claude/                        # Claude Code configuration
-│   ├── commands/                  # Slash commands
-│   └── agents/                    # Sub-agent definitions
-│
-├── CLAUDE.md                       # Claude Code guidance
-└── README.md                       # This file
+### 4. Sparse Vectors & BM25
+
+```sql
+-- Create sparse vector (threshold 0.8 = 80% sparsity)
+SELECT to_sparse(dense_vector, 0.8);
+
+-- Sparse dot product (hash join optimized)
+SELECT sparse_dot(sparse_vec_a, sparse_vec_b);
+
+-- BM25 scoring for text search
+SELECT bm25_score(
+    ARRAY['machine', 'learning', 'neural'],  -- query terms
+    document_content,
+    100.0,   -- avg doc length
+    1000,    -- total docs
+    1.2,     -- k1
+    0.75     -- b
+);
+
+-- Hybrid vector + BM25 search
+WITH vec_results AS (
+    SELECT id, 1.0 / (1.0 + (embedding <=> query_vec)) AS vscore
+    FROM documents ORDER BY embedding <=> query_vec LIMIT 100
+),
+text_results AS (
+    SELECT id, ts_rank_cd(tsv, q) AS tscore
+    FROM documents, plainto_tsquery('search terms') q
+    WHERE tsv @@ q
+)
+SELECT id, vscore * 0.7 + tscore * 0.3 AS hybrid_score
+FROM vec_results v FULL OUTER JOIN text_results t USING (id)
+ORDER BY hybrid_score DESC LIMIT 10;
+```
+
+### 5. Vector Quantization
+
+```sql
+-- Binary quantization (1 bit per dimension)
+SELECT binary_quantize(embedding_arr);
+-- Returns: bit varying (e.g., '10110010...')
+
+-- Scalar quantization (8-bit integers)
+SELECT scalar_quantize(embedding_arr, -1.0, 1.0);
+-- Returns: int[] (values 0-255)
+
+-- Hamming distance (XOR + popcount, 15x faster)
+SELECT hamming_distance(binary_vec_a, binary_vec_b);
 ```
 
 ---
 
-## 🔧 Available Tools (17+)
+## 🗳️ Raft Consensus Operations
 
-The CLI provides access to tools across 6 categories:
+Distributed consensus for multi-node vector aggregation.
 
-### AI Assistants
-- **Claude Code CLI** - Anthropic's AI-powered coding assistant
-- **Gemini CLI** - Google's Gemini model interface
+### Raft Data Structures
 
-### Orchestration & Agent Frameworks
-- **Claude Flow** - #1 agent orchestration platform with 101 MCP tools
-- **Agentic Flow** - Production AI orchestration with 66 agents
-- **Flow Nexus** - Competitive agentic platform on MCP
-- **Google ADK** - Build multi-agent systems with Google's Agent Development Kit
+```sql
+-- Node states
+CREATE TYPE raft_state AS ENUM ('follower', 'candidate', 'leader');
 
-### Cloud Platform
-- **Google Cloud CLI** - gcloud SDK for Vertex AI, Cloud Functions
-- **Vertex AI SDK** - Google Cloud's unified ML platform
+-- Cluster nodes with capability vectors
+CREATE TABLE raft_nodes (
+    node_id text PRIMARY KEY,
+    state raft_state DEFAULT 'follower',
+    current_term int DEFAULT 0,
+    voted_for text,
+    last_heartbeat timestamptz DEFAULT now(),
+    capability_vector vector(64)  -- For routing optimization
+);
 
-### Databases & Memory
-- **RuVector** - Vector database with native SIMD, HNSW indexing, <100µs search
-- **@ruvector/postgres-cli** - PostgreSQL vector operations CLI (19+ commands)
-- **AgentDB** - 150x faster vector search with RuVector backend
-
-### Synthesis & Advanced Tools
-- **Agentic Synth** - Synthesis tools for agentic development
-- **Strange Loops** - Consciousness exploration SDK
-- **SPARC 2.0** - Autonomous vector coding agent
-
-### Python Frameworks
-- **LionPride** - Python agentic AI framework
-- **Agentic Framework** - AI agents with natural language
-- **OpenAI Agents SDK** - Multi-agent workflows from OpenAI
-
----
-
-## 🌐 ARW (Agent-Ready Web)
-
-This repository demonstrates the ARW specification through the **Media Discovery** app.
-
-### What is ARW?
-
-ARW provides infrastructure for efficient agent-web interaction:
-
-- **85% token reduction** - Machine views vs HTML scraping
-- **10x faster discovery** - Structured manifests vs crawling
-- **OAuth-enforced actions** - Safe agent transactions
-- **AI-* headers** - Full observability of agent traffic
-
-### ARW in Media Discovery
-
-The media-discovery app implements ARW with:
-
-```json
-// /.well-known/arw-manifest.json
-{
-  "version": "0.1",
-  "profile": "ARW-1",
-  "site": {
-    "name": "AI Media Discovery",
-    "description": "Discover movies and TV shows through natural language"
-  },
-  "actions": [
-    {
-      "id": "semantic_search",
-      "endpoint": "/api/search",
-      "method": "POST"
-    }
-  ]
-}
+-- Replicated log
+CREATE TABLE raft_log (
+    term int NOT NULL,
+    log_index bigint NOT NULL,
+    command jsonb NOT NULL,
+    committed boolean DEFAULT false,
+    PRIMARY KEY (term, log_index)
+);
 ```
 
-See the [ARW Specification](spec/ARW-0.1-draft.md) for full details.
+### Raft Functions
 
----
+```sql
+-- Request vote RPC
+SELECT raft_request_vote(
+    2,           -- term
+    'node-1',    -- candidate_id
+    'node-2',    -- voter_id
+    100,         -- last_log_index
+    1            -- last_log_term
+);
 
-## 💻 Development
+-- Append entries RPC (log replication)
+SELECT raft_append_entries(
+    2,           -- term
+    'node-1',    -- leader_id
+    99,          -- prev_log_index
+    1,           -- prev_log_term
+    ARRAY['{"op":"set","key":"k1","value":42}'::jsonb],
+    100,         -- leader_commit
+    'node-2'     -- follower_id
+);
 
-### Prerequisites
+-- Leader election
+SELECT * FROM raft_elect_leader(5);  -- 5-node cluster
+-- Returns: leader_id, term, votes_received
 
-- Node.js 18+
-- npm or pnpm
-
-### Build & Run
-
-```bash
-# Install dependencies
-npm install
-
-# Build the CLI
-npm run build
-
-# Run locally
-npm start
-
-# Development mode (watch)
-npm run dev
-
-# Run linter
-npm run lint
-```
-
-### MCP Server
-
-```bash
-# STDIO transport (for Claude Desktop, etc.)
-npm run mcp:stdio
-
-# SSE transport (for web integrations)
-npm run mcp:sse
-```
-
-### Media Discovery App (AI Media Gateway)
-
-```bash
-cd apps/media-discovery
-npm install
-
-# Set up environment
-cp .env.example .env.local
-# Add your TMDB_API_KEY and OPENAI_API_KEY
-
-# Run the app
-npm run dev
-
-# Sync media embeddings to RuVector
-npm run embed:sync
-```
-
-### RuVector PostgreSQL CLI
-
-```bash
-# Install globally
-npm install -g @ruvector/postgres-cli
-
-# Or use npx
-npx @ruvector/postgres-cli --help
-
-# Key commands:
-ruvector-pg setup              # Install pgvector extension
-ruvector-pg create-table       # Create vector table
-ruvector-pg insert             # Insert vectors
-ruvector-pg search             # Semantic search
-ruvector-pg index create       # Create HNSW index
-ruvector-pg benchmark          # Run performance benchmarks
+-- Byzantine fault tolerance check
+SELECT * FROM check_byzantine_tolerance(7, 2);
+-- Returns: is_tolerant, max_faulty, required_honest, safety_margin
 ```
 
 ---
 
-## 🔌 MCP Integration
+## 📈 Scale Testing (80K+ Vectors)
 
-Add to your Claude Desktop config (`claude_desktop_config.json`):
+Distributed vector search across logical shards.
 
-```json
-{
-  "mcpServers": {
-    "agentics-hackathon": {
-      "command": "npx",
-      "args": ["agentics-hackathon", "mcp"]
-    }
-  }
-}
-```
+```sql
+-- Scale vectors table with shard-based partitioning
+CREATE TABLE scale_vectors (
+    shard_id int NOT NULL,
+    id bigserial,
+    embedding vector(384),
+    metadata jsonb,
+    PRIMARY KEY (shard_id, id)
+);
 
-Or use SSE transport:
+-- Insert 10K vectors per shard (8 shards = 80K total)
+SELECT scale_insert_vectors(0, 10000, 384);  -- Shard 0
+SELECT scale_insert_vectors(1, 10000, 384);  -- Shard 1
+-- ... repeat for shards 2-7
 
-```bash
-npx agentics-hackathon mcp sse --port 3000
+-- Distributed search across specific shards
+SELECT * FROM scale_search_vectors(
+    query_embedding,
+    10,                    -- top-k
+    ARRAY[0, 1, 2, 3]     -- shards to search
+);
 ```
 
 ---
 
-## 🤝 Contributing
+## 🤖 Federated Learning
 
-We welcome contributions! Areas of focus:
+Privacy-preserving preference aggregation.
 
-1. **CLI Improvements** - New commands, better UX
-2. **Tool Integrations** - Add more AI tools
-3. **Demo Apps** - Build showcases for hackathon tracks
-4. **ARW Implementation** - Expand specification coverage
-5. **Documentation** - Guides and tutorials
+```sql
+-- Federated agents table
+CREATE TABLE federated_agents (
+    agent_id text PRIMARY KEY,
+    shard_id int NOT NULL,
+    embedding vector(384),
+    quality float8 DEFAULT 0.0,  -- 0-1 quality score
+    task_count int DEFAULT 0
+);
 
-### Development Workflow
+-- FedAvg aggregation (quality-weighted)
+SELECT federated_aggregate('cluster-1', 0.7);
+-- Aggregates embeddings from agents with quality >= 0.7
 
-See [CLAUDE.md](CLAUDE.md) for development guidelines including:
-- SPARC methodology for systematic development
-- Concurrent execution patterns
-- File organization rules
+-- Consensus metrics
+SELECT calc_consensus_score(
+    ARRAY[true, true, false, true, true],  -- votes
+    ARRAY[1.0, 0.8, 0.9, 0.7, 0.85]        -- weights (optional)
+);
+```
+
+---
+
+## 📁 Benchmark Files
+
+```
+benchmarks/
+├── ruvector_benchmark_optimized.sql   # Setup: 10K vectors, GNN, hyperbolic
+├── run_benchmarks_optimized.sql       # Execute optimized benchmarks
+├── tv5_raft_scale_benchmark.sql       # Setup: Raft + 80K scale vectors
+└── run_tv5_benchmarks.sql             # Execute Raft/scale benchmarks
+```
+
+---
+
+## ⚙️ Performance Configuration
+
+```sql
+-- Recommended PostgreSQL settings for vector workloads
+SET max_parallel_workers_per_gather = 4;
+SET parallel_tuple_cost = 0.001;
+SET work_mem = '256MB';
+SET maintenance_work_mem = '512MB';
+SET effective_cache_size = '4GB';
+SET jit = on;
+
+-- HNSW search parameter
+SET hnsw.ef_search = 100;
+```
 
 ---
 
 ## 📜 License
 
-This project is licensed under the [Apache License 2.0](LICENSE).
+Apache License 2.0
 
 ---
 
 ## 🔗 Links
 
-- **🌐 Hackathon Website:** [agentics.org/hackathon](https://agentics.org/hackathon)
-- **💬 Discord:** [discord.agentics.org](https://discord.agentics.org)
-- **📦 GitHub:** [github.com/agenticsorg/hackathon-tv5](https://github.com/agenticsorg/hackathon-tv5)
-- **📖 ARW Spec:** [ARW v0.1 Draft](spec/ARW-0.1-draft.md)
+- **npm:** [@ruvector/postgres-cli](https://www.npmjs.com/package/@ruvector/postgres-cli)
+- **pgvector:** [github.com/pgvector/pgvector](https://github.com/pgvector/pgvector)
+- **RuVector:** [npmjs.com/package/ruvector](https://www.npmjs.com/package/ruvector)
 
 ---
 
 <div align="center">
 
-**🚀 Agentics Foundation TV5 Hackathon**
-
-*Building the Future of Agentic AI - Supported by Google Cloud*
-
-[Website](https://agentics.org/hackathon) | [Discord](https://discord.agentics.org) | [GitHub](https://github.com/agenticsorg/hackathon-tv5)
+**RuVector PostgreSQL** - Advanced Vector Operations for PostgreSQL
 
 </div>
