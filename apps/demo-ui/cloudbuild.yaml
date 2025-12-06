@@ -1,40 +1,48 @@
-# Cloud Build configuration for Nexus-UMMID Demo UI
+# Nexus-UMMID Demo UI - Google Cloud Build Configuration
 # Deploys static site to Cloud Run
 
+substitutions:
+  _SERVICE_NAME: nexus-ummid-demo
+  _REGION: us-central1
+  _GCP_PROJECT: agentics-foundation25lon-1899
+  _IMAGE_NAME: demo-ui
+  _ARTIFACT_REGISTRY: us-central1-docker.pkg.dev
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
 steps:
-  # Build Docker image
+  # Step 1: Build Docker Image
   - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-image'
     args:
       - 'build'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/nexus-ummid-demo:$COMMIT_SHA'
+      - '${_ARTIFACT_REGISTRY}/${_GCP_PROJECT}/${_IMAGE_NAME}/${_SERVICE_NAME}:$SHORT_SHA'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/nexus-ummid-demo:latest'
+      - '${_ARTIFACT_REGISTRY}/${_GCP_PROJECT}/${_IMAGE_NAME}/${_SERVICE_NAME}:latest'
       - '.'
-    dir: 'apps/demo-ui'
 
-  # Push to Container Registry
+  # Step 2: Push to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-image'
     args:
       - 'push'
-      - 'gcr.io/$PROJECT_ID/nexus-ummid-demo:$COMMIT_SHA'
+      - '--all-tags'
+      - '${_ARTIFACT_REGISTRY}/${_GCP_PROJECT}/${_IMAGE_NAME}/${_SERVICE_NAME}'
 
-  - name: 'gcr.io/cloud-builders/docker'
-    args:
-      - 'push'
-      - 'gcr.io/$PROJECT_ID/nexus-ummid-demo:latest'
-
-  # Deploy to Cloud Run
+  # Step 3: Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-cloud-run'
     entrypoint: gcloud
     args:
       - 'run'
       - 'deploy'
-      - 'nexus-ummid-demo'
+      - '${_SERVICE_NAME}'
       - '--image'
-      - 'gcr.io/$PROJECT_ID/nexus-ummid-demo:$COMMIT_SHA'
+      - '${_ARTIFACT_REGISTRY}/${_GCP_PROJECT}/${_IMAGE_NAME}/${_SERVICE_NAME}:$SHORT_SHA'
       - '--region'
-      - 'us-central1'
+      - '${_REGION}'
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
@@ -50,8 +58,5 @@ steps:
       - '8080'
 
 images:
-  - 'gcr.io/$PROJECT_ID/nexus-ummid-demo:$COMMIT_SHA'
-  - 'gcr.io/$PROJECT_ID/nexus-ummid-demo:latest'
-
-options:
-  logging: CLOUD_LOGGING_ONLY
+  - '${_ARTIFACT_REGISTRY}/${_GCP_PROJECT}/${_IMAGE_NAME}/${_SERVICE_NAME}:$SHORT_SHA'
+  - '${_ARTIFACT_REGISTRY}/${_GCP_PROJECT}/${_IMAGE_NAME}/${_SERVICE_NAME}:latest'
