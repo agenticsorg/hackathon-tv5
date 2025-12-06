@@ -1,111 +1,148 @@
-# RuVector PostgreSQL - AI Media Gateway
+# TV5 Hackathon: AI Media Gateway
 
+[![Agentics](https://img.shields.io/badge/Agentics-TV5_Hackathon-orange.svg)](https://agentics.org/hackathon)
+[![RuVector](https://img.shields.io/badge/RuVector-PostgreSQL-green.svg)](https://www.npmjs.com/package/@ruvector/postgres-cli)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16+-blue.svg)](https://www.postgresql.org/)
-[![pgvector](https://img.shields.io/badge/pgvector-0.6.0-green.svg)](https://github.com/pgvector/pgvector)
-[![npm](https://img.shields.io/badge/npm-@ruvector/postgres--cli-red.svg)](https://www.npmjs.com/package/@ruvector/postgres-cli)
-[![Hackathon](https://img.shields.io/badge/TV5-Hackathon-orange.svg)](https://agentics.org/hackathon)
+[![Discord](https://img.shields.io/badge/Discord-Agentics-7289da.svg)](https://discord.agentics.org)
 
-> **Next-generation media discovery powered by self-learning PostgreSQL vector intelligence**
-
-## 🎬 The Problem We're Solving
-
-Every night, millions spend up to **45 minutes deciding what to watch** — that's billions of hours lost globally. Why? Because current recommendation systems:
-
-- **Don't understand relationships** — They miss that loving "Inception" means you might love "Dark" (both are mind-bending, non-linear narratives)
-- **Can't learn across platforms** — Your Netflix preferences are invisible to Disney+
-- **Don't scale intelligently** — Searching 80K+ titles efficiently requires specialized techniques
-- **Lack true personalization** — They recommend what's popular, not what's *you*
-
-## 💡 Our Solution: Intelligent PostgreSQL
-
-We've built a **self-learning media gateway** directly in PostgreSQL that uses the same AI techniques powering ChatGPT and modern recommendation systems — but running in your database with <5ms latency.
-
-### What Makes This Different?
-
-| Traditional Search | RuVector PostgreSQL |
-|-------------------|---------------------|
-| Keyword matching ("action movies") | **Semantic understanding** ("movies that make you think") |
-| Flat category filters | **Hierarchical learning** (knows Noir is a type of Thriller) |
-| Isolated user data | **Federated intelligence** (learns across platforms privately) |
-| Slow at scale | **80K movies in 45ms** across 8 platforms |
-| Static algorithms | **Self-optimizing** through attention and feedback |
+> **Agentics Foundation TV5 Hackathon Entry: Self-learning media discovery with RuVector PostgreSQL**
 
 ---
 
-## 🧠 The AI Techniques (In Plain English)
+## 🏆 Hackathon Track: Entertainment Discovery
 
-### 1. **Graph Neural Networks** — Understanding Relationships
-Instead of treating movies as isolated items, we model the *connections*:
-- You watched Movie A → Movie A stars Actor X → Actor X directed Movie B → **You might love Movie B**
-- This is how Netflix knows you'll like a show before it even exists in your history
+**Challenge:** Every night, millions spend up to **45 minutes deciding what to watch** — billions of hours lost globally.
 
-### 2. **Attention Mechanisms** — Focusing on What Matters
-Not all your watch history matters equally. The system learns to *pay attention* to:
-- Your recent 5-star ratings (high weight)
-- Movies you finished vs. abandoned (completion signals)
-- Time-of-day preferences (weekend binge vs. weeknight quick watch)
-
-### 3. **Hyperbolic Embeddings** — Natural Hierarchies
-Genres aren't flat lists. They're trees:
-```
-Action → Thriller → Psychological Thriller → Mind-Bending
-                 → Crime Thriller → Heist
-```
-Our Poincaré ball embeddings capture this naturally, so "mind-bending thriller" finds Inception, not Fast & Furious.
-
-### 4. **Federated Learning** — Privacy-Preserving Intelligence
-Your Netflix preferences can improve Disney+ recommendations *without sharing your actual watch history*. Each platform contributes anonymized preference vectors that aggregate into better global recommendations.
-
-### 5. **Self-Optimization** — Getting Smarter Over Time
-The system uses **quality-weighted aggregation**: recommendations that get positive feedback gain influence, poor recommendations lose weight. No manual tuning required.
+**Our Solution:** An AI-powered **Media Gateway** using RuVector PostgreSQL — a high-performance vector database with self-learning capabilities, graph neural networks, and distributed consensus for cross-platform recommendations.
 
 ---
 
-## 📊 Why PostgreSQL?
+## 🎬 The Problem
 
-Large-scale media systems need:
+Current streaming recommendation systems fail because they:
 
-| Requirement | How We Solve It |
-|-------------|-----------------|
-| **Millisecond latency** | HNSW indexes: <5ms for 10K vectors |
-| **Massive scale** | Sharding: 80K movies across 8 platforms |
-| **Consistency** | Raft consensus: distributed agreement |
-| **Memory efficiency** | Quantization: 32x compression (384 dims → 48 bytes) |
-| **Hybrid search** | Vector + BM25: semantic + keyword combined |
-| **Production ready** | PostgreSQL: battle-tested, ACID-compliant |
+| Problem | Impact |
+|---------|--------|
+| **Siloed platforms** | Netflix doesn't know your Disney+ preferences |
+| **Keyword-only search** | "Movies that make you think" returns nothing |
+| **Flat categories** | Thriller ≠ Psychological Thriller ≠ Mind-Bending |
+| **No learning** | Same bad recommendations after 100 thumbs-down |
+| **Slow at scale** | Searching 80K+ titles takes seconds, not milliseconds |
+
+---
+
+## 💡 Our Solution: RuVector PostgreSQL Media Gateway
+
+We built a **self-learning recommendation engine** directly in PostgreSQL using RuVector — delivering the same AI techniques powering modern recommendation systems with <5ms latency.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                 MEDIA GATEWAY - POSTGRESQL ARCHITECTURE                     │
+│               TV5 MEDIA GATEWAY - RUVECTOR POSTGRESQL                       │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
+│     "What should I watch tonight?"                                          │
+│                         │                                                   │
+│                         ▼                                                   │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                     PostgreSQL 16 + pgvector 0.6.0                  │   │
-│  │                    "What should I watch tonight?"                   │   │
+│  │                     RuVector PostgreSQL Engine                       │   │
+│  │            High-performance vector operations + self-learning        │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
-│                                    │                                        │
-│           ┌────────────────────────┼────────────────────────┐              │
-│           │                        │                        │              │
-│           ▼                        ▼                        ▼              │
-│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐        │
-│  │  HNSW Search    │    │  Raft Consensus │    │   Shard Scale   │        │
-│  │  <5ms latency   │    │  Multi-platform │    │  80K+ movies    │        │
-│  │  Semantic match │    │  aggregation    │    │  8 platforms    │        │
-│  └─────────────────┘    └─────────────────┘    └─────────────────┘        │
-│           │                        │                        │              │
-│           └────────────────────────┼────────────────────────┘              │
-│                                    ▼                                        │
+│                         │                                                   │
+│       ┌─────────────────┼─────────────────┐                                │
+│       │                 │                 │                                │
+│       ▼                 ▼                 ▼                                │
+│  ┌─────────┐      ┌──────────┐      ┌──────────┐                          │
+│  │  HNSW   │      │   Raft   │      │  Scale   │                          │
+│  │ Search  │      │Consensus │      │ Shards   │                          │
+│  │  <5ms   │      │Multi-plat│      │  80K+    │                          │
+│  └─────────┘      └──────────┘      └──────────┘                          │
+│       │                 │                 │                                │
+│       └─────────────────┼─────────────────┘                                │
+│                         ▼                                                   │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                    Self-Learning Features                            │   │
-│  │  • Graph Neural Networks: User→Movie→Actor→Director connections     │   │
-│  │  • Attention: Weight recent preferences, ignore noise               │   │
-│  │  • Hyperbolic: Genre trees (Action→Thriller→Noir→Neo-Noir)          │   │
-│  │  • Federated: Cross-platform learning without data sharing          │   │
-│  │  • Quantization: 80K movies compressed for edge/mobile              │   │
+│  │                    Self-Learning AI Features                         │   │
+│  │                                                                       │   │
+│  │  🧠 Graph Neural Networks                                             │   │
+│  │     User→Movie→Actor→Director relationship learning                  │   │
+│  │                                                                       │   │
+│  │  🎯 Attention Mechanisms                                              │   │
+│  │     Focus on recent ratings, ignore abandoned watches                │   │
+│  │                                                                       │   │
+│  │  🌳 Hyperbolic Embeddings                                             │   │
+│  │     Genre hierarchies: Action→Thriller→Noir→Neo-Noir                 │   │
+│  │                                                                       │   │
+│  │  🔒 Federated Learning                                                │   │
+│  │     Cross-platform intelligence without sharing watch history        │   │
+│  │                                                                       │   │
+│  │  ⚡ Self-Optimization                                                 │   │
+│  │     Quality-weighted feedback improves recommendations over time     │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 🧠 AI Techniques Explained
+
+### 1. Graph Neural Networks — Understanding Connections
+
+Instead of treating movies as isolated items, we model relationships:
+
+```
+You watched Inception → Stars Leonardo DiCaprio → Also in Shutter Island → You'll love it
+```
+
+The system learns through actor, director, writer, and genre connections — recommending content you'll love before you even know it exists.
+
+### 2. Attention Mechanisms — Focusing on What Matters
+
+Not all watch history is equal. The system learns to weight:
+- **Recent 5-star ratings** → High influence
+- **Completed movies** → Strong signal
+- **Abandoned at 10 minutes** → Negative signal
+- **Weekend binges vs. weeknight picks** → Context awareness
+
+### 3. Hyperbolic Embeddings — Natural Genre Hierarchies
+
+Genres are trees, not flat lists:
+
+```
+Action
+  └→ Thriller
+       └→ Psychological Thriller
+            └→ Mind-Bending (Inception, Dark, Memento)
+       └→ Crime Thriller
+            └→ Heist (Ocean's 11, Heat)
+```
+
+Searching "mind-bending thriller" finds Inception, not Fast & Furious.
+
+### 4. Federated Learning — Privacy-Preserving Intelligence
+
+Your Netflix preferences can improve Disney+ recommendations **without sharing your watch history**:
+- Each platform generates anonymous preference vectors
+- Vectors aggregate through FedAvg algorithm
+- Individual viewing data never leaves the platform
+
+### 5. Self-Optimization — Continuous Improvement
+
+Recommendations that get positive feedback gain influence. Bad recommendations lose weight. The system improves automatically — no manual tuning required.
+
+---
+
+## 📊 Performance Benchmarks
+
+| Operation | Dataset | Latency |
+|-----------|---------|---------|
+| **Semantic search** ("movies like Inception") | 10K movies | <5ms |
+| **Genre hierarchy** (Poincaré distance) | 5K embeddings | 15ms |
+| **Relationship graph** (GraphSAGE) | 1K nodes | 25ms |
+| **Hybrid search** (semantic + keywords) | 1K docs | 8ms |
+| **Cross-platform consensus** (Raft) | 5 platforms | <1ms |
+| **Federated aggregate** (FedAvg) | 100 users | 12ms |
+| **Full catalog search** (sharded) | 80K movies | 45ms |
+| **Compressed search** (quantized) | 1K binary | 3ms |
 
 ---
 
@@ -115,260 +152,107 @@ Large-scale media systems need:
 
 ```bash
 npm install -g @ruvector/postgres-cli
-# or
+
+# Or use npx
 npx @ruvector/postgres-cli --help
 ```
 
-### Key Commands for Media Gateway
+### Run Media Gateway Benchmarks
 
 ```bash
-# Setup media catalog
-ruvector-pg setup                    # Install pgvector
-ruvector-pg create-table media_embeddings 768  # Movie embeddings
-
-# Index 80K movies
-ruvector-pg import movies.json       # Bulk import
-ruvector-pg index create --type hnsw # Create HNSW index
-
-# Semantic search: "dark sci-fi thriller like Blade Runner"
-ruvector-pg search --query "dark sci-fi thriller" --limit 10
-
-# Performance benchmarks
-ruvector-pg benchmark --vectors 10000
-```
-
----
-
-## 📊 Media Gateway Benchmarks
-
-Run the PostgreSQL benchmark suite for media discovery operations:
-
-```bash
-# Setup (10K movies, genre graphs, preference vectors)
+# Setup: 10K movies, genre graphs, user preferences
 psql -d postgres -f benchmarks/ruvector_benchmark_optimized.sql
-
-# Run benchmarks
 psql -d postgres -f benchmarks/run_benchmarks_optimized.sql
 
-# TV5 scale test (80K movies, 8 streaming platforms)
+# Scale test: 80K movies across 8 streaming platforms
 psql -d postgres -f benchmarks/tv5_raft_scale_benchmark.sql
+psql -d postgres -f benchmarks/run_tv5_benchmarks.sql
 ```
 
-### Performance Results
+### Example: Semantic Movie Search
 
-| Media Gateway Operation | Dataset | Latency |
-|------------------------|---------|---------|
-| **"Movies like Inception"** | 10K movies | <5ms |
-| **Genre hierarchy search** | 5K (Poincaré) | 15ms |
-| **Actor/director graph** | 1K nodes | 25ms |
-| **Hybrid keyword + semantic** | 1K docs | 8ms |
-| **Cross-platform consensus** | 5 platforms | <1ms |
-| **Multi-platform aggregate** | 100 users | 12ms |
-| **Full catalog search** | 80K (8 shards) | 45ms |
-| **Compressed catalog** | 1K (binary) | 3ms |
+```bash
+# Find movies semantically similar to a query
+ruvector-pg search --query "dark psychological thriller with time loops" --limit 10
+```
 
 ---
 
-## 🔧 PostgreSQL Functions for Media Discovery
+## 🔧 Key SQL Functions
 
-### 1. Genre Hierarchies (Hyperbolic Embeddings)
-
-Model hierarchical genre relationships: Action → Thriller → Noir → Neo-Noir
-
+### Semantic Search
 ```sql
--- Poincaré distance for genre hierarchy
--- Closer in hierarchy = smaller distance
-SELECT m.title, poincare_distance(
-    m.genre_embedding,
-    (SELECT genre_embedding FROM genres WHERE name = 'Film Noir'),
-    -1.0
-) AS genre_distance
-FROM movies m
-ORDER BY genre_distance
-LIMIT 10;
-
--- Find movies "between" two genres (Möbius midpoint)
-SELECT mobius_add(
-    (SELECT embedding FROM genres WHERE name = 'Sci-Fi'),
-    (SELECT embedding FROM genres WHERE name = 'Horror'),
-    -1.0
-) AS scifi_horror_midpoint;
-```
-
-### 2. Recommendation Graphs (GraphSAGE)
-
-User-Movie-Actor-Director relationship graphs for recommendations:
-
-```sql
--- Aggregate neighbor features for collaborative filtering
-WITH user_watched AS (
-    SELECT u.id, u.preference_vector, array_agg(m.embedding) AS movie_embeddings
-    FROM users u
-    JOIN watch_history w ON u.id = w.user_id
-    JOIN movies m ON w.movie_id = m.id
-    WHERE u.id = 'user-123'
-    GROUP BY u.id, u.preference_vector
-)
-SELECT graphsage_mean(preference_vector, movie_embeddings)
-FROM user_watched;
-```
-
-### 3. Hybrid Search: Semantic + Keywords
-
-"Dark sci-fi like Blade Runner but newer":
-
-```sql
-WITH semantic_matches AS (
-    SELECT id, title, embedding <=> query_embedding AS distance
-    FROM movies
-    ORDER BY embedding <=> query_embedding
-    LIMIT 100
-),
-keyword_matches AS (
-    SELECT id, ts_rank_cd(search_vector,
-        plainto_tsquery('dark sci-fi blade runner')) AS rank
-    FROM movies
-    WHERE search_vector @@ plainto_tsquery('dark sci-fi blade runner')
-),
-combined AS (
-    SELECT
-        COALESCE(s.id, k.id) AS id,
-        (1.0 / (1.0 + COALESCE(s.distance, 2))) * 0.7 +
-        COALESCE(k.rank, 0) * 0.3 AS score
-    FROM semantic_matches s
-    FULL OUTER JOIN keyword_matches k ON s.id = k.id
-)
-SELECT m.title, m.year, c.score
-FROM combined c
-JOIN movies m ON c.id = m.id
-WHERE m.year >= 2010  -- "but newer"
-ORDER BY score DESC
-LIMIT 10;
-```
-
-### 4. Cross-Platform Aggregation (Raft Consensus)
-
-Aggregate recommendations across Netflix, Disney+, HBO, etc.:
-
-```sql
--- Each streaming platform votes on recommendations
-SELECT raft_request_vote(
-    1,                    -- term
-    'netflix-recommender', -- candidate
-    'disney-recommender',  -- voter
-    last_recommendation_id,
-    current_term
-);
-
--- Elect leader for final recommendation
-SELECT * FROM raft_elect_leader(5);  -- 5 platforms
-
--- Check Byzantine tolerance (handles 1 malicious platform in 5)
-SELECT * FROM check_byzantine_tolerance(5, 1);
-```
-
-### 5. Federated Preference Learning
-
-Privacy-preserving aggregation of user preferences:
-
-```sql
--- Each platform has local user preference embeddings
-INSERT INTO federated_agents (agent_id, shard_id, embedding, quality)
-VALUES
-    ('netflix-prefs', 0, user_embedding_from_netflix, 0.9),
-    ('disney-prefs', 1, user_embedding_from_disney, 0.85),
-    ('hbo-prefs', 2, user_embedding_from_hbo, 0.8);
-
--- FedAvg: Weighted average of quality-filtered preferences
-SELECT federated_aggregate('user-123', 0.7);
--- Returns: Combined preference vector without sharing watch history
-```
-
-### 6. Compressed Catalog (Quantization)
-
-Store 80K movies efficiently for mobile/edge:
-
-```sql
--- Binary quantize (32x compression, 384 dims → 48 bytes)
-UPDATE movies SET binary_embedding = binary_quantize(embedding);
-
--- Fast approximate search with Hamming distance
-SELECT title, hamming_distance(
-    binary_embedding,
-    (SELECT binary_embedding FROM movies WHERE title = 'Inception')
-) AS similarity
+-- Find movies like "Inception"
+SELECT title, embedding <=> query_embedding AS similarity
 FROM movies
 ORDER BY similarity
-LIMIT 10;  -- 15x faster than cosine distance
+LIMIT 10;
 ```
 
----
-
-## 📈 Scale: 80K Movies Across 8 Platforms
-
-Shard movies by streaming platform for distributed search:
-
+### Genre Hierarchy (Hyperbolic)
 ```sql
--- Sharded by platform: 0=Netflix, 1=Disney+, 2=HBO, etc.
-CREATE TABLE platform_movies (
-    platform_id int NOT NULL,
-    movie_id bigserial,
-    embedding vector(384),
-    PRIMARY KEY (platform_id, movie_id)
-);
-
--- Insert 10K movies per platform
-SELECT scale_insert_vectors(0, 10000, 384);  -- Netflix
-SELECT scale_insert_vectors(1, 10000, 384);  -- Disney+
--- ... 8 platforms total = 80K movies
-
--- Search across user's subscribed platforms only
-SELECT * FROM scale_search_vectors(
-    query_embedding,
-    10,                  -- top 10
-    ARRAY[0, 2, 5]       -- Netflix, HBO, Paramount+
-);
+-- Find movies in the "Mind-Bending" genre branch
+SELECT title, poincare_distance(genre_embedding, target_genre, -1.0) AS distance
+FROM movies
+ORDER BY distance
+LIMIT 10;
 ```
 
----
-
-## 📁 Benchmark Files
-
-```
-benchmarks/
-├── ruvector_benchmark_optimized.sql   # 10K movies, genre graphs
-├── run_benchmarks_optimized.sql       # Performance tests
-├── tv5_raft_scale_benchmark.sql       # 80K movies, 8 platforms
-└── run_tv5_benchmarks.sql             # Cross-platform tests
-```
-
----
-
-## ⚙️ PostgreSQL Configuration for Media Gateway
-
+### Relationship Graph (GraphSAGE)
 ```sql
--- Optimized for media catalog workloads
-SET max_parallel_workers_per_gather = 4;
-SET work_mem = '256MB';
-SET effective_cache_size = '4GB';
-SET hnsw.ef_search = 100;  -- Balance speed/accuracy
-SET jit = on;
+-- Aggregate user preferences from watch history
+SELECT graphsage_mean(user.preference_vector, array_agg(movie.embedding))
+FROM users JOIN watch_history JOIN movies
+WHERE user_id = 'user-123';
+```
+
+### Cross-Platform Consensus (Raft)
+```sql
+-- Elect leader for recommendation aggregation
+SELECT * FROM raft_elect_leader(5);  -- 5 streaming platforms
+```
+
+### Federated Learning (FedAvg)
+```sql
+-- Aggregate preferences without sharing watch history
+SELECT federated_aggregate('user-123', 0.7);
+```
+
+---
+
+## 📁 Project Structure
+
+```
+hackathon-tv5/
+├── benchmarks/
+│   ├── ruvector_benchmark_optimized.sql   # 10K movie benchmark
+│   ├── run_benchmarks_optimized.sql       # Performance tests
+│   ├── tv5_raft_scale_benchmark.sql       # 80K scale + Raft
+│   └── run_tv5_benchmarks.sql             # Cross-platform tests
+├── apps/
+│   └── media-discovery/                   # Next.js demo app
+└── README.md
 ```
 
 ---
 
 ## 🔗 Links
 
-- **npm:** [@ruvector/postgres-cli](https://www.npmjs.com/package/@ruvector/postgres-cli)
 - **Hackathon:** [agentics.org/hackathon](https://agentics.org/hackathon)
-- **pgvector:** [github.com/pgvector/pgvector](https://github.com/pgvector/pgvector)
+- **Discord:** [discord.agentics.org](https://discord.agentics.org)
+- **RuVector CLI:** [@ruvector/postgres-cli](https://www.npmjs.com/package/@ruvector/postgres-cli)
+- **RuVector:** [npmjs.com/package/ruvector](https://www.npmjs.com/package/ruvector)
 
 ---
 
 <div align="center">
 
-**RuVector PostgreSQL** - AI Media Gateway for the TV5 Hackathon
+## 🏆 Agentics Foundation TV5 Hackathon
 
-*Solving the 45-minute problem with <5ms semantic search*
+**AI Media Gateway** — Solving the 45-minute problem with self-learning PostgreSQL
+
+*Semantic search in <5ms • 80K movies across 8 platforms • Privacy-preserving cross-platform learning*
+
+[Join the Hackathon](https://agentics.org/hackathon) • [Discord](https://discord.agentics.org)
 
 </div>
