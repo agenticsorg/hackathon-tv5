@@ -176,6 +176,102 @@ CoordinatorAgent (Priority 10)
 
 ---
 
+## 🔒 Privacy-First Architecture (UNIQUE DIFFERENTIATOR)
+
+### The Privacy Problem with Current Recommendations
+
+**TikTok, Netflix, YouTube - they all have the same problem:**
+- 🕵️ **Detailed psychological profiling** stored on servers
+- 📊 **Complete watch history** accessible to company (and hackers)
+- 🎯 **Cross-device tracking** for advertising
+- 🚔 **Government requests** can access full user profiles
+- 💔 **Data breaches** expose intimate viewing habits
+
+### Our Privacy-First Solution
+
+**We've designed the FIRST entertainment discovery system that doesn't spy on you.**
+
+#### 🔐 What Stays ON-DEVICE (100% Private):
+- ✅ **Complete watch history** - Never leaves your device
+- ✅ **Persona vector** - Your preferences encrypted locally
+- ✅ **Viewing patterns** - Time, duration, context all private
+- ✅ **PersonalizationAgent** - Runs entirely on-device
+- ✅ **MoodDetectionAgent** - Context analysis stays local
+- ✅ **AnalysisAgent** - Final ranking happens on your device
+- ✅ **Auto-deletion** - Watch history older than 60 days automatically removed
+
+#### 🌐 What Goes to Server (Anonymized):
+- 📡 **Generic queries** - With differential privacy noise added
+- 🔢 **Aggregated gradients** - Federated learning (opt-in only, NO raw data)
+- 📰 **Public reviews** - IMDb, Rotten Tomatoes (not user-specific)
+
+#### 🔒 End-to-End Encrypted (Social Features):
+- 💬 **Group recommendations** - Only group members can decrypt
+- 👥 **Friend activity** - Private Set Intersection (server learns nothing)
+- 📊 **Influence scores** - E2EE between group members
+
+### The Impact: 90-95% Privacy Improvement
+
+**Privacy Comparison:**
+
+| Feature | TikTok/Netflix | EntertainAI |
+|---------|----------------|-------------|
+| Watch history on servers | ✅ All data | ❌ Zero data |
+| Psychological profiling accessible | ✅ Company has full access | ❌ On-device only |
+| Cross-device tracking | ✅ Full tracking | ❌ None |
+| Data breach risk | ✅ High (millions exposed) | ❌ Near zero |
+| Government requests | ✅ Can access full profile | ❌ Nothing to access |
+| Advertising manipulation | ✅ A/B tested on users | ❌ Contextual only |
+
+### Privacy Technologies Used
+
+1. **On-Device Machine Learning**
+   - TensorFlow Lite for mobile
+   - WebAssembly for web
+   - Core ML for iOS
+
+2. **Differential Privacy**
+   - Add mathematical noise to queries
+   - Server can't reverse-engineer user profile
+   - Query-side inference protection
+
+3. **Federated Learning**
+   - ONLY gradients uploaded (not data)
+   - Opt-in only
+   - Aggregated across 1000+ users
+
+4. **End-to-End Encryption**
+   - Signal Protocol for groups
+   - Private Set Intersection for follows
+   - Zero-knowledge proofs for recommendations
+
+5. **Auto-Expiry & Local Control**
+   - 60-90 day automatic deletion
+   - "Wipe persona" button
+   - Biometric-protected encryption keys
+
+### Why This Matters for Hackathon
+
+**This isn't just a feature - it's a COMPETITIVE MOAT:**
+
+✅ **First-mover advantage** - No other recommendation system has this
+✅ **Regulatory future-proof** - GDPR, CCPA compliant by design
+✅ **User trust** - Privacy is a feature people will pay for
+✅ **Technical sophistication** - Advanced cryptography + ML
+✅ **Market timing** - TikTok bans, data breach concerns
+
+**Quote from privacy analysis:**
+> "Keeping the persona entirely on-device fixes ~90–95% of the worst privacy risks. The remaining 5–10% are solvable with known cryptographic techniques. Suddenly this app goes from 'terrifying surveillance toy' to 'actually one of the more privacy-respecting options out there.'"
+
+### Business Implication
+
+**Privacy as a Premium Feature:**
+- Subscription tier: $4.99/month for privacy-first recommendations
+- B2B: License to privacy-conscious platforms (Apple TV+, DuckDuckGo)
+- Enterprise: Safe for corporate deployments (no data leakage)
+
+---
+
 ## 💰 Business Value
 
 ### Market Opportunity
