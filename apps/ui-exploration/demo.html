@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Media Discovery Demo | Cold-Start Solution</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ========================================
+       DESIGN SYSTEM - Cool Midnight
+       ======================================== */
+    :root {
+      --bg-deep: #0D1117;
+      --bg-primary: #1A2332;
+      --bg-elevated: #242D3D;
+      --text-primary: #F0F6FC;
+      --text-secondary: #8B949E;
+      --accent-cyan: #4ECDC4;
+      --accent-cyan-dim: #2A9D8F;
+      --metric-warm: #FF6B6B;
+      --metric-cool: #4ECDC4;
+      --border-subtle: #30363D;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ========================================
+       TYPOGRAPHY
+       ======================================== */
+    .headline-hero {
+      font-size: 3rem;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 1.1;
+    }
+
+    .headline-h1 {
+      font-size: 2.25rem;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+    }
+
+    .headline-h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .text-body {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .text-caption {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ========================================
+       SCREENS CONTAINER
+       ======================================== */
+    .screen {
+      display: none;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .screen.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ========================================
+       SCREEN 1: SIGN-IN
+       ======================================== */
+    .signin-card {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-subtle);
+      padding: 3rem;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+    }
+
+    .signin-card h1 {
+      margin-bottom: 0.5rem;
+    }
+
+    .signin-card .subtitle {
+      margin-bottom: 2rem;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 1rem;
+      background: var(--bg-deep);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      transition: border-color 0.1s ease-out;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: var(--accent-cyan);
+    }
+
+    .input-field::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 1rem 2rem;
+      background: var(--accent-cyan);
+      color: var(--bg-deep);
+      border: none;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.1s ease-out;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-cyan-dim);
+    }
+
+    /* ========================================
+       SCREEN 2: DISCOVERY GRID
+       ======================================== */
+    .discovery-container {
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .discovery-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .discovery-header .instruction {
+      margin-top: 0.5rem;
+    }
+
+    .timer-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.25rem;
+      color: var(--accent-cyan);
+      margin-top: 1rem;
+    }
+
+    .thumbnail-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .thumbnail-item {
+      position: relative;
+      aspect-ratio: 16/9;
+      overflow: hidden;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: border-color 0.1s ease-out, transform 0.2s ease-out;
+    }
+
+    .thumbnail-item:hover {
+      border-color: var(--accent-cyan);
+    }
+
+    .thumbnail-item.clicked {
+      border-color: var(--accent-cyan);
+    }
+
+    .thumbnail-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .click-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 24px;
+      height: 24px;
+      background: var(--accent-cyan);
+      color: var(--bg-deep);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .thumbnail-item.clicked .click-badge {
+      display: flex;
+    }
+
+    .btn-continue {
+      display: none;
+      margin: 0 auto;
+    }
+
+    .btn-continue.visible {
+      display: block;
+    }
+
+    /* ========================================
+       SCREEN 3: SEGMENT REVEAL
+       ======================================== */
+    .reveal-container {
+      text-align: center;
+      max-width: 600px;
+    }
+
+    .reveal-container h1 {
+      margin-bottom: 2rem;
+    }
+
+    .segment-badge {
+      display: inline-block;
+      padding: 1rem 2rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      margin-bottom: 2rem;
+      animation: pulseIn 0.5s ease-out;
+    }
+
+    .segment-badge.romance {
+      background: var(--metric-warm);
+      color: var(--bg-deep);
+    }
+
+    .segment-badge.thriller {
+      background: var(--metric-cool);
+      color: var(--bg-deep);
+    }
+
+    @keyframes pulseIn {
+      0% { opacity: 0; transform: scale(0.8); }
+      50% { transform: scale(1.05); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .insights-list {
+      text-align: left;
+      margin-bottom: 2rem;
+    }
+
+    .insight-item {
+      padding: 1rem;
+      background: var(--bg-primary);
+      border-left: 3px solid var(--accent-cyan);
+      margin-bottom: 0.5rem;
+    }
+
+    .confidence-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-elevated);
+      margin-top: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .confidence-fill {
+      height: 100%;
+      background: var(--accent-cyan);
+      transition: width 1s ease-out;
+    }
+
+    /* ========================================
+       SCREEN 4: PERSONALIZED FEED
+       ======================================== */
+    .feed-container {
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .feed-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .feed-section {
+      margin-bottom: 2rem;
+    }
+
+    .feed-section h3 {
+      margin-bottom: 1rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .feed-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    .feed-grid.secondary {
+      grid-template-columns: repeat(3, 1fr);
+      opacity: 0.6;
+    }
+
+    .feed-grid.secondary .thumbnail-item {
+      aspect-ratio: 16/9;
+    }
+
+    .cta-banner {
+      text-align: center;
+      padding: 2rem;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-subtle);
+      margin-top: 2rem;
+    }
+
+    .cta-banner .time-saved {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2rem;
+      color: var(--accent-cyan);
+      margin-bottom: 0.5rem;
+    }
+
+    .btn-restart {
+      margin-top: 1rem;
+      padding: 0.75rem 1.5rem;
+      background: transparent;
+      border: 1px solid var(--accent-cyan);
+      color: var(--accent-cyan);
+      font-family: inherit;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: background 0.1s ease-out;
+    }
+
+    .btn-restart:hover {
+      background: var(--accent-cyan);
+      color: var(--bg-deep);
+    }
+
+    /* ========================================
+       ADMIN METRICS WIDGET
+       ======================================== */
+    .admin-widget {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      width: 320px;
+      background: rgba(26, 35, 50, 0.95);
+      border: 1px solid var(--border-subtle);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      z-index: 1000;
+    }
+
+    .widget-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      background: var(--bg-elevated);
+      cursor: pointer;
+    }
+
+    .widget-header span {
+      color: var(--text-secondary);
+      font-size: 0.625rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .widget-toggle {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .widget-body {
+      padding: 1rem;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .widget-body.collapsed {
+      display: none;
+    }
+
+    .metric-section {
+      margin-bottom: 1rem;
+    }
+
+    .metric-label {
+      color: var(--text-secondary);
+      font-size: 0.625rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.25rem 0;
+    }
+
+    .metric-name {
+      color: var(--text-secondary);
+    }
+
+    .metric-value {
+      color: var(--text-primary);
+    }
+
+    .metric-bar {
+      height: 4px;
+      background: var(--bg-elevated);
+      margin-top: 0.25rem;
+    }
+
+    .metric-bar-fill {
+      height: 100%;
+      background: var(--accent-cyan);
+      transition: width 0.1s ease-out;
+    }
+
+    .metric-bar-fill.warm {
+      background: var(--metric-warm);
+    }
+
+    .segment-indicator {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .segment-bar {
+      flex: 1;
+      text-align: center;
+      padding: 0.5rem;
+    }
+
+    .segment-bar.romance {
+      background: rgba(255, 107, 107, 0.2);
+      border-left: 2px solid var(--metric-warm);
+    }
+
+    .segment-bar.thriller {
+      background: rgba(78, 205, 196, 0.2);
+      border-left: 2px solid var(--metric-cool);
+    }
+
+    .total-time {
+      font-size: 1.5rem;
+      color: var(--accent-cyan);
+      text-align: center;
+      padding: 0.5rem;
+      background: var(--bg-elevated);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================
+       SCREEN 1: SIGN-IN
+       ======================================== -->
+  <section id="screen-signin" class="screen active">
+    <div class="signin-card">
+      <h1 class="headline-hero">Discover Your<br>Next Watch</h1>
+      <p class="text-body subtitle">No questionnaires. No endless scrolling.<br>Just a few moments of your attention.</p>
+      <input type="email" class="input-field" placeholder="Enter your email" disabled>
+      <button class="btn-primary" onclick="goToScreen('discovery')">Start Exploring</button>
+    </div>
+  </section>
+
+  <!-- ========================================
+       SCREEN 2: DISCOVERY GRID
+       ======================================== -->
+  <section id="screen-discovery" class="screen">
+    <div class="discovery-container">
+      <div class="discovery-header">
+        <h1 class="headline-h1">What catches your eye?</h1>
+        <p class="text-body instruction">Hover over the images that interest you</p>
+        <div class="timer-display" id="discovery-timer">0.000s</div>
+      </div>
+      <div class="thumbnail-grid" id="thumbnail-grid">
+        <!-- Thumbnails populated by JS -->
+      </div>
+      <button class="btn-primary btn-continue" id="btn-continue" onclick="goToScreen('reveal')">See My Profile</button>
+    </div>
+  </section>
+
+  <!-- ========================================
+       SCREEN 3: SEGMENT REVEAL
+       ======================================== -->
+  <section id="screen-reveal" class="screen">
+    <div class="reveal-container">
+      <h1 class="headline-h1">Your Viewing Profile</h1>
+      <div class="segment-badge" id="segment-badge">LOADING...</div>
+      <div class="insights-list" id="insights-list">
+        <!-- Populated by JS -->
+      </div>
+      <div class="confidence-bar">
+        <div class="confidence-fill" id="confidence-fill" style="width: 0%"></div>
+      </div>
+      <p class="text-caption">Confidence level based on engagement signals</p>
+      <button class="btn-primary" style="margin-top: 2rem; max-width: 300px;" onclick="goToScreen('results')">Show My Recommendations</button>
+    </div>
+  </section>
+
+  <!-- ========================================
+       SCREEN 4: PERSONALIZED FEED
+       ======================================== -->
+  <section id="screen-results" class="screen">
+    <div class="feed-container">
+      <div class="feed-header">
+        <h1 class="headline-h1">Curated for You</h1>
+        <p class="text-body">Based on your unique viewing style</p>
+      </div>
+      <div class="feed-section">
+        <h3 id="primary-section-title">Recommended for you</h3>
+        <div class="feed-grid" id="primary-feed">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+      <div class="feed-section">
+        <h3>You might also like</h3>
+        <div class="feed-grid secondary" id="secondary-feed">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+      <div class="cta-banner">
+        <div class="time-saved" id="time-saved">47 seconds</div>
+        <p class="text-body">Not 45 minutes.</p>
+        <button class="btn-restart" onclick="restartDemo()">Try Again</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================
+       ADMIN METRICS WIDGET
+       ======================================== -->
+  <div class="admin-widget" id="admin-widget">
+    <div class="widget-header" onclick="toggleWidget()">
+      <span>Admin Metrics</span>
+      <button class="widget-toggle" id="widget-toggle">−</button>
+    </div>
+    <div class="widget-body" id="widget-body">
+      <div class="total-time" id="widget-total-time">0.000s</div>
+
+      <div class="metric-section">
+        <div class="metric-label">Hover Duration (ms)</div>
+        <div id="hover-metrics">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <div class="metric-section">
+        <div class="metric-label">Click Sequence</div>
+        <div id="click-sequence">No clicks yet</div>
+      </div>
+
+      <div class="metric-section">
+        <div class="metric-label">Mouse Velocity</div>
+        <div class="metric-row">
+          <span class="metric-name">Avg Speed</span>
+          <span class="metric-value" id="avg-velocity">0 px/s</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-name">Skip Events</span>
+          <span class="metric-value" id="skip-count">0</span>
+        </div>
+      </div>
+
+      <div class="metric-section">
+        <div class="metric-label">Segment Prediction</div>
+        <div class="segment-indicator">
+          <div class="segment-bar romance">
+            <div class="metric-value" id="romance-score">50%</div>
+            <div class="metric-name">Romance</div>
+          </div>
+          <div class="segment-bar thriller">
+            <div class="metric-value" id="thriller-score">50%</div>
+            <div class="metric-name">Thriller</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ========================================
+    // ENGAGEMENT TRACKING ENGINE
+    // ========================================
+    const thumbnails = [
+      { id: 'romance-1', src: 'romance-romance-couple-sunset.png', type: 'romance' },
+      { id: 'romance-2', src: 'romance-romance-rain-umbrella.png', type: 'romance' },
+      { id: 'romance-3', src: 'romance-romance-cafe-moment.png', type: 'romance' },
+      { id: 'thriller-1', src: 'thriller-thriller-dark-corridor.png', type: 'thriller' },
+      { id: 'thriller-2', src: 'thriller-thriller-rooftop-edge.png', type: 'thriller' },
+      { id: 'thriller-3', src: 'thriller-thriller-surveillance.png', type: 'thriller' },
+    ];
+
+    const metrics = {
+      thumbnails: {},
+      clickSequence: [],
+      mousePositions: [],
+      skipEvents: 0,
+      startTime: null,
+      totalTime: 0,
+    };
+
+    let discoveryTimer = null;
+    let currentHover = null;
+    let hoverStartTime = null;
+
+    // Initialize thumbnail metrics
+    thumbnails.forEach(t => {
+      metrics.thumbnails[t.id] = {
+        hoverTime: 0,
+        hoverCount: 0,
+        clickOrder: null,
+        type: t.type
+      };
+    });
+
+    // ========================================
+    // SCREEN NAVIGATION
+    // ========================================
+    function goToScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-' + screenId).classList.add('active');
+
+      if (screenId === 'discovery') {
+        startDiscovery();
+      } else if (screenId === 'reveal') {
+        showReveal();
+      } else if (screenId === 'results') {
+        showResults();
+      }
+    }
+
+    // ========================================
+    // DISCOVERY SCREEN LOGIC
+    // ========================================
+    function startDiscovery() {
+      metrics.startTime = performance.now();
+
+      // Shuffle and render thumbnails
+      const shuffled = [...thumbnails].sort(() => Math.random() - 0.5);
+      const grid = document.getElementById('thumbnail-grid');
+      grid.innerHTML = '';
+
+      shuffled.forEach(t => {
+        const item = document.createElement('div');
+        item.className = 'thumbnail-item';
+        item.dataset.id = t.id;
+        item.innerHTML = `
+          <img src="${t.src}" alt="${t.type}">
+          <div class="click-badge"></div>
+        `;
+
+        // Event listeners
+        item.addEventListener('mouseenter', () => onThumbnailEnter(t.id));
+        item.addEventListener('mouseleave', () => onThumbnailLeave(t.id));
+        item.addEventListener('click', () => onThumbnailClick(t.id, item));
+
+        grid.appendChild(item);
+      });
+
+      // Start timer
+      discoveryTimer = requestAnimationFrame(updateDiscoveryTimer);
+
+      // Track mouse velocity
+      document.addEventListener('mousemove', trackMouseVelocity);
+    }
+
+    function updateDiscoveryTimer() {
+      const elapsed = (performance.now() - metrics.startTime) / 1000;
+      metrics.totalTime = elapsed;
+
+      document.getElementById('discovery-timer').textContent = elapsed.toFixed(3) + 's';
+      document.getElementById('widget-total-time').textContent = elapsed.toFixed(3) + 's';
+
+      // Show continue button after 5 seconds or 2+ clicks
+      if (elapsed > 5 || metrics.clickSequence.length >= 2) {
+        document.getElementById('btn-continue').classList.add('visible');
+      }
+
+      updateWidgetMetrics();
+      discoveryTimer = requestAnimationFrame(updateDiscoveryTimer);
+    }
+
+    function onThumbnailEnter(id) {
+      currentHover = id;
+      hoverStartTime = performance.now();
+      metrics.thumbnails[id].hoverCount++;
+    }
+
+    function onThumbnailLeave(id) {
+      if (currentHover === id && hoverStartTime) {
+        const duration = performance.now() - hoverStartTime;
+        metrics.thumbnails[id].hoverTime += duration;
+      }
+      currentHover = null;
+      hoverStartTime = null;
+    }
+
+    function onThumbnailClick(id, element) {
+      if (metrics.thumbnails[id].clickOrder !== null) return;
+
+      const clickNum = metrics.clickSequence.length + 1;
+      metrics.clickSequence.push(id);
+      metrics.thumbnails[id].clickOrder = clickNum;
+
+      element.classList.add('clicked');
+      element.querySelector('.click-badge').textContent = clickNum;
+    }
+
+    let lastMousePos = { x: 0, y: 0, time: 0 };
+    function trackMouseVelocity(e) {
+      const now = performance.now();
+      const dx = e.clientX - lastMousePos.x;
+      const dy = e.clientY - lastMousePos.y;
+      const dt = now - lastMousePos.time;
+
+      if (dt > 0) {
+        const speed = Math.sqrt(dx*dx + dy*dy) / dt * 1000; // px/s
+        metrics.mousePositions.push(speed);
+
+        // Detect skip (rapid movement > 2000px/s)
+        if (speed > 2000) {
+          metrics.skipEvents++;
+        }
+      }
+
+      lastMousePos = { x: e.clientX, y: e.clientY, time: now };
+    }
+
+    // ========================================
+    // WIDGET UPDATES
+    // ========================================
+    function updateWidgetMetrics() {
+      // Hover metrics
+      const hoverDiv = document.getElementById('hover-metrics');
+      let hoverHTML = '';
+      const maxHover = Math.max(...Object.values(metrics.thumbnails).map(t => t.hoverTime), 1);
+
+      Object.entries(metrics.thumbnails).forEach(([id, data]) => {
+        const pct = (data.hoverTime / maxHover) * 100;
+        const isWarm = data.type === 'romance';
+        hoverHTML += `
+          <div class="metric-row">
+            <span class="metric-name">${id}</span>
+            <span class="metric-value">${data.hoverTime.toFixed(0)}ms</span>
+          </div>
+          <div class="metric-bar">
+            <div class="metric-bar-fill ${isWarm ? 'warm' : ''}" style="width: ${pct}%"></div>
+          </div>
+        `;
+      });
+      hoverDiv.innerHTML = hoverHTML;
+
+      // Click sequence
+      const clickDiv = document.getElementById('click-sequence');
+      if (metrics.clickSequence.length > 0) {
+        clickDiv.textContent = metrics.clickSequence.join(' → ');
+      }
+
+      // Mouse velocity
+      const avgVel = metrics.mousePositions.length > 0
+        ? metrics.mousePositions.reduce((a,b) => a+b, 0) / metrics.mousePositions.length
+        : 0;
+      document.getElementById('avg-velocity').textContent = avgVel.toFixed(0) + ' px/s';
+      document.getElementById('skip-count').textContent = metrics.skipEvents;
+
+      // Segment prediction
+      const scores = calculateSegmentScores();
+      document.getElementById('romance-score').textContent = scores.romance.toFixed(0) + '%';
+      document.getElementById('thriller-score').textContent = scores.thriller.toFixed(0) + '%';
+    }
+
+    function calculateSegmentScores() {
+      let romanceScore = 0;
+      let thrillerScore = 0;
+
+      Object.values(metrics.thumbnails).forEach(data => {
+        const weight = data.hoverTime + (data.clickOrder ? (7 - data.clickOrder) * 500 : 0);
+        if (data.type === 'romance') {
+          romanceScore += weight;
+        } else {
+          thrillerScore += weight;
+        }
+      });
+
+      const total = romanceScore + thrillerScore || 1;
+      return {
+        romance: (romanceScore / total) * 100,
+        thriller: (thrillerScore / total) * 100
+      };
+    }
+
+    // ========================================
+    // REVEAL SCREEN
+    // ========================================
+    function showReveal() {
+      cancelAnimationFrame(discoveryTimer);
+      document.removeEventListener('mousemove', trackMouseVelocity);
+
+      const scores = calculateSegmentScores();
+      const isRomance = scores.romance > scores.thriller;
+      const badge = document.getElementById('segment-badge');
+
+      badge.textContent = isRomance ? 'ROMANCE EXPLORER' : 'THRILLER SEEKER';
+      badge.className = 'segment-badge ' + (isRomance ? 'romance' : 'thriller');
+
+      // Generate insights
+      const insights = generateInsights(isRomance, scores);
+      const insightsDiv = document.getElementById('insights-list');
+      insightsDiv.innerHTML = insights.map(i => `<div class="insight-item">${i}</div>`).join('');
+
+      // Animate confidence bar
+      setTimeout(() => {
+        const confidence = Math.max(scores.romance, scores.thriller);
+        document.getElementById('confidence-fill').style.width = confidence + '%';
+      }, 300);
+    }
+
+    function generateInsights(isRomance, scores) {
+      const totalHover = Object.values(metrics.thumbnails)
+        .filter(t => t.type === (isRomance ? 'romance' : 'thriller'))
+        .reduce((sum, t) => sum + t.hoverTime, 0);
+
+      const firstClick = metrics.clickSequence[0];
+      const firstClickType = firstClick ? metrics.thumbnails[firstClick].type : null;
+
+      const insights = [];
+
+      insights.push(`You spent ${(totalHover/1000).toFixed(1)}s on ${isRomance ? 'warm-toned' : 'dark, tense'} content`);
+
+      if (firstClickType) {
+        insights.push(`Your first click was on ${firstClickType === 'romance' ? 'an intimate scene' : 'a suspenseful image'}`);
+      }
+
+      const avgVel = metrics.mousePositions.length > 0
+        ? metrics.mousePositions.reduce((a,b) => a+b, 0) / metrics.mousePositions.length
+        : 0;
+
+      if (avgVel < 500) {
+        insights.push('Your hover pattern: deliberate and focused');
+      } else if (avgVel < 1000) {
+        insights.push('Your hover pattern: exploratory and curious');
+      } else {
+        insights.push('Your hover pattern: quick scanner, decisive');
+      }
+
+      return insights;
+    }
+
+    // ========================================
+    // RESULTS SCREEN
+    // ========================================
+    function showResults() {
+      const scores = calculateSegmentScores();
+      const isRomance = scores.romance > scores.thriller;
+
+      // Primary feed (matching segment)
+      const primaryType = isRomance ? 'romance' : 'thriller';
+      const secondaryType = isRomance ? 'thriller' : 'romance';
+
+      document.getElementById('primary-section-title').textContent =
+        isRomance ? 'Perfect for Romance Lovers' : 'Edge-of-Seat Thrillers';
+
+      const primaryFeed = document.getElementById('primary-feed');
+      const secondaryFeed = document.getElementById('secondary-feed');
+
+      primaryFeed.innerHTML = thumbnails
+        .filter(t => t.type === primaryType)
+        .map(t => `<div class="thumbnail-item"><img src="${t.src}" alt="${t.type}"></div>`)
+        .join('');
+
+      secondaryFeed.innerHTML = thumbnails
+        .filter(t => t.type === secondaryType)
+        .map(t => `<div class="thumbnail-item"><img src="${t.src}" alt="${t.type}"></div>`)
+        .join('');
+
+      // Time saved
+      document.getElementById('time-saved').textContent = metrics.totalTime.toFixed(0) + ' seconds';
+    }
+
+    // ========================================
+    // WIDGET TOGGLE
+    // ========================================
+    function toggleWidget() {
+      const body = document.getElementById('widget-body');
+      const toggle = document.getElementById('widget-toggle');
+      body.classList.toggle('collapsed');
+      toggle.textContent = body.classList.contains('collapsed') ? '+' : '−';
+    }
+
+    // ========================================
+    // RESTART DEMO
+    // ========================================
+    function restartDemo() {
+      // Reset metrics
+      thumbnails.forEach(t => {
+        metrics.thumbnails[t.id] = {
+          hoverTime: 0,
+          hoverCount: 0,
+          clickOrder: null,
+          type: t.type
+        };
+      });
+      metrics.clickSequence = [];
+      metrics.mousePositions = [];
+      metrics.skipEvents = 0;
+      metrics.startTime = null;
+      metrics.totalTime = 0;
+
+      // Reset UI
+      document.getElementById('btn-continue').classList.remove('visible');
+
+      // Go to signin
+      goToScreen('signin');
+    }
+
+    // Initialize widget metrics display
+    updateWidgetMetrics();
+  </script>
+</body>
+</html>
