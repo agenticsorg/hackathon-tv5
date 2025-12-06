@@ -32,7 +32,8 @@
     "winston": "^3.11.0",
     "express-validator": "^7.0.1",
     "compression": "^1.7.4",
-    "firebase-admin": "^12.0.0"
+    "firebase-admin": "^12.0.0",
+    "better-sqlite3": "^9.2.2"
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
@@ -41,6 +42,7 @@
     "@types/compression": "^1.7.5",
     "@types/node": "^20.10.6",
     "@types/jest": "^29.5.11",
+    "@types/better-sqlite3": "^7.6.8",
     "typescript": "^5.3.3",
     "tsx": "^4.7.0",
     "eslint": "^8.56.0",
