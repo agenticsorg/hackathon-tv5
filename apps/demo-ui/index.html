@@ -95,32 +95,39 @@
     <!-- Navigation Tabs -->
     <nav class="border-b border-gray-800 bg-gray-900/50">
         <div class="max-w-7xl mx-auto px-4">
-            <div class="flex space-x-8">
+            <div class="flex space-x-8 overflow-x-auto">
+                <button
+                    @click="activeTab = 'trending'; loadTrending()"
+                    :class="activeTab === 'trending' ? 'tab-active' : 'text-gray-400 hover:text-white'"
+                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap"
+                >
+                    🔥 Trending
+                </button>
                 <button
                     @click="activeTab = 'discover'"
                     :class="activeTab === 'discover' ? 'tab-active' : 'text-gray-400 hover:text-white'"
-                    class="py-4 px-2 font-medium transition-colors"
+                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap"
                 >
                     🔍 Discover
                 </button>
                 <button
                     @click="activeTab = 'forYou'; loadForYou()"
                     :class="activeTab === 'forYou' ? 'tab-active' : 'text-gray-400 hover:text-white'"
-                    class="py-4 px-2 font-medium transition-colors"
+                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap"
                 >
                     ✨ For You
                 </button>
                 <button
                     @click="activeTab = 'mood'"
                     :class="activeTab === 'mood' ? 'tab-active' : 'text-gray-400 hover:text-white'"
-                    class="py-4 px-2 font-medium transition-colors"
+                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap"
                 >
                     🎭 By Mood
                 </button>
                 <button
                     @click="activeTab = 'history'; loadHistory()"
                     :class="activeTab === 'history' ? 'tab-active' : 'text-gray-400 hover:text-white'"
-                    class="py-4 px-2 font-medium transition-colors"
+                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap"
                 >
                     📜 History
                     <span x-show="watchHistory.length > 0" class="ml-1 px-2 py-0.5 bg-indigo-600 rounded-full text-xs" x-text="watchHistory.length"></span>
@@ -131,6 +138,93 @@
 
     <!-- Main Content -->
     <main>
+        <!-- TRENDING TAB (TMDb Real Data) -->
+        <section x-show="activeTab === 'trending'" class="py-8 px-4">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl md:text-4xl font-bold mb-2">
+                        🔥 <span class="bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">Trending Now</span>
+                    </h2>
+                    <p class="text-gray-400">Real-time trending movies & TV shows from TMDb</p>
+                </div>
+
+                <!-- Trending Type Toggle -->
+                <div class="flex justify-center gap-4 mb-8">
+                    <button
+                        @click="loadTrending('movie')"
+                        :class="trendingType === 'movie' ? 'bg-indigo-600' : 'bg-gray-800 hover:bg-gray-700'"
+                        class="px-6 py-2 rounded-full font-medium transition-colors"
+                    >
+                        🎬 Movies
+                    </button>
+                    <button
+                        @click="loadTrending('tv')"
+                        :class="trendingType === 'tv' ? 'bg-indigo-600' : 'bg-gray-800 hover:bg-gray-700'"
+                        class="px-6 py-2 rounded-full font-medium transition-colors"
+                    >
+                        📺 TV Shows
+                    </button>
+                </div>
+
+                <!-- Trending Grid -->
+                <template x-if="!loading && trendingItems.length > 0">
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                        <template x-for="item in trendingItems" :key="item.id">
+                            <div
+                                @click="selectItem(item)"
+                                class="bg-gray-800/50 rounded-xl overflow-hidden cursor-pointer card-hover transition-all duration-300 fade-in"
+                            >
+                                <div class="aspect-[2/3] relative overflow-hidden">
+                                    <img
+                                        x-show="item.poster_path"
+                                        :src="TMDB_IMAGE_BASE + '/' + TMDB_POSTER_SIZE + item.poster_path"
+                                        :alt="item.title || item.name"
+                                        class="w-full h-full object-cover"
+                                        loading="lazy"
+                                    >
+                                    <div
+                                        x-show="!item.poster_path"
+                                        class="w-full h-full flex items-center justify-center text-6xl bg-gradient-to-br from-gray-700 to-gray-900"
+                                    >
+                                        <span x-text="item.media_type === 'tv' ? '📺' : '🎬'"></span>
+                                    </div>
+                                    <div class="absolute top-2 left-2 flex gap-1">
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-orange-600">
+                                            ⭐ <span x-text="item.vote_average?.toFixed(1)"></span>
+                                        </span>
+                                    </div>
+                                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+                                        <div class="text-xs text-gray-300" x-text="(item.release_date || item.first_air_date || '').substring(0, 4)"></div>
+                                    </div>
+                                </div>
+                                <div class="p-4">
+                                    <h4 class="font-semibold truncate" x-text="item.title || item.name"></h4>
+                                    <div class="flex items-center space-x-2 text-sm text-gray-400 mt-1">
+                                        <span x-text="item.media_type === 'tv' ? 'TV Series' : 'Movie'"></span>
+                                        <span>•</span>
+                                        <span x-text="item.vote_count + ' votes'"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                <!-- Loading -->
+                <div x-show="loading" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                    <template x-for="i in 10">
+                        <div class="bg-gray-800/50 rounded-xl overflow-hidden">
+                            <div class="aspect-[2/3] skeleton"></div>
+                            <div class="p-4 space-y-2">
+                                <div class="h-4 skeleton rounded w-3/4"></div>
+                                <div class="h-3 skeleton rounded w-1/2"></div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </section>
+
         <!-- DISCOVER TAB -->
         <section x-show="activeTab === 'discover'" class="py-8 px-4">
             <div class="max-w-7xl mx-auto">
@@ -519,13 +613,22 @@
         >
             <template x-if="selectedItem">
                 <div>
-                    <div class="relative h-48 overflow-hidden rounded-t-2xl">
+                    <div class="relative h-64 overflow-hidden rounded-t-2xl">
+                        <!-- TMDb Backdrop/Poster -->
+                        <img
+                            x-show="selectedItem.backdrop_path || selectedItem.poster_path"
+                            :src="TMDB_IMAGE_BASE + '/' + TMDB_BACKDROP_SIZE + (selectedItem.backdrop_path || selectedItem.poster_path)"
+                            :alt="selectedItem.title || selectedItem.name"
+                            class="w-full h-full object-cover"
+                        >
                         <div
+                            x-show="!selectedItem.backdrop_path && !selectedItem.poster_path"
                             class="w-full h-full flex items-center justify-center text-8xl"
                             :style="'background: linear-gradient(135deg, ' + getGradient(selectedItem.genres?.[0] || 'default') + ')'"
                         >
-                            <span x-text="getEmoji(selectedItem.type)"></span>
+                            <span x-text="getEmoji(selectedItem.type || selectedItem.media_type)"></span>
                         </div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent"></div>
                         <button
                             @click="selectedItem = null"
                             class="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
@@ -534,20 +637,38 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
                         </button>
+                        <!-- Play Trailer Button -->
+                        <button
+                            x-show="selectedItem.isTmdb"
+                            @click="loadTrailer(selectedItem)"
+                            class="absolute bottom-4 left-4 flex items-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-full font-medium transition-colors"
+                        >
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                            <span>Watch Trailer</span>
+                        </button>
+                        <!-- TMDb Rating Badge -->
+                        <div x-show="selectedItem.vote_average" class="absolute top-4 left-4">
+                            <span class="px-3 py-1 bg-orange-600 rounded-full font-bold">
+                                ⭐ <span x-text="selectedItem.vote_average?.toFixed(1)"></span>
+                            </span>
+                        </div>
                     </div>
 
                     <div class="p-6">
                         <div class="flex items-start justify-between mb-4">
                             <div>
-                                <h2 class="text-2xl font-bold" x-text="selectedItem.title"></h2>
-                                <div class="flex items-center space-x-2 text-gray-400 mt-1">
-                                    <span x-text="selectedItem.releaseDate ? new Date(selectedItem.releaseDate).getFullYear() : 'N/A'"></span>
+                                <h2 class="text-2xl font-bold" x-text="selectedItem.title || selectedItem.name"></h2>
+                                <p x-show="selectedItem.tagline" class="text-gray-400 italic mt-1" x-text="selectedItem.tagline"></p>
+                                <div class="flex items-center space-x-2 text-gray-400 mt-2">
+                                    <span x-text="(selectedItem.releaseDate || selectedItem.release_date || selectedItem.first_air_date || '').substring(0, 4) || 'N/A'"></span>
                                     <span>•</span>
-                                    <span x-text="selectedItem.rating || 'Not Rated'"></span>
-                                    <span x-show="selectedItem.duration">•</span>
-                                    <span x-show="selectedItem.duration" x-text="selectedItem.duration + ' minutes'"></span>
+                                    <span x-text="selectedItem.rating || (selectedItem.vote_average ? '⭐ ' + selectedItem.vote_average.toFixed(1) : 'Not Rated')"></span>
+                                    <span x-show="selectedItem.duration || selectedItem.runtime">•</span>
+                                    <span x-show="selectedItem.duration || selectedItem.runtime" x-text="(selectedItem.duration || selectedItem.runtime) + ' min'"></span>
                                     <span>•</span>
-                                    <span class="capitalize" x-text="selectedItem.type"></span>
+                                    <span class="capitalize" x-text="selectedItem.type || selectedItem.media_type || 'movie'"></span>
                                 </div>
                             </div>
                             <!-- Watched Toggle -->
@@ -567,7 +688,25 @@
                             </template>
                         </div>
 
-                        <p class="text-gray-300 mb-6" x-text="selectedItem.synopsis || 'No synopsis available.'"></p>
+                        <p class="text-gray-300 mb-6" x-text="selectedItem.synopsis || selectedItem.overview || 'No synopsis available.'"></p>
+
+                        <!-- Cast (TMDb) -->
+                        <div x-show="selectedItem.cast && selectedItem.cast.length > 0" class="mb-6">
+                            <h3 class="text-lg font-semibold mb-3">🎭 Cast</h3>
+                            <div class="flex flex-wrap gap-3">
+                                <template x-for="actor in (selectedItem.cast || [])" :key="actor.id">
+                                    <div class="flex items-center space-x-2 bg-gray-800 rounded-full px-3 py-1">
+                                        <img
+                                            x-show="actor.profile_path"
+                                            :src="TMDB_IMAGE_BASE + '/w45' + actor.profile_path"
+                                            :alt="actor.name"
+                                            class="w-6 h-6 rounded-full object-cover"
+                                        >
+                                        <span class="text-sm" x-text="actor.name"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
 
                         <div x-show="selectedItem.moodTags || selectedItem.keywords" class="mb-6">
                             <h3 class="text-lg font-semibold mb-3 flex items-center">
@@ -709,6 +848,36 @@
         </div>
     </div>
 
+    <!-- Trailer Modal (YouTube) -->
+    <div
+        x-show="showTrailerModal"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-200"
+        class="fixed inset-0 bg-black/90 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+        @click.self="showTrailerModal = false; trailerKey = null"
+    >
+        <div class="relative w-full max-w-4xl aspect-video">
+            <button
+                @click="showTrailerModal = false; trailerKey = null"
+                class="absolute -top-12 right-0 p-2 text-white hover:text-gray-300 transition-colors"
+            >
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+            <iframe
+                x-show="trailerKey"
+                :src="'https://www.youtube.com/embed/' + trailerKey + '?autoplay=1'"
+                class="w-full h-full rounded-xl"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+            ></iframe>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="border-t border-gray-800 py-8 px-4 mt-8">
         <div class="max-w-7xl mx-auto text-center text-gray-500 text-sm">
@@ -718,12 +887,18 @@
             <p>
                 Built with 13-Agent Swarm • Agentics Foundation TV5 Hackathon 2025
             </p>
-            <div class="mt-4 flex justify-center space-x-4 text-xs">
+            <div class="mt-4 flex justify-center items-center space-x-4 text-xs">
                 <span>API: <a href="https://nexus-ummid-api-181630922804.us-central1.run.app" target="_blank" class="text-indigo-400 hover:underline">Cloud Run</a></span>
                 <span>•</span>
                 <span x-text="'Catalog: ' + totalItems + ' titles'"></span>
                 <span>•</span>
                 <span class="text-green-400">Status: Live</span>
+            </div>
+            <div class="mt-4 flex justify-center items-center space-x-2">
+                <span class="text-xs text-gray-600">Powered by</span>
+                <a href="https://www.themoviedb.org" target="_blank" rel="noopener">
+                    <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDb" class="h-4">
+                </a>
             </div>
         </div>
     </footer>
@@ -731,15 +906,23 @@
     <script>
         const API_BASE = 'https://nexus-ummid-api-181630922804.us-central1.run.app';
 
+        // TMDb Configuration
+        const TMDB_API_KEY = '9011f8eb83bea7ca6bf6ced06548027d';
+        const TMDB_BASE = 'https://api.themoviedb.org/3';
+        const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p';
+        const TMDB_POSTER_SIZE = 'w500';
+        const TMDB_BACKDROP_SIZE = 'w1280';
+
         function discoveryApp() {
             return {
                 // State
-                activeTab: 'discover',
+                activeTab: 'trending',
                 searchQuery: '',
                 items: [],
                 filteredItems: [],
                 forYouItems: [],
                 moodItems: [],
+                trendingItems: [],
                 loading: true,
                 selectedItem: null,
                 sortBy: 'relevance',
@@ -748,7 +931,10 @@
                 validatingPlatform: null,
                 platformValidation: {},
                 showProfileModal: false,
+                showTrailerModal: false,
+                trailerKey: null,
                 selectedMood: null,
+                trendingType: 'movie',
 
                 // Filters
                 filters: {
@@ -786,7 +972,78 @@
 
                 async init() {
                     this.loadUserData();
+                    await this.loadTrending('movie');
                     await this.loadCatalog();
+                },
+
+                // TMDb API Methods
+                async loadTrending(type = 'movie') {
+                    this.trendingType = type;
+                    this.loading = true;
+                    try {
+                        const response = await fetch(`${TMDB_BASE}/trending/${type}/week?api_key=${TMDB_API_KEY}`);
+                        const data = await response.json();
+                        if (data.results) {
+                            this.trendingItems = data.results.map(item => ({
+                                ...item,
+                                media_type: type,
+                                isTmdb: true
+                            }));
+                        }
+                    } catch (error) {
+                        console.error('Failed to load trending:', error);
+                        this.trendingItems = [];
+                    }
+                    this.loading = false;
+                },
+
+                async searchTmdb(query) {
+                    try {
+                        const response = await fetch(`${TMDB_BASE}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);
+                        const data = await response.json();
+                        return data.results || [];
+                    } catch (error) {
+                        console.error('TMDb search failed:', error);
+                        return [];
+                    }
+                },
+
+                async loadTrailer(item) {
+                    if (!item.isTmdb) return null;
+                    const type = item.media_type === 'tv' ? 'tv' : 'movie';
+                    try {
+                        const response = await fetch(`${TMDB_BASE}/${type}/${item.id}/videos?api_key=${TMDB_API_KEY}`);
+                        const data = await response.json();
+                        const trailer = data.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube') ||
+                                       data.results?.find(v => v.site === 'YouTube');
+                        if (trailer) {
+                            this.trailerKey = trailer.key;
+                            this.showTrailerModal = true;
+                        }
+                    } catch (error) {
+                        console.error('Failed to load trailer:', error);
+                    }
+                },
+
+                async loadTmdbDetails(item) {
+                    if (!item.isTmdb) return;
+                    const type = item.media_type === 'tv' ? 'tv' : 'movie';
+                    try {
+                        const response = await fetch(`${TMDB_BASE}/${type}/${item.id}?api_key=${TMDB_API_KEY}&append_to_response=credits,keywords`);
+                        const data = await response.json();
+                        // Merge details into selected item
+                        this.selectedItem = {
+                            ...this.selectedItem,
+                            runtime: data.runtime,
+                            genres: data.genres?.map(g => g.name) || [],
+                            overview: data.overview,
+                            tagline: data.tagline,
+                            cast: data.credits?.cast?.slice(0, 5) || [],
+                            keywords: data.keywords?.keywords?.map(k => k.name) || data.keywords?.results?.map(k => k.name) || []
+                        };
+                    } catch (error) {
+                        console.error('Failed to load details:', error);
+                    }
                 },
 
                 // Persistence
@@ -1068,9 +1325,13 @@
                 },
 
                 // Item Selection & API calls
-                selectItem(item) {
+                async selectItem(item) {
                     this.selectedItem = item;
                     this.platformValidation = {};
+                    // Load TMDb details if it's a TMDb item
+                    if (item.isTmdb) {
+                        await this.loadTmdbDetails(item);
+                    }
                     // Add to history when viewing
                     if (!this.isWatched(item.id)) {
                         this.watchHistory.unshift({ id: item.id, viewedAt: new Date().toISOString() });

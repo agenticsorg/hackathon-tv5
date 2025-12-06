@@ -75,18 +75,17 @@ steps:
       - '--port'
       - '8080'
 
-  # Step 4: Ensure public access IAM binding
+  # Step 4: Ensure public access IAM binding (non-blocking - may already be set)
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     id: 'set-iam-policy'
-    entrypoint: gcloud
+    entrypoint: 'bash'
     args:
-      - 'run'
-      - 'services'
-      - 'add-iam-policy-binding'
-      - '${_SERVICE_NAME}'
-      - '--region=${_REGION}'
-      - '--member=allUsers'
-      - '--role=roles/run.invoker'
+      - '-c'
+      - |
+        gcloud run services add-iam-policy-binding ${_SERVICE_NAME} \
+          --region=${_REGION} \
+          --member=allUsers \
+          --role=roles/run.invoker || echo "IAM binding already exists or requires manual setup"
 
 images:
   - '${_ARTIFACT_REGISTRY}/${_GCP_PROJECT}/${_IMAGE_NAME}/${_SERVICE_NAME}:$SHORT_SHA'
