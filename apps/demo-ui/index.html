@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en" x-data="discoveryApp()" x-init="init()">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus-UMMID | Entertainment Discovery Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        .search-glow:focus {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+        }
+        .badge-netflix { background: #e50914; }
+        .badge-amazon { background: #00a8e1; }
+        .badge-fast { background: #10b981; }
+        .skeleton {
+            background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+            background-size: 200% 100%;
+            animation: skeleton 1.5s infinite;
+        }
+        @keyframes skeleton {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen text-white">
+    <!-- Header -->
+    <header class="border-b border-gray-700/50 backdrop-blur-sm sticky top-0 z-50 bg-gray-900/80">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V1m0 3H7m10 0a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2m5 7l-3 3m0 0l-3-3m3 3V9"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">Nexus-UMMID</h1>
+                        <p class="text-xs text-gray-400">Entertainment Discovery Platform</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-400">Powered by AI</span>
+                    <div class="flex items-center space-x-1">
+                        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                        <span class="text-sm text-green-400">Live</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section with Search -->
+    <section class="py-12 px-4">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-4xl md:text-5xl font-bold mb-4">
+                Discover Your Next
+                <span class="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Favorite</span>
+            </h2>
+            <p class="text-gray-400 text-lg mb-8">
+                AI-powered entertainment discovery. Search naturally, find intelligently.
+            </p>
+
+            <!-- Search Bar -->
+            <div class="relative max-w-2xl mx-auto">
+                <input
+                    type="text"
+                    x-model="searchQuery"
+                    @keyup.enter="search()"
+                    placeholder="Try: 'dark thriller with twist ending' or 'feel-good comedy'"
+                    class="w-full px-6 py-4 bg-gray-800/80 border border-gray-700 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 search-glow transition-all"
+                >
+                <button
+                    @click="search()"
+                    :disabled="loading"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-xl font-medium transition-colors disabled:opacity-50"
+                >
+                    <span x-show="!loading">Search</span>
+                    <span x-show="loading" class="flex items-center">
+                        <svg class="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                        </svg>
+                        Searching...
+                    </span>
+                </button>
+            </div>
+
+            <!-- Quick Filters -->
+            <div class="flex flex-wrap justify-center gap-2 mt-6">
+                <button @click="filterByGenre('Action')" class="px-4 py-2 bg-gray-800/60 hover:bg-gray-700 rounded-full text-sm transition-colors">Action</button>
+                <button @click="filterByGenre('Comedy')" class="px-4 py-2 bg-gray-800/60 hover:bg-gray-700 rounded-full text-sm transition-colors">Comedy</button>
+                <button @click="filterByGenre('Drama')" class="px-4 py-2 bg-gray-800/60 hover:bg-gray-700 rounded-full text-sm transition-colors">Drama</button>
+                <button @click="filterByGenre('Sci-Fi')" class="px-4 py-2 bg-gray-800/60 hover:bg-gray-700 rounded-full text-sm transition-colors">Sci-Fi</button>
+                <button @click="filterByGenre('Thriller')" class="px-4 py-2 bg-gray-800/60 hover:bg-gray-700 rounded-full text-sm transition-colors">Thriller</button>
+                <button @click="searchQuery = ''; loadCatalog()" class="px-4 py-2 bg-indigo-600/30 hover:bg-indigo-600/50 rounded-full text-sm text-indigo-300 transition-colors">View All</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="px-4 pb-12">
+        <div class="max-w-7xl mx-auto">
+            <!-- Results Header -->
+            <div class="flex items-center justify-between mb-6" x-show="items.length > 0 || loading">
+                <h3 class="text-xl font-semibold">
+                    <span x-text="searchQuery ? 'Search Results' : 'Browse Catalog'"></span>
+                    <span x-show="items.length > 0" class="text-gray-400 font-normal text-base ml-2">
+                        (<span x-text="items.length"></span> titles)
+                    </span>
+                </h3>
+                <div class="flex items-center space-x-2 text-sm text-gray-400">
+                    <span>Sort by:</span>
+                    <select x-model="sortBy" @change="sortItems()" class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1 focus:outline-none focus:border-indigo-500">
+                        <option value="relevance">Relevance</option>
+                        <option value="title">Title</option>
+                        <option value="year">Year</option>
+                        <option value="rating">Rating</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Loading Skeletons -->
+            <div x-show="loading" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                <template x-for="i in 10">
+                    <div class="bg-gray-800/50 rounded-xl overflow-hidden">
+                        <div class="aspect-[2/3] skeleton"></div>
+                        <div class="p-4 space-y-2">
+                            <div class="h-4 skeleton rounded w-3/4"></div>
+                            <div class="h-3 skeleton rounded w-1/2"></div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Results Grid -->
+            <div x-show="!loading && items.length > 0" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                <template x-for="item in items" :key="item.id">
+                    <div
+                        @click="selectItem(item)"
+                        class="bg-gray-800/50 rounded-xl overflow-hidden cursor-pointer card-hover transition-all duration-300 fade-in"
+                    >
+                        <!-- Poster Placeholder -->
+                        <div class="aspect-[2/3] relative overflow-hidden">
+                            <div
+                                class="w-full h-full flex items-center justify-center text-6xl"
+                                :style="'background: linear-gradient(135deg, ' + getGradient(item.genres?.[0] || 'default') + ')'"
+                            >
+                                <span x-text="getEmoji(item.type)"></span>
+                            </div>
+                            <!-- Type Badge -->
+                            <div class="absolute top-2 left-2">
+                                <span
+                                    class="px-2 py-1 text-xs font-medium rounded-full"
+                                    :class="item.type === 'movie' ? 'bg-blue-600' : item.type === 'series' ? 'bg-purple-600' : 'bg-gray-600'"
+                                    x-text="item.type"
+                                ></span>
+                            </div>
+                            <!-- Similarity Score -->
+                            <div x-show="item.similarity" class="absolute top-2 right-2">
+                                <span class="px-2 py-1 text-xs font-medium bg-green-600 rounded-full">
+                                    <span x-text="Math.round(item.similarity * 100)"></span>% match
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Info -->
+                        <div class="p-4">
+                            <h4 class="font-semibold truncate" x-text="item.title"></h4>
+                            <div class="flex items-center space-x-2 text-sm text-gray-400 mt-1">
+                                <span x-text="item.releaseDate ? new Date(item.releaseDate).getFullYear() : 'N/A'"></span>
+                                <span>•</span>
+                                <span x-text="item.rating || 'NR'"></span>
+                                <span x-show="item.duration">•</span>
+                                <span x-show="item.duration" x-text="item.duration + ' min'"></span>
+                            </div>
+                            <!-- Genres -->
+                            <div class="flex flex-wrap gap-1 mt-2">
+                                <template x-for="genre in (item.genres || []).slice(0, 2)" :key="genre">
+                                    <span class="px-2 py-0.5 text-xs bg-gray-700 rounded-full" x-text="genre"></span>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Empty State -->
+            <div x-show="!loading && items.length === 0 && searchQuery" class="text-center py-16">
+                <div class="text-6xl mb-4">🔍</div>
+                <h3 class="text-xl font-semibold mb-2">No results found</h3>
+                <p class="text-gray-400">Try a different search term or browse our catalog</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Detail Modal -->
+    <div
+        x-show="selectedItem"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        @click.self="selectedItem = null"
+    >
+        <div
+            x-show="selectedItem"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            class="bg-gray-900 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+        >
+            <template x-if="selectedItem">
+                <div>
+                    <!-- Modal Header -->
+                    <div class="relative h-48 overflow-hidden rounded-t-2xl">
+                        <div
+                            class="w-full h-full flex items-center justify-center text-8xl"
+                            :style="'background: linear-gradient(135deg, ' + getGradient(selectedItem.genres?.[0] || 'default') + ')'"
+                        >
+                            <span x-text="getEmoji(selectedItem.type)"></span>
+                        </div>
+                        <button
+                            @click="selectedItem = null"
+                            class="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
+                        >
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Modal Content -->
+                    <div class="p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h2 class="text-2xl font-bold" x-text="selectedItem.title"></h2>
+                                <div class="flex items-center space-x-2 text-gray-400 mt-1">
+                                    <span x-text="selectedItem.releaseDate ? new Date(selectedItem.releaseDate).getFullYear() : 'N/A'"></span>
+                                    <span>•</span>
+                                    <span x-text="selectedItem.rating || 'Not Rated'"></span>
+                                    <span x-show="selectedItem.duration">•</span>
+                                    <span x-show="selectedItem.duration" x-text="selectedItem.duration + ' minutes'"></span>
+                                    <span>•</span>
+                                    <span class="capitalize" x-text="selectedItem.type"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Genres -->
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <template x-for="genre in (selectedItem.genres || [])" :key="genre">
+                                <span class="px-3 py-1 bg-indigo-600/30 text-indigo-300 rounded-full text-sm" x-text="genre"></span>
+                            </template>
+                        </div>
+
+                        <!-- Synopsis -->
+                        <p class="text-gray-300 mb-6" x-text="selectedItem.synopsis || 'No synopsis available.'"></p>
+
+                        <!-- AI Enrichment -->
+                        <div x-show="selectedItem.moodTags || selectedItem.keywords" class="mb-6">
+                            <h3 class="text-lg font-semibold mb-3 flex items-center">
+                                <span class="mr-2">✨</span> AI-Enriched Metadata
+                            </h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div x-show="selectedItem.moodTags">
+                                    <h4 class="text-sm text-gray-400 mb-2">Mood Tags</h4>
+                                    <div class="flex flex-wrap gap-1">
+                                        <template x-for="tag in (selectedItem.moodTags || [])" :key="tag">
+                                            <span class="px-2 py-1 bg-purple-600/30 text-purple-300 rounded text-xs" x-text="tag"></span>
+                                        </template>
+                                    </div>
+                                </div>
+                                <div x-show="selectedItem.keywords">
+                                    <h4 class="text-sm text-gray-400 mb-2">Keywords</h4>
+                                    <div class="flex flex-wrap gap-1">
+                                        <template x-for="keyword in (selectedItem.keywords || []).slice(0, 5)" :key="keyword">
+                                            <span class="px-2 py-1 bg-gray-700 rounded text-xs" x-text="keyword"></span>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Platform Validation -->
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold mb-3 flex items-center">
+                                <span class="mr-2">📺</span> Platform Availability
+                            </h3>
+                            <div class="flex flex-wrap gap-3">
+                                <template x-for="platform in platforms" :key="platform.id">
+                                    <button
+                                        @click="validatePlatform(selectedItem.id, platform.id)"
+                                        class="flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors"
+                                        :class="platformValidation[platform.id] === true ? platform.bgClass + ' text-white' :
+                                                platformValidation[platform.id] === false ? 'bg-red-600/30 text-red-300' :
+                                                'bg-gray-700 hover:bg-gray-600'"
+                                    >
+                                        <span x-text="platform.name"></span>
+                                        <span x-show="platformValidation[platform.id] === true">✓</span>
+                                        <span x-show="platformValidation[platform.id] === false">✗</span>
+                                        <span x-show="validatingPlatform === platform.id" class="animate-spin">⟳</span>
+                                    </button>
+                                </template>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">Click to validate metadata for each platform</p>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex space-x-3">
+                            <button
+                                @click="enrichItem(selectedItem.id)"
+                                :disabled="enriching"
+                                class="flex-1 px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-xl font-medium transition-all disabled:opacity-50"
+                            >
+                                <span x-show="!enriching">✨ Enrich with AI</span>
+                                <span x-show="enriching">Enriching...</span>
+                            </button>
+                            <button
+                                @click="findSimilar(selectedItem.id)"
+                                class="px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl font-medium transition-colors"
+                            >
+                                🔍 Find Similar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-800 py-8 px-4 mt-8">
+        <div class="max-w-7xl mx-auto text-center text-gray-500 text-sm">
+            <p class="mb-2">
+                <strong class="text-gray-300">Nexus-UMMID</strong> - Cognitive Hypergraph Media Metadata Platform
+            </p>
+            <p>
+                Built with 13-Agent Swarm • Agentics Foundation TV5 Hackathon 2025
+            </p>
+            <div class="mt-4 flex justify-center space-x-4 text-xs">
+                <span>API: <a href="https://nexus-ummid-api-181630922804.us-central1.run.app" target="_blank" class="text-indigo-400 hover:underline">Cloud Run</a></span>
+                <span>•</span>
+                <span x-text="'Catalog: ' + totalItems + ' titles'"></span>
+                <span>•</span>
+                <span class="text-green-400">Status: Live</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const API_BASE = 'https://nexus-ummid-api-181630922804.us-central1.run.app';
+
+        function discoveryApp() {
+            return {
+                searchQuery: '',
+                items: [],
+                loading: true,
+                selectedItem: null,
+                sortBy: 'relevance',
+                totalItems: 0,
+                enriching: false,
+                validatingPlatform: null,
+                platformValidation: {},
+                platforms: [
+                    { id: 'netflix', name: 'Netflix', bgClass: 'badge-netflix' },
+                    { id: 'amazon', name: 'Amazon', bgClass: 'badge-amazon' },
+                    { id: 'fast', name: 'FAST', bgClass: 'badge-fast' }
+                ],
+
+                async init() {
+                    await this.loadCatalog();
+                },
+
+                async loadCatalog() {
+                    this.loading = true;
+                    try {
+                        const response = await fetch(`${API_BASE}/api/v1/metadata`);
+                        const data = await response.json();
+                        if (data.success && data.data) {
+                            this.items = data.data.items || [];
+                            this.totalItems = data.data.pagination?.total || this.items.length;
+                        }
+                    } catch (error) {
+                        console.error('Failed to load catalog:', error);
+                        this.items = [];
+                    }
+                    this.loading = false;
+                },
+
+                async search() {
+                    if (!this.searchQuery.trim()) {
+                        return this.loadCatalog();
+                    }
+
+                    this.loading = true;
+                    try {
+                        const response = await fetch(`${API_BASE}/api/v1/search?q=${encodeURIComponent(this.searchQuery)}`);
+                        const data = await response.json();
+                        if (data.success && data.data && data.data.results?.length > 0) {
+                            this.items = data.data.results.map(r => ({
+                                ...r.metadata,
+                                similarity: r.similarity
+                            }));
+                        } else {
+                            // Fallback: enhanced local filtering (when semantic search has no embeddings)
+                            await this.loadCatalog();
+                            const queryTerms = this.searchQuery.toLowerCase().split(/\s+/);
+                            this.items = this.items.filter(item => {
+                                const searchableText = [
+                                    item.title,
+                                    item.synopsis,
+                                    ...(item.genres || []),
+                                    ...(item.keywords || []),
+                                    ...(item.moodTags || []),
+                                    ...(item.themes || [])
+                                ].filter(Boolean).join(' ').toLowerCase();
+
+                                // Match if any query term is found
+                                return queryTerms.some(term => searchableText.includes(term));
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Search failed:', error);
+                        // Fallback on error too
+                        await this.loadCatalog();
+                        const queryTerms = this.searchQuery.toLowerCase().split(/\s+/);
+                        this.items = this.items.filter(item => {
+                            const searchableText = [
+                                item.title,
+                                item.synopsis,
+                                ...(item.genres || []),
+                                ...(item.keywords || []),
+                                ...(item.moodTags || []),
+                                ...(item.themes || [])
+                            ].filter(Boolean).join(' ').toLowerCase();
+                            return queryTerms.some(term => searchableText.includes(term));
+                        });
+                    }
+                    this.loading = false;
+                },
+
+                filterByGenre(genre) {
+                    this.searchQuery = genre.toLowerCase();
+                    this.search();
+                },
+
+                selectItem(item) {
+                    this.selectedItem = item;
+                    this.platformValidation = {};
+                },
+
+                async validatePlatform(itemId, platform) {
+                    this.validatingPlatform = platform;
+                    try {
+                        const response = await fetch(`${API_BASE}/api/v1/metadata/${itemId}/validate`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ platform })
+                        });
+                        const data = await response.json();
+                        this.platformValidation[platform] = data.success && data.data?.valid;
+                    } catch (error) {
+                        console.error('Validation failed:', error);
+                        this.platformValidation[platform] = false;
+                    }
+                    this.validatingPlatform = null;
+                },
+
+                async enrichItem(itemId) {
+                    this.enriching = true;
+                    try {
+                        const response = await fetch(`${API_BASE}/api/v1/metadata/${itemId}/enrich`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+                        const data = await response.json();
+                        if (data.success && data.data) {
+                            // Update selected item with enriched data
+                            this.selectedItem = {
+                                ...this.selectedItem,
+                                ...data.data.enrichedMetadata,
+                                moodTags: data.data.enrichedMetadata?.moodTags || this.selectedItem.moodTags
+                            };
+                            // Also update in items list
+                            const idx = this.items.findIndex(i => i.id === itemId);
+                            if (idx !== -1) {
+                                this.items[idx] = { ...this.items[idx], ...this.selectedItem };
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Enrichment failed:', error);
+                    }
+                    this.enriching = false;
+                },
+
+                async findSimilar(itemId) {
+                    this.selectedItem = null;
+                    this.loading = true;
+                    try {
+                        const response = await fetch(`${API_BASE}/api/v1/search/similar/${itemId}`);
+                        const data = await response.json();
+                        if (data.success && data.data) {
+                            this.items = (data.data.results || []).map(r => ({
+                                ...r.metadata,
+                                similarity: r.similarity
+                            }));
+                            this.searchQuery = 'Similar titles';
+                        }
+                    } catch (error) {
+                        console.error('Find similar failed:', error);
+                    }
+                    this.loading = false;
+                },
+
+                sortItems() {
+                    switch (this.sortBy) {
+                        case 'title':
+                            this.items.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+                            break;
+                        case 'year':
+                            this.items.sort((a, b) => {
+                                const yearA = a.releaseDate ? new Date(a.releaseDate).getFullYear() : 0;
+                                const yearB = b.releaseDate ? new Date(b.releaseDate).getFullYear() : 0;
+                                return yearB - yearA;
+                            });
+                            break;
+                        case 'rating':
+                            this.items.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+                            break;
+                    }
+                },
+
+                getGradient(genre) {
+                    const gradients = {
+                        'Action': '#dc2626, #7c2d12',
+                        'Comedy': '#f59e0b, #78350f',
+                        'Drama': '#6366f1, #312e81',
+                        'Horror': '#18181b, #450a0a',
+                        'Sci-Fi': '#06b6d4, #164e63',
+                        'sci-fi': '#06b6d4, #164e63',
+                        'Thriller': '#4338ca, #1e1b4b',
+                        'thriller': '#4338ca, #1e1b4b',
+                        'Romance': '#ec4899, #831843',
+                        'Documentary': '#22c55e, #14532d',
+                        'documentary': '#22c55e, #14532d',
+                        'technology': '#8b5cf6, #4c1d95',
+                        'default': '#374151, #111827'
+                    };
+                    return gradients[genre] || gradients.default;
+                },
+
+                getEmoji(type) {
+                    const emojis = {
+                        'movie': '🎬',
+                        'series': '📺',
+                        'episode': '🎞️'
+                    };
+                    return emojis[type] || '🎥';
+                }
+            };
+        }
+    </script>
+</body>
+</html>
