@@ -40,6 +40,27 @@ CREATE INDEX ON movies USING hnsw (embedding vector_cosine_ops);
 SELECT ruvector_adaptive_search(query_embedding, 'movies', 100);
 ```
 
+### ☁️ Deploy to Google Cloud
+
+```bash
+# Deploy RuVector on Google Compute Engine
+gcloud compute instances create-with-container ruvector-db \
+  --container-image=ruvnet/ruvector-postgres:latest \
+  --machine-type=e2-standard-4 \
+  --zone=us-central1-a \
+  --container-env=POSTGRES_PASSWORD=YOUR_SECURE_PASSWORD
+
+# Get the external IP
+gcloud compute instances describe ruvector-db \
+  --zone=us-central1-a \
+  --format='get(networkInterfaces[0].accessConfigs[0].natIP)'
+
+# Connect
+psql -h EXTERNAL_IP -U postgres -d postgres
+```
+
+See [full Google Cloud deployment guide](docs/google-cloud-deployment.md) for Cloud SQL, load balancing, and production setup.
+
 ---
 
 ## 🎬 Why RuVector for Media Discovery?
