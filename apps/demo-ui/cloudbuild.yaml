@@ -1,0 +1,93 @@
+# Nexus-UMMID Demo UI - Google Cloud Build Configuration
+# Deploys static site to Cloud Run
+
+substitutions:
+  _SERVICE_NAME: nexus-ummid-demo
+  _REGION: us-central1
+  _GCP_PROJECT: agentics-foundation25lon-1899
+  _IMAGE_NAME: demo-ui
+  _ARTIFACT_REGISTRY: us-central1-docker.pkg.dev
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  # Step 0: Create Artifact Registry repository if it doesn't exist
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'create-repo'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud artifacts repositories describe ${_IMAGE_NAME} \
+          --location=${_REGION} \
+          --project=${_GCP_PROJECT} 2>/dev/null || \
+        gcloud artifacts repositories create ${_IMAGE_NAME} \
+          --repository-format=docker \
+          --location=${_REGION} \
+          --project=${_GCP_PROJECT} \
+          --description="Nexus-UMMID Demo UI container images"
+
+  # Step 1: Build Docker Image
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-image'
+    dir: 'apps/demo-ui'
+    args:
+      - 'build'
+      - '-t'
+      - '${_ARTIFACT_REGISTRY}/${_GCP_PROJECT}/${_IMAGE_NAME}/${_SERVICE_NAME}:$SHORT_SHA'
+      - '-t'
+      - '${_ARTIFACT_REGISTRY}/${_GCP_PROJECT}/${_IMAGE_NAME}/${_SERVICE_NAME}:latest'
+      - '.'
+
+  # Step 2: Push to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-image'
+    dir: 'apps/demo-ui'
+    args:
+      - 'push'
+      - '--all-tags'
+      - '${_ARTIFACT_REGISTRY}/${_GCP_PROJECT}/${_IMAGE_NAME}/${_SERVICE_NAME}'
+
+  # Step 3: Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-cloud-run'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_NAME}'
+      - '--image'
+      - '${_ARTIFACT_REGISTRY}/${_GCP_PROJECT}/${_IMAGE_NAME}/${_SERVICE_NAME}:$SHORT_SHA'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--memory'
+      - '256Mi'
+      - '--cpu'
+      - '1'
+      - '--min-instances'
+      - '0'
+      - '--max-instances'
+      - '10'
+      - '--port'
+      - '8080'
+
+  # Step 4: Ensure public access IAM binding
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'set-iam-policy'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'services'
+      - 'add-iam-policy-binding'
+      - '${_SERVICE_NAME}'
+      - '--region=${_REGION}'
+      - '--member=allUsers'
+      - '--role=roles/run.invoker'
+
+images:
+  - '${_ARTIFACT_REGISTRY}/${_GCP_PROJECT}/${_IMAGE_NAME}/${_SERVICE_NAME}:$SHORT_SHA'
+  - '${_ARTIFACT_REGISTRY}/${_GCP_PROJECT}/${_IMAGE_NAME}/${_SERVICE_NAME}:latest'
