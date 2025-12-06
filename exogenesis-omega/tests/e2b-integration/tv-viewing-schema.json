@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TVViewingEvent",
+  "description": "Schema for TV viewing events used in Exogenesis Omega testing",
+  "type": "object",
+  "properties": {
+    "device_id": {
+      "type": "string",
+      "pattern": "^tv-[a-f0-9]{8}$",
+      "description": "Unique TV device identifier"
+    },
+    "session_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Viewing session identifier"
+    },
+    "content_id": {
+      "type": "string",
+      "pattern": "^content-[0-9]{6}$",
+      "description": "Content identifier being watched"
+    },
+    "content_type": {
+      "type": "string",
+      "enum": ["movie", "series", "documentary", "sports", "news", "live"],
+      "description": "Type of content"
+    },
+    "genre": {
+      "type": "string",
+      "enum": ["action", "comedy", "drama", "horror", "sci-fi", "romance", "thriller", "documentary", "sports", "news"],
+      "description": "Primary genre"
+    },
+    "watch_percentage": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Percentage of content watched (0.0 to 1.0)"
+    },
+    "watch_duration_seconds": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 14400,
+      "description": "Duration watched in seconds (max 4 hours)"
+    },
+    "time_of_day": {
+      "type": "string",
+      "enum": ["morning", "afternoon", "evening", "night"],
+      "description": "Time of day when viewing occurred"
+    },
+    "day_of_week": {
+      "type": "string",
+      "enum": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"],
+      "description": "Day of the week"
+    },
+    "user_action": {
+      "type": "string",
+      "enum": ["play", "pause", "resume", "stop", "skip", "rewind", "fast_forward", "complete"],
+      "description": "User action that triggered this event"
+    },
+    "interaction_count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Number of interactions during viewing"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of the event"
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "previous_content": {
+          "type": "string",
+          "description": "Previously watched content ID"
+        },
+        "recommendation_source": {
+          "type": "string",
+          "enum": ["home", "search", "continue_watching", "recommended", "trending", "category"],
+          "description": "How user found this content"
+        },
+        "household_size": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        }
+      }
+    }
+  },
+  "required": ["device_id", "session_id", "content_id", "content_type", "genre", "watch_percentage", "timestamp"]
+}

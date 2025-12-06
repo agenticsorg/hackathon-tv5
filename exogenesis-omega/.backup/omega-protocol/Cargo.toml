@@ -1,0 +1,33 @@
+[package]
+name = "omega-protocol"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+bincode = { workspace = true }
+
+# Protocol buffers
+prost = { workspace = true }
+prost-types = { workspace = true }
+tonic = { workspace = true, optional = true }
+
+# Compression
+zstd = { workspace = true }
+
+# Utilities
+bytes = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+thiserror = { workspace = true }
+
+[build-dependencies]
+tonic-build = { workspace = true }
+
+[features]
+default = []
+grpc = ["tonic"]

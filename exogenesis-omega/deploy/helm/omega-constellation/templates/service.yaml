@@ -1,0 +1,93 @@
+---
+# Headless service for internal communication
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "omega-constellation.fullname" . }}-constellation
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "omega-constellation.constellation.labels" . | nindent 4 }}
+  {{- with .Values.constellation.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    {{- include "omega-constellation.constellation.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: grpc
+      port: {{ .Values.constellation.service.grpc.port }}
+      targetPort: grpc
+      protocol: TCP
+    - name: http
+      port: {{ .Values.constellation.service.http.port }}
+      targetPort: http
+      protocol: TCP
+    - name: metrics
+      port: {{ .Values.constellation.service.metrics.port }}
+      targetPort: metrics
+      protocol: TCP
+
+---
+# LoadBalancer for external gRPC (TV devices)
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "omega-constellation.fullname" . }}-grpc-lb
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "omega-constellation.constellation.labels" . | nindent 4 }}
+  annotations:
+    {{- if .Values.constellation.service.annotations }}
+    {{- toYaml .Values.constellation.service.annotations | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.constellation.service.type }}
+  selector:
+    {{- include "omega-constellation.constellation.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: grpc
+      port: {{ .Values.constellation.service.grpc.port }}
+      targetPort: grpc
+      {{- if .Values.constellation.service.grpc.nodePort }}
+      nodePort: {{ .Values.constellation.service.grpc.nodePort }}
+      {{- end }}
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 900
+  {{- if eq .Values.constellation.service.type "LoadBalancer" }}
+  externalTrafficPolicy: Local
+  {{- end }}
+
+---
+# LoadBalancer for management API
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "omega-constellation.fullname" . }}-api-lb
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "omega-constellation.constellation.labels" . | nindent 4 }}
+  {{- with .Values.constellation.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.constellation.service.type }}
+  selector:
+    {{- include "omega-constellation.constellation.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.constellation.service.http.port }}
+      targetPort: http
+      {{- if .Values.constellation.service.http.nodePort }}
+      nodePort: {{ .Values.constellation.service.http.nodePort }}
+      {{- end }}
+      protocol: TCP
+  {{- if eq .Values.constellation.service.type "LoadBalancer" }}
+  externalTrafficPolicy: Cluster
+  {{- end }}

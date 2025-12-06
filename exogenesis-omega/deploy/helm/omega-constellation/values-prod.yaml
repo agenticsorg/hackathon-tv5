@@ -1,0 +1,345 @@
+# Production overrides for omega-constellation
+# Usage: helm install omega ./omega-constellation -f values-prod.yaml
+
+# ============================================================
+# Global Configuration
+# ============================================================
+global:
+  environment: production
+  region: us-east-1
+
+# ============================================================
+# Constellation Server - Production Settings
+# ============================================================
+constellation:
+  replicaCount: 10
+
+  image:
+    tag: "v0.1.0"
+    pullPolicy: Always  # Always pull in production
+
+  # Production service configuration
+  service:
+    type: LoadBalancer
+    annotations:
+      # AWS annotations
+      service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+      service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+      service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "300"
+
+      # Enable access logs
+      service.beta.kubernetes.io/aws-load-balancer-access-log-enabled: "true"
+      service.beta.kubernetes.io/aws-load-balancer-access-log-s3-bucket-name: "omega-lb-logs"
+
+  # Production resources (full allocation)
+  resources:
+    requests:
+      cpu: "8"
+      memory: 32Gi
+      ephemeral-storage: 10Gi
+    limits:
+      cpu: "16"
+      memory: 64Gi
+      ephemeral-storage: 20Gi
+
+  # Aggressive autoscaling for production
+  autoscaling:
+    enabled: true
+    minReplicas: 10
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 65
+    targetMemoryUtilizationPercentage: 70
+    customMetrics:
+      - name: constellation_sync_requests_per_second
+        targetAverageValue: 150
+      - name: constellation_grpc_connections
+        targetAverageValue: 7000
+
+  # Strict pod disruption budget
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 80%
+
+  # Production node affinity - use dedicated node pool
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: workload
+                operator: In
+                values:
+                  - constellation
+              - key: performance
+                operator: In
+                values:
+                  - high
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - constellation
+          topologyKey: kubernetes.io/hostname
+
+# ============================================================
+# RuVector-Postgres - Production Settings
+# ============================================================
+ruvectorPostgres:
+  enabled: true
+
+  replicas: 3
+
+  # Use existing secret for credentials
+  auth:
+    existingSecret: "ruvector-postgres-secret"
+    existingSecretPasswordKey: password
+
+  # Production storage
+  persistence:
+    enabled: true
+    storageClass: fast-ssd-retain  # Use retain policy
+    data:
+      size: 2Ti
+    wal:
+      size: 100Gi
+
+  # Full resources
+  resources:
+    requests:
+      cpu: "16"
+      memory: 64Gi
+    limits:
+      cpu: "16"
+      memory: 64Gi
+
+  # Production PostgreSQL tuning
+  postgresql:
+    maxConnections: 2000
+    sharedBuffers: 32GB
+    effectiveCacheSize: 96GB
+    workMem: 512MB
+    maintenanceWorkMem: 4GB
+    walLevel: logical
+    maxWalSize: 32GB
+    minWalSize: 4GB
+
+  # Strict PDB
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 2
+
+# ============================================================
+# Federation Worker - Production Settings
+# ============================================================
+federation:
+  enabled: true
+
+  # Hourly in production
+  schedule: "0 * * * *"
+
+  job:
+    backoffLimit: 5
+    activeDeadlineSeconds: 3000
+    ttlSecondsAfterFinished: 43200  # 12 hours
+
+  resources:
+    requests:
+      cpu: "8"
+      memory: 32Gi
+    limits:
+      cpu: "8"
+      memory: 32Gi
+
+# ============================================================
+# Monitoring - Production Settings
+# ============================================================
+monitoring:
+  enabled: true
+
+  prometheus:
+    enabled: true
+    scrapeInterval: 10s
+    retention: 90d
+
+    # Use Prometheus Operator
+    serviceMonitor:
+      enabled: true
+      interval: 10s
+
+    # Persistent storage for Prometheus
+    storage:
+      enabled: true
+      storageClass: standard
+      size: 500Gi
+
+  grafana:
+    enabled: true
+
+    # Use existing secret for admin password
+    existingSecret: "grafana-admin-secret"
+    existingSecretPasswordKey: password
+
+    dashboards:
+      enabled: true
+      omegaOverview: true
+      constellationMetrics: true
+      databaseMetrics: true
+      federationMetrics: true
+
+    # Persistent storage for Grafana
+    persistence:
+      enabled: true
+      storageClass: standard
+      size: 10Gi
+
+# ============================================================
+# Network Policies - Strict Production Rules
+# ============================================================
+networkPolicy:
+  enabled: true
+
+  ingress:
+    enabled: true
+    # Restrict to specific namespaces/sources
+    allowedSources:
+      - namespaceSelector:
+          matchLabels:
+            name: omega-system
+      - namespaceSelector:
+          matchLabels:
+            name: monitoring
+
+  egress:
+    enabled: true
+    allowDNS: true
+    allowInternet: true  # For external metrics, etc.
+
+# ============================================================
+# TLS - Production Certificates
+# ============================================================
+tls:
+  enabled: true
+
+  # Use cert-manager in production
+  certManager:
+    enabled: true
+    issuer: letsencrypt-prod
+    domains:
+      - constellation.omega.production.io
+      - api.constellation.omega.production.io
+
+# ============================================================
+# External Secrets - Use AWS Secrets Manager
+# ============================================================
+externalSecrets:
+  enabled: true
+  backend: aws-secrets-manager
+  region: us-east-1
+  secrets:
+    - name: ruvector-postgres-secret
+      path: /omega/production/postgres
+    - name: grafana-admin-secret
+      path: /omega/production/grafana
+
+# ============================================================
+# Backup - Production Backup Strategy
+# ============================================================
+backup:
+  enabled: true
+
+  # Velero for cluster backup
+  velero:
+    enabled: true
+    schedule: "0 2 * * *"  # Daily at 2 AM
+    retention: 30d
+    storageLocation: s3://omega-backup-production
+
+  # PostgreSQL continuous backup
+  postgres:
+    enabled: true
+    schedule: "0 */3 * * *"  # Every 3 hours
+    retention: 14d
+    storageClass: standard
+    destination: s3://omega-db-backup-production
+
+    # Point-in-time recovery
+    pitr:
+      enabled: true
+      walArchiving: true
+
+# ============================================================
+# ConfigMaps - Production Tuning
+# ============================================================
+config:
+  sync:
+    intervalMinSecs: 300
+    intervalMaxSecs: 600  # Shorter max interval in production
+    batchSize: 150
+    compressionLevel: 5  # Higher compression
+
+  pattern:
+    minQuality: 0.8  # Higher quality threshold
+    minSampleCount: 5
+    maxPatternsPerDevice: 10000
+
+  rateLimit:
+    perDevicePerMinute: 1
+    burst: 2  # Stricter burst in production
+
+  logging:
+    level: warn  # Less verbose in production
+    format: json
+
+# ============================================================
+# High Availability Settings
+# ============================================================
+highAvailability:
+  # Multi-AZ deployment
+  multiAZ: true
+
+  # Cross-region replication (if supported)
+  crossRegion:
+    enabled: false
+    regions:
+      - us-east-1
+      - us-west-2
+      - eu-west-1
+
+  # Disaster recovery
+  disasterRecovery:
+    enabled: true
+    rpo: 1h  # Recovery Point Objective: 1 hour
+    rto: 30m  # Recovery Time Objective: 30 minutes
+
+# ============================================================
+# Security Hardening
+# ============================================================
+security:
+  # Pod security standards
+  podSecurityStandards: restricted
+
+  # Network policies
+  networkPolicies:
+    enabled: true
+    defaultDeny: true
+
+  # RBAC
+  rbac:
+    enabled: true
+    strict: true
+
+  # Secrets encryption at rest
+  secretsEncryption:
+    enabled: true
+    provider: aws-kms
+    keyId: "arn:aws:kms:us-east-1:ACCOUNT:key/KEY-ID"
+
+  # Container image scanning
+  imageScan:
+    enabled: true
+    allowedRegistries:
+      - omega-registry.io
+      - ghcr.io/omega

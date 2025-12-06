@@ -1,0 +1,126 @@
+{
+  "dataGeneration": {
+    "success": true,
+    "duration": 2,
+    "totalEvents": 1000
+  },
+  "clients": [
+    {
+      "clientId": 0,
+      "deviceId": "tv-00000000",
+      "eventsProcessed": 100,
+      "recommendationsReceived": 100,
+      "avgRecommendLatencyMs": 0.2878772,
+      "patternsLearned": 100,
+      "errors": [],
+      "duration": 11
+    },
+    {
+      "clientId": 1,
+      "deviceId": "tv-00000001",
+      "eventsProcessed": 100,
+      "recommendationsReceived": 100,
+      "avgRecommendLatencyMs": 0.0889049,
+      "patternsLearned": 100,
+      "errors": [],
+      "duration": 6
+    },
+    {
+      "clientId": 2,
+      "deviceId": "tv-00000002",
+      "eventsProcessed": 100,
+      "recommendationsReceived": 100,
+      "avgRecommendLatencyMs": 0.1030953,
+      "patternsLearned": 100,
+      "errors": [],
+      "duration": 7
+    },
+    {
+      "clientId": 3,
+      "deviceId": "tv-00000003",
+      "eventsProcessed": 100,
+      "recommendationsReceived": 100,
+      "avgRecommendLatencyMs": 0.15099590000000002,
+      "patternsLearned": 100,
+      "errors": [],
+      "duration": 7
+    },
+    {
+      "clientId": 4,
+      "deviceId": "tv-00000004",
+      "eventsProcessed": 100,
+      "recommendationsReceived": 100,
+      "avgRecommendLatencyMs": 0.0756832,
+      "patternsLearned": 100,
+      "errors": [],
+      "duration": 6
+    },
+    {
+      "clientId": 5,
+      "deviceId": "tv-00000005",
+      "eventsProcessed": 100,
+      "recommendationsReceived": 100,
+      "avgRecommendLatencyMs": 0.07559449999999998,
+      "patternsLearned": 100,
+      "errors": [],
+      "duration": 6
+    },
+    {
+      "clientId": 6,
+      "deviceId": "tv-00000006",
+      "eventsProcessed": 100,
+      "recommendationsReceived": 100,
+      "avgRecommendLatencyMs": 0.08017159999999998,
+      "patternsLearned": 100,
+      "errors": [],
+      "duration": 6
+    },
+    {
+      "clientId": 7,
+      "deviceId": "tv-00000007",
+      "eventsProcessed": 100,
+      "recommendationsReceived": 100,
+      "avgRecommendLatencyMs": 0.1045317,
+      "patternsLearned": 100,
+      "errors": [],
+      "duration": 7
+    },
+    {
+      "clientId": 8,
+      "deviceId": "tv-00000008",
+      "eventsProcessed": 100,
+      "recommendationsReceived": 100,
+      "avgRecommendLatencyMs": 0.1433469,
+      "patternsLearned": 100,
+      "errors": [],
+      "duration": 7
+    },
+    {
+      "clientId": 9,
+      "deviceId": "tv-00000009",
+      "eventsProcessed": 100,
+      "recommendationsReceived": 100,
+      "avgRecommendLatencyMs": 0.07565780000000001,
+      "patternsLearned": 100,
+      "errors": [],
+      "duration": 6
+    }
+  ],
+  "sync": {
+    "success": true,
+    "patterns": 0,
+    "duration": 0,
+    "patternsAggregated": 500,
+    "globalPatterns": 500
+  },
+  "performance": {
+    "avgRecommendLatencyMs": 0.11858590000000002,
+    "throughputEventsPerSec": 14492.753623188404,
+    "totalEventsProcessed": 1000,
+    "totalPatternsLearned": 1000,
+    "totalRecommendations": 1000,
+    "globalPatternsCreated": 500,
+    "successRate": 100,
+    "memoryUsageMb": 6.2155914306640625
+  }
+}

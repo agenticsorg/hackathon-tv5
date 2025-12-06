@@ -1,0 +1,1907 @@
+{
+  "client_id": 9,
+  "device_id": "tv-00000009",
+  "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+  "events": [
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-557054",
+      "content_type": "documentary",
+      "genre": "news",
+      "watch_percentage": 0.81,
+      "watch_duration_seconds": 569,
+      "time_of_day": "afternoon",
+      "day_of_week": "friday",
+      "user_action": "fast_forward",
+      "interaction_count": 14,
+      "timestamp": "2025-12-02T03:02:14.215Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "recommended",
+        "household_size": 5
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-805127",
+      "content_type": "documentary",
+      "genre": "action",
+      "watch_percentage": 0.72,
+      "watch_duration_seconds": 4857,
+      "time_of_day": "evening",
+      "day_of_week": "sunday",
+      "user_action": "rewind",
+      "interaction_count": 7,
+      "timestamp": "2025-12-03T07:06:10.961Z",
+      "context": {
+        "previous_content": "content-051205",
+        "recommendation_source": "recommended",
+        "household_size": 2
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-781265",
+      "content_type": "movie",
+      "genre": "drama",
+      "watch_percentage": 0.66,
+      "watch_duration_seconds": 6615,
+      "time_of_day": "evening",
+      "day_of_week": "monday",
+      "user_action": "fast_forward",
+      "interaction_count": 6,
+      "timestamp": "2025-12-06T16:58:49.101Z",
+      "context": {
+        "previous_content": "content-291906",
+        "recommendation_source": "trending",
+        "household_size": 2
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-007856",
+      "content_type": "live",
+      "genre": "horror",
+      "watch_percentage": 0.06,
+      "watch_duration_seconds": 487,
+      "time_of_day": "afternoon",
+      "day_of_week": "wednesday",
+      "user_action": "fast_forward",
+      "interaction_count": 19,
+      "timestamp": "2025-12-06T05:56:23.903Z",
+      "context": {
+        "previous_content": "content-552710",
+        "recommendation_source": "home",
+        "household_size": 4
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-009916",
+      "content_type": "live",
+      "genre": "thriller",
+      "watch_percentage": 0.36,
+      "watch_duration_seconds": 502,
+      "time_of_day": "evening",
+      "day_of_week": "monday",
+      "user_action": "pause",
+      "interaction_count": 7,
+      "timestamp": "2025-12-05T11:09:51.479Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "home",
+        "household_size": 3
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-005238",
+      "content_type": "documentary",
+      "genre": "romance",
+      "watch_percentage": 0.15,
+      "watch_duration_seconds": 7166,
+      "time_of_day": "evening",
+      "day_of_week": "monday",
+      "user_action": "complete",
+      "interaction_count": 13,
+      "timestamp": "2025-12-05T22:02:48.583Z",
+      "context": {
+        "previous_content": "content-400110",
+        "recommendation_source": "recommended",
+        "household_size": 3
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-752321",
+      "content_type": "documentary",
+      "genre": "documentary",
+      "watch_percentage": 0.23,
+      "watch_duration_seconds": 3417,
+      "time_of_day": "night",
+      "day_of_week": "monday",
+      "user_action": "stop",
+      "interaction_count": 1,
+      "timestamp": "2025-12-05T15:30:23.954Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "continue_watching",
+        "household_size": 2
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-641131",
+      "content_type": "movie",
+      "genre": "comedy",
+      "watch_percentage": 0.55,
+      "watch_duration_seconds": 224,
+      "time_of_day": "morning",
+      "day_of_week": "monday",
+      "user_action": "complete",
+      "interaction_count": 3,
+      "timestamp": "2025-12-01T05:09:12.811Z",
+      "context": {
+        "previous_content": "content-037484",
+        "recommendation_source": "recommended",
+        "household_size": 5
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-260159",
+      "content_type": "movie",
+      "genre": "sports",
+      "watch_percentage": 0.71,
+      "watch_duration_seconds": 1577,
+      "time_of_day": "morning",
+      "day_of_week": "friday",
+      "user_action": "skip",
+      "interaction_count": 4,
+      "timestamp": "2025-12-02T06:52:01.239Z",
+      "context": {
+        "previous_content": "content-235802",
+        "recommendation_source": "search",
+        "household_size": 2
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-367680",
+      "content_type": "documentary",
+      "genre": "documentary",
+      "watch_percentage": 0.45,
+      "watch_duration_seconds": 5609,
+      "time_of_day": "morning",
+      "day_of_week": "sunday",
+      "user_action": "complete",
+      "interaction_count": 20,
+      "timestamp": "2025-12-01T13:50:57.107Z",
+      "context": {
+        "previous_content": "content-347250",
+        "recommendation_source": "recommended",
+        "household_size": 5
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-257618",
+      "content_type": "documentary",
+      "genre": "action",
+      "watch_percentage": 0.49,
+      "watch_duration_seconds": 3158,
+      "time_of_day": "night",
+      "day_of_week": "wednesday",
+      "user_action": "stop",
+      "interaction_count": 17,
+      "timestamp": "2025-11-29T23:17:49.244Z",
+      "context": {
+        "previous_content": "content-151777",
+        "recommendation_source": "search",
+        "household_size": 3
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-347680",
+      "content_type": "documentary",
+      "genre": "action",
+      "watch_percentage": 0.63,
+      "watch_duration_seconds": 4234,
+      "time_of_day": "morning",
+      "day_of_week": "thursday",
+      "user_action": "play",
+      "interaction_count": 17,
+      "timestamp": "2025-12-04T14:05:25.402Z",
+      "context": {
+        "previous_content": "content-455965",
+        "recommendation_source": "home",
+        "household_size": 3
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-030470",
+      "content_type": "movie",
+      "genre": "sports",
+      "watch_percentage": 0.76,
+      "watch_duration_seconds": 6529,
+      "time_of_day": "morning",
+      "day_of_week": "saturday",
+      "user_action": "stop",
+      "interaction_count": 19,
+      "timestamp": "2025-12-05T12:51:27.887Z",
+      "context": {
+        "previous_content": "content-498938",
+        "recommendation_source": "home",
+        "household_size": 3
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-752159",
+      "content_type": "series",
+      "genre": "sports",
+      "watch_percentage": 0.27,
+      "watch_duration_seconds": 5875,
+      "time_of_day": "night",
+      "day_of_week": "saturday",
+      "user_action": "stop",
+      "interaction_count": 8,
+      "timestamp": "2025-12-05T02:57:42.284Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "home",
+        "household_size": 1
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-635393",
+      "content_type": "news",
+      "genre": "thriller",
+      "watch_percentage": 0.74,
+      "watch_duration_seconds": 4423,
+      "time_of_day": "morning",
+      "day_of_week": "monday",
+      "user_action": "fast_forward",
+      "interaction_count": 5,
+      "timestamp": "2025-12-01T00:33:36.554Z",
+      "context": {
+        "previous_content": "content-882577",
+        "recommendation_source": "category",
+        "household_size": 5
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-873846",
+      "content_type": "movie",
+      "genre": "sports",
+      "watch_percentage": 0.21,
+      "watch_duration_seconds": 4318,
+      "time_of_day": "night",
+      "day_of_week": "saturday",
+      "user_action": "fast_forward",
+      "interaction_count": 9,
+      "timestamp": "2025-12-06T08:39:13.513Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "recommended",
+        "household_size": 3
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-439748",
+      "content_type": "live",
+      "genre": "sports",
+      "watch_percentage": 0.55,
+      "watch_duration_seconds": 6218,
+      "time_of_day": "morning",
+      "day_of_week": "monday",
+      "user_action": "stop",
+      "interaction_count": 17,
+      "timestamp": "2025-12-01T09:39:50.762Z",
+      "context": {
+        "previous_content": "content-987288",
+        "recommendation_source": "search",
+        "household_size": 4
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-679829",
+      "content_type": "documentary",
+      "genre": "drama",
+      "watch_percentage": 0.85,
+      "watch_duration_seconds": 5085,
+      "time_of_day": "afternoon",
+      "day_of_week": "thursday",
+      "user_action": "play",
+      "interaction_count": 18,
+      "timestamp": "2025-12-03T12:09:57.567Z",
+      "context": {
+        "previous_content": "content-719627",
+        "recommendation_source": "category",
+        "household_size": 5
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-977743",
+      "content_type": "documentary",
+      "genre": "romance",
+      "watch_percentage": 0.15,
+      "watch_duration_seconds": 6668,
+      "time_of_day": "morning",
+      "day_of_week": "saturday",
+      "user_action": "play",
+      "interaction_count": 16,
+      "timestamp": "2025-12-03T12:33:17.490Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "recommended",
+        "household_size": 1
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-526807",
+      "content_type": "live",
+      "genre": "documentary",
+      "watch_percentage": 0.31,
+      "watch_duration_seconds": 1620,
+      "time_of_day": "afternoon",
+      "day_of_week": "sunday",
+      "user_action": "stop",
+      "interaction_count": 3,
+      "timestamp": "2025-12-01T14:49:08.209Z",
+      "context": {
+        "previous_content": "content-508456",
+        "recommendation_source": "continue_watching",
+        "household_size": 1
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-947498",
+      "content_type": "news",
+      "genre": "sports",
+      "watch_percentage": 0.18,
+      "watch_duration_seconds": 1678,
+      "time_of_day": "morning",
+      "day_of_week": "sunday",
+      "user_action": "skip",
+      "interaction_count": 4,
+      "timestamp": "2025-12-03T18:12:53.387Z",
+      "context": {
+        "previous_content": "content-657453",
+        "recommendation_source": "search",
+        "household_size": 4
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-311841",
+      "content_type": "news",
+      "genre": "drama",
+      "watch_percentage": 0.9,
+      "watch_duration_seconds": 228,
+      "time_of_day": "evening",
+      "day_of_week": "monday",
+      "user_action": "complete",
+      "interaction_count": 12,
+      "timestamp": "2025-12-01T11:46:47.749Z",
+      "context": {
+        "previous_content": "content-400246",
+        "recommendation_source": "category",
+        "household_size": 4
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-099129",
+      "content_type": "series",
+      "genre": "thriller",
+      "watch_percentage": 0.29,
+      "watch_duration_seconds": 3210,
+      "time_of_day": "morning",
+      "day_of_week": "sunday",
+      "user_action": "play",
+      "interaction_count": 8,
+      "timestamp": "2025-12-01T20:48:40.892Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "continue_watching",
+        "household_size": 2
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-810323",
+      "content_type": "documentary",
+      "genre": "horror",
+      "watch_percentage": 0.22,
+      "watch_duration_seconds": 204,
+      "time_of_day": "morning",
+      "day_of_week": "tuesday",
+      "user_action": "resume",
+      "interaction_count": 1,
+      "timestamp": "2025-11-30T20:48:33.849Z",
+      "context": {
+        "previous_content": "content-879167",
+        "recommendation_source": "category",
+        "household_size": 4
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-019295",
+      "content_type": "sports",
+      "genre": "action",
+      "watch_percentage": 0.79,
+      "watch_duration_seconds": 1638,
+      "time_of_day": "morning",
+      "day_of_week": "sunday",
+      "user_action": "rewind",
+      "interaction_count": 0,
+      "timestamp": "2025-12-06T06:54:33.275Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "home",
+        "household_size": 4
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-138021",
+      "content_type": "live",
+      "genre": "news",
+      "watch_percentage": 0.35,
+      "watch_duration_seconds": 4988,
+      "time_of_day": "afternoon",
+      "day_of_week": "sunday",
+      "user_action": "stop",
+      "interaction_count": 6,
+      "timestamp": "2025-12-06T11:21:43.945Z",
+      "context": {
+        "previous_content": "content-371333",
+        "recommendation_source": "continue_watching",
+        "household_size": 4
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-199597",
+      "content_type": "live",
+      "genre": "sports",
+      "watch_percentage": 0.81,
+      "watch_duration_seconds": 1053,
+      "time_of_day": "night",
+      "day_of_week": "friday",
+      "user_action": "skip",
+      "interaction_count": 14,
+      "timestamp": "2025-12-03T06:03:06.261Z",
+      "context": {
+        "previous_content": "content-133442",
+        "recommendation_source": "recommended",
+        "household_size": 3
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-687260",
+      "content_type": "documentary",
+      "genre": "sci-fi",
+      "watch_percentage": 0.65,
+      "watch_duration_seconds": 3237,
+      "time_of_day": "afternoon",
+      "day_of_week": "tuesday",
+      "user_action": "stop",
+      "interaction_count": 2,
+      "timestamp": "2025-11-30T04:25:37.361Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "recommended",
+        "household_size": 3
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-197362",
+      "content_type": "series",
+      "genre": "horror",
+      "watch_percentage": 0.32,
+      "watch_duration_seconds": 2899,
+      "time_of_day": "morning",
+      "day_of_week": "tuesday",
+      "user_action": "rewind",
+      "interaction_count": 3,
+      "timestamp": "2025-12-05T16:38:35.936Z",
+      "context": {
+        "previous_content": "content-133767",
+        "recommendation_source": "recommended",
+        "household_size": 5
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-933602",
+      "content_type": "documentary",
+      "genre": "documentary",
+      "watch_percentage": 0.7,
+      "watch_duration_seconds": 4245,
+      "time_of_day": "morning",
+      "day_of_week": "sunday",
+      "user_action": "pause",
+      "interaction_count": 11,
+      "timestamp": "2025-12-06T05:41:42.437Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "trending",
+        "household_size": 4
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-616243",
+      "content_type": "movie",
+      "genre": "sci-fi",
+      "watch_percentage": 0.85,
+      "watch_duration_seconds": 2114,
+      "time_of_day": "morning",
+      "day_of_week": "sunday",
+      "user_action": "resume",
+      "interaction_count": 12,
+      "timestamp": "2025-12-04T09:42:53.192Z",
+      "context": {
+        "previous_content": "content-814015",
+        "recommendation_source": "recommended",
+        "household_size": 1
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-217911",
+      "content_type": "news",
+      "genre": "romance",
+      "watch_percentage": 0.16,
+      "watch_duration_seconds": 1313,
+      "time_of_day": "morning",
+      "day_of_week": "friday",
+      "user_action": "play",
+      "interaction_count": 4,
+      "timestamp": "2025-12-05T07:41:36.358Z",
+      "context": {
+        "previous_content": "content-642375",
+        "recommendation_source": "recommended",
+        "household_size": 3
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-316884",
+      "content_type": "news",
+      "genre": "horror",
+      "watch_percentage": 0.48,
+      "watch_duration_seconds": 2117,
+      "time_of_day": "night",
+      "day_of_week": "monday",
+      "user_action": "skip",
+      "interaction_count": 8,
+      "timestamp": "2025-12-03T07:29:18.267Z",
+      "context": {
+        "previous_content": "content-222341",
+        "recommendation_source": "trending",
+        "household_size": 4
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-752657",
+      "content_type": "live",
+      "genre": "drama",
+      "watch_percentage": 0.81,
+      "watch_duration_seconds": 921,
+      "time_of_day": "morning",
+      "day_of_week": "tuesday",
+      "user_action": "complete",
+      "interaction_count": 7,
+      "timestamp": "2025-11-30T07:10:43.903Z",
+      "context": {
+        "previous_content": "content-774571",
+        "recommendation_source": "category",
+        "household_size": 3
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-757663",
+      "content_type": "series",
+      "genre": "drama",
+      "watch_percentage": 0.3,
+      "watch_duration_seconds": 4787,
+      "time_of_day": "evening",
+      "day_of_week": "friday",
+      "user_action": "fast_forward",
+      "interaction_count": 14,
+      "timestamp": "2025-11-29T22:35:38.253Z",
+      "context": {
+        "previous_content": "content-790757",
+        "recommendation_source": "continue_watching",
+        "household_size": 2
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-463649",
+      "content_type": "live",
+      "genre": "sports",
+      "watch_percentage": 0.41,
+      "watch_duration_seconds": 2296,
+      "time_of_day": "evening",
+      "day_of_week": "friday",
+      "user_action": "fast_forward",
+      "interaction_count": 10,
+      "timestamp": "2025-12-04T02:39:47.564Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "recommended",
+        "household_size": 5
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-200409",
+      "content_type": "sports",
+      "genre": "action",
+      "watch_percentage": 0.67,
+      "watch_duration_seconds": 6820,
+      "time_of_day": "morning",
+      "day_of_week": "wednesday",
+      "user_action": "resume",
+      "interaction_count": 18,
+      "timestamp": "2025-12-03T00:15:54.978Z",
+      "context": {
+        "previous_content": "content-937911",
+        "recommendation_source": "trending",
+        "household_size": 4
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-211332",
+      "content_type": "movie",
+      "genre": "drama",
+      "watch_percentage": 0.58,
+      "watch_duration_seconds": 2377,
+      "time_of_day": "afternoon",
+      "day_of_week": "tuesday",
+      "user_action": "complete",
+      "interaction_count": 13,
+      "timestamp": "2025-12-06T08:57:25.074Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "recommended",
+        "household_size": 1
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-348470",
+      "content_type": "documentary",
+      "genre": "romance",
+      "watch_percentage": 0.77,
+      "watch_duration_seconds": 2771,
+      "time_of_day": "evening",
+      "day_of_week": "friday",
+      "user_action": "pause",
+      "interaction_count": 6,
+      "timestamp": "2025-12-06T05:52:59.795Z",
+      "context": {
+        "previous_content": "content-877391",
+        "recommendation_source": "home",
+        "household_size": 2
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-169751",
+      "content_type": "movie",
+      "genre": "romance",
+      "watch_percentage": 0.75,
+      "watch_duration_seconds": 5832,
+      "time_of_day": "night",
+      "day_of_week": "saturday",
+      "user_action": "pause",
+      "interaction_count": 8,
+      "timestamp": "2025-12-03T14:44:55.226Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "search",
+        "household_size": 3
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-418081",
+      "content_type": "documentary",
+      "genre": "news",
+      "watch_percentage": 0.75,
+      "watch_duration_seconds": 6553,
+      "time_of_day": "afternoon",
+      "day_of_week": "wednesday",
+      "user_action": "resume",
+      "interaction_count": 1,
+      "timestamp": "2025-12-03T00:07:30.636Z",
+      "context": {
+        "previous_content": "content-377061",
+        "recommendation_source": "category",
+        "household_size": 3
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-103120",
+      "content_type": "movie",
+      "genre": "comedy",
+      "watch_percentage": 0.86,
+      "watch_duration_seconds": 2426,
+      "time_of_day": "night",
+      "day_of_week": "saturday",
+      "user_action": "pause",
+      "interaction_count": 20,
+      "timestamp": "2025-12-02T03:55:10.628Z",
+      "context": {
+        "previous_content": "content-334792",
+        "recommendation_source": "category",
+        "household_size": 4
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-504340",
+      "content_type": "movie",
+      "genre": "thriller",
+      "watch_percentage": 0.27,
+      "watch_duration_seconds": 3569,
+      "time_of_day": "afternoon",
+      "day_of_week": "friday",
+      "user_action": "resume",
+      "interaction_count": 15,
+      "timestamp": "2025-12-01T21:54:28.101Z",
+      "context": {
+        "previous_content": "content-973705",
+        "recommendation_source": "home",
+        "household_size": 1
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-183022",
+      "content_type": "documentary",
+      "genre": "documentary",
+      "watch_percentage": 0.93,
+      "watch_duration_seconds": 7145,
+      "time_of_day": "night",
+      "day_of_week": "friday",
+      "user_action": "complete",
+      "interaction_count": 2,
+      "timestamp": "2025-11-30T13:55:43.864Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "search",
+        "household_size": 5
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-063935",
+      "content_type": "movie",
+      "genre": "action",
+      "watch_percentage": 0.94,
+      "watch_duration_seconds": 1787,
+      "time_of_day": "morning",
+      "day_of_week": "friday",
+      "user_action": "complete",
+      "interaction_count": 9,
+      "timestamp": "2025-11-30T07:55:03.157Z",
+      "context": {
+        "previous_content": "content-656401",
+        "recommendation_source": "category",
+        "household_size": 3
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-141452",
+      "content_type": "news",
+      "genre": "comedy",
+      "watch_percentage": 0.9,
+      "watch_duration_seconds": 4469,
+      "time_of_day": "afternoon",
+      "day_of_week": "wednesday",
+      "user_action": "complete",
+      "interaction_count": 8,
+      "timestamp": "2025-12-06T12:44:36.889Z",
+      "context": {
+        "previous_content": "content-861307",
+        "recommendation_source": "category",
+        "household_size": 1
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-916968",
+      "content_type": "series",
+      "genre": "sci-fi",
+      "watch_percentage": 0.74,
+      "watch_duration_seconds": 3922,
+      "time_of_day": "night",
+      "day_of_week": "monday",
+      "user_action": "resume",
+      "interaction_count": 3,
+      "timestamp": "2025-12-05T21:05:22.580Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "trending",
+        "household_size": 4
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-120471",
+      "content_type": "news",
+      "genre": "thriller",
+      "watch_percentage": 0.86,
+      "watch_duration_seconds": 4659,
+      "time_of_day": "morning",
+      "day_of_week": "tuesday",
+      "user_action": "skip",
+      "interaction_count": 19,
+      "timestamp": "2025-12-02T20:27:15.563Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "home",
+        "household_size": 4
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-595757",
+      "content_type": "series",
+      "genre": "sports",
+      "watch_percentage": 0.83,
+      "watch_duration_seconds": 6609,
+      "time_of_day": "morning",
+      "day_of_week": "tuesday",
+      "user_action": "stop",
+      "interaction_count": 14,
+      "timestamp": "2025-12-02T12:26:22.177Z",
+      "context": {
+        "previous_content": "content-554303",
+        "recommendation_source": "trending",
+        "household_size": 3
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-989675",
+      "content_type": "news",
+      "genre": "action",
+      "watch_percentage": 0.4,
+      "watch_duration_seconds": 3910,
+      "time_of_day": "afternoon",
+      "day_of_week": "thursday",
+      "user_action": "fast_forward",
+      "interaction_count": 12,
+      "timestamp": "2025-12-06T01:52:09.742Z",
+      "context": {
+        "previous_content": "content-674838",
+        "recommendation_source": "category",
+        "household_size": 3
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-896489",
+      "content_type": "sports",
+      "genre": "thriller",
+      "watch_percentage": 0.42,
+      "watch_duration_seconds": 2268,
+      "time_of_day": "night",
+      "day_of_week": "tuesday",
+      "user_action": "play",
+      "interaction_count": 20,
+      "timestamp": "2025-12-03T17:02:10.450Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "recommended",
+        "household_size": 5
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-980925",
+      "content_type": "series",
+      "genre": "comedy",
+      "watch_percentage": 0.82,
+      "watch_duration_seconds": 3811,
+      "time_of_day": "morning",
+      "day_of_week": "monday",
+      "user_action": "rewind",
+      "interaction_count": 10,
+      "timestamp": "2025-12-03T08:51:54.485Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "continue_watching",
+        "household_size": 5
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-065024",
+      "content_type": "documentary",
+      "genre": "thriller",
+      "watch_percentage": 0.03,
+      "watch_duration_seconds": 4563,
+      "time_of_day": "night",
+      "day_of_week": "saturday",
+      "user_action": "play",
+      "interaction_count": 1,
+      "timestamp": "2025-11-30T13:56:49.239Z",
+      "context": {
+        "previous_content": "content-989858",
+        "recommendation_source": "continue_watching",
+        "household_size": 1
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-149427",
+      "content_type": "documentary",
+      "genre": "romance",
+      "watch_percentage": 0.54,
+      "watch_duration_seconds": 2679,
+      "time_of_day": "night",
+      "day_of_week": "monday",
+      "user_action": "rewind",
+      "interaction_count": 5,
+      "timestamp": "2025-12-02T08:08:28.624Z",
+      "context": {
+        "previous_content": "content-058983",
+        "recommendation_source": "recommended",
+        "household_size": 5
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-185519",
+      "content_type": "news",
+      "genre": "sci-fi",
+      "watch_percentage": 0.92,
+      "watch_duration_seconds": 6156,
+      "time_of_day": "evening",
+      "day_of_week": "sunday",
+      "user_action": "complete",
+      "interaction_count": 12,
+      "timestamp": "2025-12-01T13:21:19.321Z",
+      "context": {
+        "previous_content": "content-322520",
+        "recommendation_source": "recommended",
+        "household_size": 2
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-232411",
+      "content_type": "live",
+      "genre": "sports",
+      "watch_percentage": 0.63,
+      "watch_duration_seconds": 5669,
+      "time_of_day": "afternoon",
+      "day_of_week": "tuesday",
+      "user_action": "complete",
+      "interaction_count": 2,
+      "timestamp": "2025-11-30T12:03:14.503Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "recommended",
+        "household_size": 1
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-977866",
+      "content_type": "movie",
+      "genre": "documentary",
+      "watch_percentage": 0.4,
+      "watch_duration_seconds": 583,
+      "time_of_day": "night",
+      "day_of_week": "saturday",
+      "user_action": "stop",
+      "interaction_count": 4,
+      "timestamp": "2025-12-01T19:03:12.275Z",
+      "context": {
+        "previous_content": "content-487161",
+        "recommendation_source": "continue_watching",
+        "household_size": 1
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-544007",
+      "content_type": "news",
+      "genre": "documentary",
+      "watch_percentage": 0.91,
+      "watch_duration_seconds": 5369,
+      "time_of_day": "evening",
+      "day_of_week": "saturday",
+      "user_action": "complete",
+      "interaction_count": 11,
+      "timestamp": "2025-12-02T20:26:24.158Z",
+      "context": {
+        "previous_content": "content-888371",
+        "recommendation_source": "home",
+        "household_size": 4
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-042628",
+      "content_type": "news",
+      "genre": "documentary",
+      "watch_percentage": 0.48,
+      "watch_duration_seconds": 4340,
+      "time_of_day": "morning",
+      "day_of_week": "sunday",
+      "user_action": "skip",
+      "interaction_count": 0,
+      "timestamp": "2025-12-01T02:44:24.380Z",
+      "context": {
+        "previous_content": "content-106011",
+        "recommendation_source": "home",
+        "household_size": 1
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-642899",
+      "content_type": "series",
+      "genre": "sports",
+      "watch_percentage": 0.61,
+      "watch_duration_seconds": 4806,
+      "time_of_day": "night",
+      "day_of_week": "saturday",
+      "user_action": "pause",
+      "interaction_count": 18,
+      "timestamp": "2025-12-01T11:11:28.724Z",
+      "context": {
+        "previous_content": "content-881597",
+        "recommendation_source": "continue_watching",
+        "household_size": 3
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-386465",
+      "content_type": "documentary",
+      "genre": "horror",
+      "watch_percentage": 0.97,
+      "watch_duration_seconds": 5006,
+      "time_of_day": "night",
+      "day_of_week": "monday",
+      "user_action": "complete",
+      "interaction_count": 4,
+      "timestamp": "2025-12-04T07:12:04.092Z",
+      "context": {
+        "previous_content": "content-744506",
+        "recommendation_source": "home",
+        "household_size": 5
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-941409",
+      "content_type": "news",
+      "genre": "sci-fi",
+      "watch_percentage": 0.58,
+      "watch_duration_seconds": 3713,
+      "time_of_day": "afternoon",
+      "day_of_week": "sunday",
+      "user_action": "resume",
+      "interaction_count": 6,
+      "timestamp": "2025-11-29T23:34:59.739Z",
+      "context": {
+        "previous_content": "content-771102",
+        "recommendation_source": "search",
+        "household_size": 2
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-232391",
+      "content_type": "sports",
+      "genre": "sci-fi",
+      "watch_percentage": 0.7,
+      "watch_duration_seconds": 5973,
+      "time_of_day": "afternoon",
+      "day_of_week": "friday",
+      "user_action": "rewind",
+      "interaction_count": 11,
+      "timestamp": "2025-12-02T06:19:20.127Z",
+      "context": {
+        "previous_content": "content-248365",
+        "recommendation_source": "category",
+        "household_size": 5
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-892213",
+      "content_type": "movie",
+      "genre": "documentary",
+      "watch_percentage": 0.47,
+      "watch_duration_seconds": 6737,
+      "time_of_day": "night",
+      "day_of_week": "monday",
+      "user_action": "fast_forward",
+      "interaction_count": 7,
+      "timestamp": "2025-12-04T17:44:28.035Z",
+      "context": {
+        "previous_content": "content-953738",
+        "recommendation_source": "trending",
+        "household_size": 4
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-336881",
+      "content_type": "live",
+      "genre": "action",
+      "watch_percentage": 0.72,
+      "watch_duration_seconds": 2612,
+      "time_of_day": "morning",
+      "day_of_week": "wednesday",
+      "user_action": "resume",
+      "interaction_count": 8,
+      "timestamp": "2025-12-01T07:03:28.752Z",
+      "context": {
+        "previous_content": "content-699911",
+        "recommendation_source": "trending",
+        "household_size": 1
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-410146",
+      "content_type": "series",
+      "genre": "horror",
+      "watch_percentage": 0.89,
+      "watch_duration_seconds": 4641,
+      "time_of_day": "morning",
+      "day_of_week": "sunday",
+      "user_action": "complete",
+      "interaction_count": 0,
+      "timestamp": "2025-12-02T13:08:56.583Z",
+      "context": {
+        "previous_content": "content-936724",
+        "recommendation_source": "category",
+        "household_size": 1
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-077825",
+      "content_type": "sports",
+      "genre": "sports",
+      "watch_percentage": 0.24,
+      "watch_duration_seconds": 2445,
+      "time_of_day": "night",
+      "day_of_week": "friday",
+      "user_action": "skip",
+      "interaction_count": 15,
+      "timestamp": "2025-12-01T14:36:17.285Z",
+      "context": {
+        "previous_content": "content-794125",
+        "recommendation_source": "recommended",
+        "household_size": 5
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-505057",
+      "content_type": "series",
+      "genre": "thriller",
+      "watch_percentage": 0.48,
+      "watch_duration_seconds": 4710,
+      "time_of_day": "night",
+      "day_of_week": "monday",
+      "user_action": "stop",
+      "interaction_count": 19,
+      "timestamp": "2025-12-02T11:01:29.406Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "continue_watching",
+        "household_size": 5
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-035004",
+      "content_type": "movie",
+      "genre": "horror",
+      "watch_percentage": 0.45,
+      "watch_duration_seconds": 1361,
+      "time_of_day": "evening",
+      "day_of_week": "sunday",
+      "user_action": "rewind",
+      "interaction_count": 15,
+      "timestamp": "2025-12-03T03:40:12.681Z",
+      "context": {
+        "previous_content": "content-554772",
+        "recommendation_source": "continue_watching",
+        "household_size": 1
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-564092",
+      "content_type": "series",
+      "genre": "horror",
+      "watch_percentage": 0.63,
+      "watch_duration_seconds": 426,
+      "time_of_day": "morning",
+      "day_of_week": "saturday",
+      "user_action": "pause",
+      "interaction_count": 6,
+      "timestamp": "2025-12-02T02:48:59.266Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "search",
+        "household_size": 1
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-259578",
+      "content_type": "series",
+      "genre": "documentary",
+      "watch_percentage": 0.51,
+      "watch_duration_seconds": 984,
+      "time_of_day": "morning",
+      "day_of_week": "wednesday",
+      "user_action": "rewind",
+      "interaction_count": 12,
+      "timestamp": "2025-12-05T21:38:29.252Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "search",
+        "household_size": 3
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-446200",
+      "content_type": "documentary",
+      "genre": "comedy",
+      "watch_percentage": 0.73,
+      "watch_duration_seconds": 7003,
+      "time_of_day": "afternoon",
+      "day_of_week": "tuesday",
+      "user_action": "play",
+      "interaction_count": 18,
+      "timestamp": "2025-12-02T21:03:06.529Z",
+      "context": {
+        "previous_content": "content-897189",
+        "recommendation_source": "home",
+        "household_size": 2
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-282935",
+      "content_type": "live",
+      "genre": "sci-fi",
+      "watch_percentage": 0.81,
+      "watch_duration_seconds": 4145,
+      "time_of_day": "afternoon",
+      "day_of_week": "thursday",
+      "user_action": "complete",
+      "interaction_count": 10,
+      "timestamp": "2025-12-05T13:27:01.910Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "trending",
+        "household_size": 1
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-829235",
+      "content_type": "movie",
+      "genre": "action",
+      "watch_percentage": 0.84,
+      "watch_duration_seconds": 5046,
+      "time_of_day": "afternoon",
+      "day_of_week": "friday",
+      "user_action": "rewind",
+      "interaction_count": 7,
+      "timestamp": "2025-12-04T16:05:45.923Z",
+      "context": {
+        "previous_content": "content-453318",
+        "recommendation_source": "recommended",
+        "household_size": 4
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-536841",
+      "content_type": "news",
+      "genre": "drama",
+      "watch_percentage": 0.36,
+      "watch_duration_seconds": 5579,
+      "time_of_day": "morning",
+      "day_of_week": "wednesday",
+      "user_action": "rewind",
+      "interaction_count": 7,
+      "timestamp": "2025-12-06T17:30:02.059Z",
+      "context": {
+        "previous_content": "content-360586",
+        "recommendation_source": "search",
+        "household_size": 5
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-613287",
+      "content_type": "news",
+      "genre": "sci-fi",
+      "watch_percentage": 0.75,
+      "watch_duration_seconds": 5893,
+      "time_of_day": "afternoon",
+      "day_of_week": "thursday",
+      "user_action": "fast_forward",
+      "interaction_count": 13,
+      "timestamp": "2025-12-01T13:30:17.387Z",
+      "context": {
+        "previous_content": "content-795817",
+        "recommendation_source": "recommended",
+        "household_size": 3
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-626784",
+      "content_type": "documentary",
+      "genre": "horror",
+      "watch_percentage": 0.56,
+      "watch_duration_seconds": 2317,
+      "time_of_day": "night",
+      "day_of_week": "friday",
+      "user_action": "complete",
+      "interaction_count": 12,
+      "timestamp": "2025-12-06T04:33:30.527Z",
+      "context": {
+        "previous_content": "content-684759",
+        "recommendation_source": "recommended",
+        "household_size": 4
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-294392",
+      "content_type": "series",
+      "genre": "romance",
+      "watch_percentage": 0.22,
+      "watch_duration_seconds": 866,
+      "time_of_day": "morning",
+      "day_of_week": "monday",
+      "user_action": "pause",
+      "interaction_count": 2,
+      "timestamp": "2025-12-04T06:34:14.039Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "continue_watching",
+        "household_size": 5
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-509405",
+      "content_type": "documentary",
+      "genre": "romance",
+      "watch_percentage": 0.92,
+      "watch_duration_seconds": 2848,
+      "time_of_day": "morning",
+      "day_of_week": "tuesday",
+      "user_action": "complete",
+      "interaction_count": 13,
+      "timestamp": "2025-12-03T22:40:28.138Z",
+      "context": {
+        "previous_content": "content-534144",
+        "recommendation_source": "home",
+        "household_size": 2
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-843829",
+      "content_type": "series",
+      "genre": "thriller",
+      "watch_percentage": 0.13,
+      "watch_duration_seconds": 2948,
+      "time_of_day": "morning",
+      "day_of_week": "tuesday",
+      "user_action": "skip",
+      "interaction_count": 1,
+      "timestamp": "2025-12-01T04:55:17.919Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "recommended",
+        "household_size": 4
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-652406",
+      "content_type": "series",
+      "genre": "action",
+      "watch_percentage": 0.54,
+      "watch_duration_seconds": 476,
+      "time_of_day": "night",
+      "day_of_week": "thursday",
+      "user_action": "skip",
+      "interaction_count": 14,
+      "timestamp": "2025-12-01T12:13:31.204Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "home",
+        "household_size": 5
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-359547",
+      "content_type": "series",
+      "genre": "sports",
+      "watch_percentage": 0.8,
+      "watch_duration_seconds": 5319,
+      "time_of_day": "night",
+      "day_of_week": "sunday",
+      "user_action": "skip",
+      "interaction_count": 7,
+      "timestamp": "2025-12-01T05:18:39.230Z",
+      "context": {
+        "previous_content": "content-837984",
+        "recommendation_source": "recommended",
+        "household_size": 3
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-040653",
+      "content_type": "movie",
+      "genre": "action",
+      "watch_percentage": 0.08,
+      "watch_duration_seconds": 1532,
+      "time_of_day": "afternoon",
+      "day_of_week": "thursday",
+      "user_action": "pause",
+      "interaction_count": 16,
+      "timestamp": "2025-12-02T23:16:29.959Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "search",
+        "household_size": 3
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-127104",
+      "content_type": "news",
+      "genre": "sci-fi",
+      "watch_percentage": 0.01,
+      "watch_duration_seconds": 2766,
+      "time_of_day": "night",
+      "day_of_week": "friday",
+      "user_action": "skip",
+      "interaction_count": 3,
+      "timestamp": "2025-12-04T20:56:32.630Z",
+      "context": {
+        "previous_content": "content-789759",
+        "recommendation_source": "recommended",
+        "household_size": 5
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-381063",
+      "content_type": "news",
+      "genre": "comedy",
+      "watch_percentage": 0.66,
+      "watch_duration_seconds": 5921,
+      "time_of_day": "night",
+      "day_of_week": "thursday",
+      "user_action": "complete",
+      "interaction_count": 20,
+      "timestamp": "2025-12-04T07:34:58.672Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "home",
+        "household_size": 4
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-003896",
+      "content_type": "news",
+      "genre": "action",
+      "watch_percentage": 0.86,
+      "watch_duration_seconds": 5499,
+      "time_of_day": "night",
+      "day_of_week": "monday",
+      "user_action": "rewind",
+      "interaction_count": 2,
+      "timestamp": "2025-12-02T21:26:17.493Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "trending",
+        "household_size": 5
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-897444",
+      "content_type": "series",
+      "genre": "sci-fi",
+      "watch_percentage": 0.82,
+      "watch_duration_seconds": 1852,
+      "time_of_day": "afternoon",
+      "day_of_week": "sunday",
+      "user_action": "resume",
+      "interaction_count": 2,
+      "timestamp": "2025-12-03T18:30:58.458Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "home",
+        "household_size": 2
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-449511",
+      "content_type": "movie",
+      "genre": "romance",
+      "watch_percentage": 1,
+      "watch_duration_seconds": 2333,
+      "time_of_day": "afternoon",
+      "day_of_week": "wednesday",
+      "user_action": "complete",
+      "interaction_count": 17,
+      "timestamp": "2025-12-04T13:50:57.922Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "home",
+        "household_size": 2
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-890083",
+      "content_type": "series",
+      "genre": "romance",
+      "watch_percentage": 0.27,
+      "watch_duration_seconds": 1119,
+      "time_of_day": "night",
+      "day_of_week": "thursday",
+      "user_action": "rewind",
+      "interaction_count": 8,
+      "timestamp": "2025-12-01T22:31:40.897Z",
+      "context": {
+        "previous_content": "content-900215",
+        "recommendation_source": "recommended",
+        "household_size": 5
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-107382",
+      "content_type": "documentary",
+      "genre": "comedy",
+      "watch_percentage": 0.59,
+      "watch_duration_seconds": 5045,
+      "time_of_day": "night",
+      "day_of_week": "monday",
+      "user_action": "play",
+      "interaction_count": 9,
+      "timestamp": "2025-11-30T04:32:59.916Z",
+      "context": {
+        "previous_content": "content-860617",
+        "recommendation_source": "search",
+        "household_size": 3
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-768105",
+      "content_type": "sports",
+      "genre": "romance",
+      "watch_percentage": 0.15,
+      "watch_duration_seconds": 2650,
+      "time_of_day": "night",
+      "day_of_week": "wednesday",
+      "user_action": "stop",
+      "interaction_count": 1,
+      "timestamp": "2025-12-06T13:31:57.524Z",
+      "context": {
+        "previous_content": "content-892266",
+        "recommendation_source": "search",
+        "household_size": 2
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-538611",
+      "content_type": "series",
+      "genre": "sports",
+      "watch_percentage": 0.3,
+      "watch_duration_seconds": 2064,
+      "time_of_day": "night",
+      "day_of_week": "friday",
+      "user_action": "pause",
+      "interaction_count": 9,
+      "timestamp": "2025-12-02T11:17:08.335Z",
+      "context": {
+        "previous_content": "content-763127",
+        "recommendation_source": "search",
+        "household_size": 4
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-570103",
+      "content_type": "series",
+      "genre": "documentary",
+      "watch_percentage": 0.57,
+      "watch_duration_seconds": 604,
+      "time_of_day": "evening",
+      "day_of_week": "monday",
+      "user_action": "play",
+      "interaction_count": 17,
+      "timestamp": "2025-12-05T20:52:36.848Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "trending",
+        "household_size": 4
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-793772",
+      "content_type": "news",
+      "genre": "sci-fi",
+      "watch_percentage": 0,
+      "watch_duration_seconds": 3546,
+      "time_of_day": "evening",
+      "day_of_week": "thursday",
+      "user_action": "resume",
+      "interaction_count": 11,
+      "timestamp": "2025-12-02T11:27:19.148Z",
+      "context": {
+        "previous_content": "content-466166",
+        "recommendation_source": "category",
+        "household_size": 4
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-353012",
+      "content_type": "documentary",
+      "genre": "horror",
+      "watch_percentage": 0.14,
+      "watch_duration_seconds": 130,
+      "time_of_day": "night",
+      "day_of_week": "tuesday",
+      "user_action": "rewind",
+      "interaction_count": 13,
+      "timestamp": "2025-11-29T22:51:00.167Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "recommended",
+        "household_size": 4
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-449242",
+      "content_type": "news",
+      "genre": "sci-fi",
+      "watch_percentage": 0.98,
+      "watch_duration_seconds": 3184,
+      "time_of_day": "afternoon",
+      "day_of_week": "sunday",
+      "user_action": "complete",
+      "interaction_count": 5,
+      "timestamp": "2025-12-01T11:22:36.854Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "recommended",
+        "household_size": 1
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-643851",
+      "content_type": "movie",
+      "genre": "comedy",
+      "watch_percentage": 0.71,
+      "watch_duration_seconds": 3605,
+      "time_of_day": "night",
+      "day_of_week": "tuesday",
+      "user_action": "skip",
+      "interaction_count": 3,
+      "timestamp": "2025-11-30T04:09:35.938Z",
+      "context": {
+        "previous_content": "content-567648",
+        "recommendation_source": "category",
+        "household_size": 4
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-816875",
+      "content_type": "news",
+      "genre": "news",
+      "watch_percentage": 0.76,
+      "watch_duration_seconds": 1023,
+      "time_of_day": "evening",
+      "day_of_week": "monday",
+      "user_action": "skip",
+      "interaction_count": 20,
+      "timestamp": "2025-12-04T17:13:38.871Z",
+      "context": {
+        "previous_content": "content-562859",
+        "recommendation_source": "continue_watching",
+        "household_size": 3
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-192501",
+      "content_type": "live",
+      "genre": "sci-fi",
+      "watch_percentage": 0.07,
+      "watch_duration_seconds": 722,
+      "time_of_day": "afternoon",
+      "day_of_week": "saturday",
+      "user_action": "resume",
+      "interaction_count": 8,
+      "timestamp": "2025-12-01T20:57:53.233Z",
+      "context": {
+        "previous_content": "content-342572",
+        "recommendation_source": "trending",
+        "household_size": 3
+      }
+    },
+    {
+      "device_id": "tv-00000009",
+      "session_id": "9e4dde27-3e3f-4fe8-8423-37108b8de69c",
+      "content_id": "content-816370",
+      "content_type": "series",
+      "genre": "thriller",
+      "watch_percentage": 0.9,
+      "watch_duration_seconds": 5173,
+      "time_of_day": "afternoon",
+      "day_of_week": "monday",
+      "user_action": "complete",
+      "interaction_count": 9,
+      "timestamp": "2025-12-03T22:13:43.530Z",
+      "context": {
+        "previous_content": null,
+        "recommendation_source": "home",
+        "household_size": 3
+      }
+    }
+  ]
+}

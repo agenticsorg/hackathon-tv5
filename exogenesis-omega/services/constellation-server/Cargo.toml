@@ -1,0 +1,48 @@
+[package]
+name = "constellation-server"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+# Internal
+omega-constellation = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true }
+
+# HTTP/REST API
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+
+# Database
+sqlx = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Configuration
+config = { workspace = true }
+dotenv = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tracing-appender = { workspace = true }
+
+# Metrics
+metrics = { workspace = true }
+metrics-exporter-prometheus = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Utilities
+chrono = { workspace = true }
+
+# CLI
+clap = { workspace = true }

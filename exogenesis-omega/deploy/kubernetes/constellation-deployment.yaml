@@ -1,0 +1,218 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: constellation-server
+  namespace: omega-system
+  labels:
+    app: constellation
+    component: server
+    version: v0.1.0
+spec:
+  replicas: 10  # Per shard
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 3
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: constellation
+      component: server
+  template:
+    metadata:
+      labels:
+        app: constellation
+        component: server
+        version: v0.1.0
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      # Anti-affinity to spread across nodes
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - constellation
+                topologyKey: kubernetes.io/hostname
+
+      # Init container for database readiness
+      initContainers:
+        - name: wait-for-database
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z ruvector-postgres-primary 5432; do
+                echo "Waiting for RuVector-Postgres (384-dim vectors)..."
+                sleep 2
+              done
+              echo "Database is ready!"
+
+      containers:
+        - name: constellation
+          # Built with omega-core, omega-agentdb, omega-memory, omega-loops,
+          # omega-runtime, omega-persistence from crates.io
+          image: exogenesis/omega-constellation:v0.1.0
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - name: grpc
+              containerPort: 50051
+              protocol: TCP
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+
+          env:
+            - name: SHARD_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: constellation-config
+                  key: shard_id
+
+            - name: REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: constellation-config
+                  key: region
+
+            - name: MAX_DEVICES
+              valueFrom:
+                configMapKeyRef:
+                  name: constellation-config
+                  key: max_devices
+
+            - name: POSTGRES_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ruvector-postgres-secret
+                  key: primary_url
+
+            - name: POSTGRES_READ_URLS
+              valueFrom:
+                secretKeyRef:
+                  name: ruvector-postgres-secret
+                  key: replica_urls
+
+            - name: GRPC_ADDR
+              value: "0.0.0.0:50051"
+
+            - name: REST_ADDR
+              value: "0.0.0.0:8080"
+
+            - name: METRICS_ADDR
+              value: "0.0.0.0:9090"
+
+            - name: RUST_LOG
+              value: "info,constellation_server=debug"
+
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+
+          # Resource limits based on architecture specs
+          resources:
+            requests:
+              cpu: "8"
+              memory: "32Gi"
+              ephemeral-storage: "10Gi"
+            limits:
+              cpu: "16"
+              memory: "64Gi"
+              ephemeral-storage: "20Gi"
+
+          # Readiness probe - must pass before receiving traffic
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+
+          # Liveness probe - restart if fails
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+
+          # Startup probe - for slow-starting containers
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 30  # 5 minutes to start
+
+          # Security context
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+
+          # Volume mounts
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: cache
+              mountPath: /data/omega/cache
+
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: cache
+          emptyDir:
+            sizeLimit: 1Gi
+
+      # Service account
+      serviceAccountName: constellation-server
+
+      # Termination grace period
+      terminationGracePeriodSeconds: 60
+
+      # DNS config for service discovery
+      dnsPolicy: ClusterFirst
+
+      # Security context for pod
+      securityContext:
+        fsGroup: 1000
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault

@@ -1,0 +1,63 @@
+[package]
+name = "omega-constellation"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Server coordination layer with RuVector-Postgres integration"
+
+[dependencies]
+# Omega ecosystem (optional for future use)
+# omega-core = { workspace = true }
+# omega-agentdb = { workspace = true }
+# omega-memory = { workspace = true }
+
+# Internal crates (optional for future use)
+# omega-tv-sync = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+
+# Database
+sqlx = { workspace = true }
+
+# Networking
+axum = { workspace = true }
+tonic = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+bincode = { workspace = true }
+
+# Compression
+zstd = { workspace = true }
+
+# Utilities
+uuid = { workspace = true }
+chrono = { workspace = true }
+dashmap = { workspace = true }
+parking_lot = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+
+# Metrics
+metrics = { workspace = true }
+metrics-exporter-prometheus = { workspace = true }
+
+[dev-dependencies]
+mockall = { workspace = true }
+tokio = { workspace = true, features = ["test-util"] }
+
+[lib]
+name = "omega_constellation"
+path = "src/lib.rs"
