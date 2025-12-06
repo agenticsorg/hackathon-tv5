@@ -1,0 +1,58 @@
+{
+  "name": "@hackathon-tv5/samsung-tv-integration",
+  "version": "1.0.0",
+  "description": "Samsung Smart TV integration for the Agentics TV5 Hackathon - control, discovery, and content detection",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "samsung-tv": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/cli.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src --ext .ts",
+    "mcp:stdio": "node dist/mcp/stdio.js",
+    "mcp:sse": "node dist/mcp/sse.js",
+    "train": "npx tsx scripts/train-benchmark.ts",
+    "benchmark": "npx tsx scripts/train-benchmark.ts"
+  },
+  "keywords": [
+    "samsung",
+    "smart-tv",
+    "tv-control",
+    "mcp",
+    "agentic",
+    "hackathon"
+  ],
+  "author": "Agentics Foundation",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "conf": "^13.0.1",
+    "enquirer": "^2.4.1",
+    "express": "^4.21.0",
+    "node-ssdp": "^4.0.1",
+    "ora": "^8.0.1",
+    "samsung-tv-control": "^1.1.26",
+    "wake_on_lan": "^1.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.0",
+    "@types/node-ssdp": "^4.0.4",
+    "eslint": "^9.0.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.0"
+  }
+}
