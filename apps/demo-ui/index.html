@@ -597,14 +597,31 @@
                                 class="bg-gray-800/50 rounded-xl overflow-hidden cursor-pointer card-hover transition-all duration-300 fade-in relative"
                             >
                                 <div class="aspect-[2/3] relative overflow-hidden">
+                                    <!-- TMDb Poster -->
+                                    <img
+                                        x-show="item.poster_path"
+                                        :src="TMDB_IMAGE_BASE + '/' + TMDB_POSTER_SIZE + item.poster_path"
+                                        :alt="item.title"
+                                        class="w-full h-full object-cover"
+                                        loading="lazy"
+                                    >
+                                    <!-- Fallback gradient -->
                                     <div
+                                        x-show="!item.poster_path"
                                         class="w-full h-full flex items-center justify-center text-6xl"
                                         :style="'background: linear-gradient(135deg, ' + getGradient(item.genres?.[0] || 'default') + ')'"
                                     >
                                         <span x-text="getEmoji(item.type)"></span>
                                     </div>
-                                    <div class="absolute bottom-2 left-2 right-2">
-                                        <div class="bg-black/70 rounded-lg px-2 py-1 text-xs text-gray-300">
+                                    <!-- Rating Badge -->
+                                    <div x-show="item.vote_average" class="absolute top-2 left-2">
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-orange-600">
+                                            ⭐ <span x-text="item.vote_average?.toFixed(1)"></span>
+                                        </span>
+                                    </div>
+                                    <!-- Viewed date overlay -->
+                                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+                                        <div class="text-xs text-gray-300">
                                             Viewed <span x-text="formatDate(item.viewedAt)"></span>
                                         </div>
                                     </div>
@@ -612,9 +629,9 @@
                                 <div class="p-4">
                                     <h4 class="font-semibold truncate" x-text="item.title"></h4>
                                     <div class="flex items-center space-x-2 text-sm text-gray-400 mt-1">
-                                        <span x-text="item.releaseDate ? new Date(item.releaseDate).getFullYear() : 'N/A'"></span>
+                                        <span x-text="(item.release_date || item.releaseDate || '').substring(0, 4) || 'N/A'"></span>
                                         <span>•</span>
-                                        <span x-text="item.type"></span>
+                                        <span x-text="item.type || item.media_type || 'movie'"></span>
                                     </div>
                                 </div>
                             </div>
@@ -1092,8 +1109,11 @@
                 },
 
                 async init() {
-                    this.loadUserData();
+                    // Load from localStorage first for immediate display
                     this.loadLearningInsights();
+                    // Then sync with API (async, non-blocking for initial render)
+                    this.loadUserData();
+                    // Load content
                     await this.loadTrending('movie');
                     await this.loadCatalog();
                 },
@@ -1168,8 +1188,16 @@
                     }
                 },
 
-                // Persistence
-                loadUserData() {
+                // User ID for API persistence (use browser fingerprint or generate)
+                userId: localStorage.getItem('nexus-user-id') || (() => {
+                    const id = 'user-' + Math.random().toString(36).substr(2, 9);
+                    localStorage.setItem('nexus-user-id', id);
+                    return id;
+                })(),
+
+                // Persistence - uses API with localStorage fallback
+                async loadUserData() {
+                    // First load from localStorage for immediate display
                     const profile = localStorage.getItem('nexus-profile');
                     if (profile) {
                         this.userProfile = JSON.parse(profile);
@@ -1178,14 +1206,68 @@
                     if (history) {
                         this.watchHistory = JSON.parse(history);
                     }
+
+                    // Then try to sync from API
+                    try {
+                        const response = await fetch(`${API_BASE}/api/v1/user/${this.userId}`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.success && data.data) {
+                                // Merge API data with local (API takes precedence if newer)
+                                if (data.data.preferences?.name) {
+                                    this.userProfile = { ...this.userProfile, ...data.data.preferences };
+                                }
+                                if (data.data.history?.length > 0) {
+                                    // Merge histories, keeping unique items
+                                    const apiHistory = data.data.history;
+                                    const localIds = new Set(this.watchHistory.map(h => h.id));
+                                    const newItems = apiHistory.filter(h => !localIds.has(h.id));
+                                    this.watchHistory = [...this.watchHistory, ...newItems]
+                                        .sort((a, b) => new Date(b.viewedAt) - new Date(a.viewedAt));
+                                }
+                                if (data.data.learning) {
+                                    this.learningInsights = { ...this.learningInsights, ...data.data.learning };
+                                }
+                                console.log('User data synced from API');
+                            }
+                        }
+                    } catch (error) {
+                        console.log('API sync unavailable, using localStorage');
+                    }
                 },
 
-                saveProfile() {
+                async saveProfile() {
+                    // Always save to localStorage
                     localStorage.setItem('nexus-profile', JSON.stringify(this.userProfile));
+
+                    // Also sync to API
+                    try {
+                        await fetch(`${API_BASE}/api/v1/user/${this.userId}/preferences`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.userProfile)
+                        });
+                    } catch (error) {
+                        console.log('API sync failed, data saved locally');
+                    }
                 },
 
-                saveHistory() {
+                async saveHistory() {
+                    // Always save to localStorage
                     localStorage.setItem('nexus-history', JSON.stringify(this.watchHistory));
+
+                    // Also sync latest item to API if available
+                    if (this.watchHistory.length > 0) {
+                        try {
+                            await fetch(`${API_BASE}/api/v1/user/${this.userId}/history`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(this.watchHistory[0])
+                            });
+                        } catch (error) {
+                            console.log('API sync failed, data saved locally');
+                        }
+                    }
                 },
 
                 // Catalog & Search
@@ -1307,54 +1389,94 @@
                     }
                 },
 
-                // For You / Recommendations
+                // For You / Recommendations - fetches from TMDb based on preferences
                 async loadForYou() {
                     if (this.userProfile.favoriteGenres.length === 0) {
                         this.forYouItems = [];
                         return;
                     }
 
-                    await this.loadCatalog();
+                    this.loading = true;
 
-                    // Score items based on user preferences
-                    const scored = this.items.map(item => {
-                        let score = 0;
-                        const genres = item.genres || [];
-                        const moods = item.moodTags || [];
+                    // Map user's favorite genres to TMDb genre IDs
+                    const genreToTmdbId = {
+                        'Action': 28, 'Comedy': 35, 'Drama': 18, 'Horror': 27,
+                        'Romance': 10749, 'Sci-Fi': 878, 'Thriller': 53,
+                        'Documentary': 99, 'Adventure': 12, 'Crime': 80,
+                        'Animation': 16, 'Fantasy': 14, 'Mystery': 9648
+                    };
 
-                        // Genre matching
-                        genres.forEach(g => {
-                            if (this.userProfile.favoriteGenres.some(fg => fg.toLowerCase() === g.toLowerCase())) {
-                                score += 10;
-                            }
-                        });
+                    const tmdbGenreIds = this.userProfile.favoriteGenres
+                        .map(g => genreToTmdbId[g])
+                        .filter(Boolean);
 
-                        // Mood matching
-                        this.userProfile.preferredMoods.forEach(pm => {
-                            const moodDef = this.moods.find(m => m.id === pm);
-                            if (moodDef) {
-                                moods.forEach(mt => {
-                                    if (moodDef.keywords.some(k => mt.toLowerCase().includes(k))) {
-                                        score += 5;
-                                    }
-                                });
-                            }
-                        });
+                    if (tmdbGenreIds.length === 0) {
+                        // Fallback to local catalog
+                        await this.loadCatalog();
+                        this.forYouItems = this.items.slice(0, 10);
+                        this.loading = false;
+                        return;
+                    }
 
-                        // Exclude already watched
-                        if (this.isWatched(item.id)) {
-                            score -= 50;
+                    try {
+                        // Fetch personalized recommendations from TMDb
+                        const genreIds = tmdbGenreIds.join(',');
+                        const response = await fetch(
+                            `${TMDB_BASE}/discover/movie?api_key=${TMDB_API_KEY}&with_genres=${genreIds}&sort_by=popularity.desc&vote_average.gte=6.5&vote_count.gte=100`
+                        );
+                        const data = await response.json();
+
+                        if (data.results && data.results.length > 0) {
+                            // Filter out already watched items
+                            const watchedIds = new Set(this.watchHistory.map(h => h.id));
+                            const filtered = data.results.filter(item => !watchedIds.has(item.id));
+
+                            this.forYouItems = filtered.slice(0, 15).map(item => ({
+                                ...item,
+                                media_type: 'movie',
+                                isTmdb: true,
+                                recommendationReason: this.getPersonalizedReason(item)
+                            }));
+                        } else {
+                            this.forYouItems = [];
                         }
+                    } catch (error) {
+                        console.error('Failed to load personalized recommendations:', error);
+                        // Fallback to local catalog
+                        await this.loadCatalog();
+                        this.forYouItems = this.items.slice(0, 10);
+                    }
 
-                        return { ...item, score };
-                    });
+                    this.loading = false;
+                },
 
-                    // Sort by score and take top results
-                    scored.sort((a, b) => b.score - a.score);
-                    this.forYouItems = scored.filter(i => i.score > 0).slice(0, 10);
+                // Get personalized recommendation reason
+                getPersonalizedReason(item) {
+                    // Find matching genres
+                    const genreToTmdbId = {
+                        'Action': 28, 'Comedy': 35, 'Drama': 18, 'Horror': 27,
+                        'Romance': 10749, 'Sci-Fi': 878, 'Thriller': 53,
+                        'Documentary': 99, 'Adventure': 12, 'Crime': 80
+                    };
+                    const tmdbIdToGenre = Object.fromEntries(
+                        Object.entries(genreToTmdbId).map(([k, v]) => [v, k])
+                    );
+
+                    const itemGenreIds = item.genre_ids || [];
+                    for (const gid of itemGenreIds) {
+                        const genreName = tmdbIdToGenre[gid];
+                        if (genreName && this.userProfile.favoriteGenres.includes(genreName)) {
+                            return `You like ${genreName}`;
+                        }
+                    }
+                    return 'Matches your taste';
                 },
 
                 getRecommendationReason(item) {
+                    // For TMDb items with genre_ids
+                    if (item.recommendationReason) return item.recommendationReason;
+
+                    // For local catalog items
                     const matchedGenres = (item.genres || []).filter(g =>
                         this.userProfile.favoriteGenres.some(fg => fg.toLowerCase() === g.toLowerCase())
                     );
@@ -1425,12 +1547,23 @@
                         });
                 },
 
-                // Save learning insights to localStorage
-                saveLearningInsights() {
+                // Save learning insights to localStorage and API
+                async saveLearningInsights() {
                     localStorage.setItem('nexus-learning', JSON.stringify(this.learningInsights));
+
+                    // Also sync to API
+                    try {
+                        await fetch(`${API_BASE}/api/v1/user/${this.userId}/learning`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.learningInsights)
+                        });
+                    } catch (error) {
+                        console.log('Learning sync failed, data saved locally');
+                    }
                 },
 
-                // Load learning insights from localStorage
+                // Load learning insights from localStorage (API sync happens in loadUserData)
                 loadLearningInsights() {
                     const data = localStorage.getItem('nexus-learning');
                     if (data) {
@@ -1481,18 +1614,16 @@
                     };
                 },
 
-                // Watch History
+                // Watch History - stores full item data for TMDb items
                 loadHistory() {
-                    // Already loaded from localStorage
+                    // Already loaded from localStorage in loadUserData
                 },
 
                 get watchHistoryItems() {
+                    // History now stores full item data, sorted by viewedAt
                     return this.watchHistory
-                        .map(h => {
-                            const item = this.items.find(i => i.id === h.id);
-                            return item ? { ...item, viewedAt: h.viewedAt } : null;
-                        })
-                        .filter(Boolean)
+                        .filter(h => h.item) // Only items with full data
+                        .map(h => ({ ...h.item, viewedAt: h.viewedAt }))
                         .sort((a, b) => new Date(b.viewedAt) - new Date(a.viewedAt));
                 },
 
@@ -1500,12 +1631,43 @@
                     return this.watchHistory.some(h => h.id === itemId);
                 },
 
+                // Add item to watch history with full data
+                addToHistory(item) {
+                    // Remove if already exists (to update position)
+                    this.watchHistory = this.watchHistory.filter(h => h.id !== item.id);
+
+                    // Add to front with full item data
+                    this.watchHistory.unshift({
+                        id: item.id,
+                        viewedAt: new Date().toISOString(),
+                        item: {
+                            id: item.id,
+                            title: item.title || item.name,
+                            type: item.type || item.media_type || 'movie',
+                            poster_path: item.poster_path,
+                            backdrop_path: item.backdrop_path,
+                            vote_average: item.vote_average,
+                            release_date: item.release_date || item.first_air_date,
+                            overview: item.overview || item.synopsis,
+                            genres: item.genres || [],
+                            isTmdb: item.isTmdb || false
+                        }
+                    });
+
+                    // Keep only last 50 items
+                    if (this.watchHistory.length > 50) {
+                        this.watchHistory = this.watchHistory.slice(0, 50);
+                    }
+
+                    this.saveHistory();
+                },
+
                 toggleWatched(item) {
                     const idx = this.watchHistory.findIndex(h => h.id === item.id);
                     if (idx >= 0) {
                         this.watchHistory.splice(idx, 1);
                     } else {
-                        this.watchHistory.unshift({ id: item.id, viewedAt: new Date().toISOString() });
+                        this.addToHistory(item);
                     }
                     this.saveHistory();
                 },
@@ -1557,11 +1719,8 @@
                     if (item.isTmdb) {
                         await this.loadTmdbDetails(item);
                     }
-                    // Add to history when viewing
-                    if (!this.isWatched(item.id)) {
-                        this.watchHistory.unshift({ id: item.id, viewedAt: new Date().toISOString() });
-                        this.saveHistory();
-                    }
+                    // Add to history when viewing (with full item data)
+                    this.addToHistory(this.selectedItem);
                 },
 
                 async validatePlatform(itemId, platform) {

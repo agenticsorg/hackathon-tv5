@@ -12,6 +12,7 @@ import compression from 'compression';
 import dotenv from 'dotenv';
 import metadataRoutes from './routes/metadata';
 import searchRoutes from './routes/search';
+import userRoutes from './routes/user';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { requestLogger, logger } from './middleware/logger';
 import { metricsMiddleware, metricsHandler, healthCheckWithMetrics } from './middleware/metrics';
@@ -81,7 +82,11 @@ app.get('/', (_req: Request, res: Response) => {
       similarSearch: '/api/v1/search/similar/:itemId',
       trending: '/api/v1/search/trending',
       enrich: '/api/v1/metadata/:id/enrich',
-      validate: '/api/v1/metadata/:id/validate'
+      validate: '/api/v1/metadata/:id/validate',
+      user: '/api/v1/user/:userId',
+      userPreferences: '/api/v1/user/:userId/preferences',
+      userLearning: '/api/v1/user/:userId/learning',
+      userHistory: '/api/v1/user/:userId/history'
     }
   });
 });
@@ -91,6 +96,7 @@ app.get('/', (_req: Request, res: Response) => {
  */
 app.use('/api/v1/metadata', metadataRoutes);
 app.use('/api/v1/search', searchRoutes);
+app.use('/api/v1/user', userRoutes);
 
 /**
  * Error Handling
