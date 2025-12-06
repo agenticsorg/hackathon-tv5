@@ -12,7 +12,15 @@
     "test:coverage": "jest --coverage",
     "test:verbose": "jest --verbose",
     "lint": "eslint src --ext .ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "seed": "tsx scripts/seed-database.ts",
+    "docker:build": "docker build -t metadata-api .",
+    "docker:run": "docker run -p 8080:8080 --env-file .env metadata-api",
+    "docker:run:prod": "docker run -p 8080:8080 --env-file .env.production metadata-api",
+    "docker:stop": "docker stop $(docker ps -q --filter ancestor=metadata-api)",
+    "docker:clean": "docker rmi metadata-api",
+    "gcp:build": "gcloud builds submit --config=cloudbuild.yaml",
+    "gcp:deploy": "gcloud run deploy nexus-ummid-metadata-api --source ."
   },
   "keywords": [
     "metadata",

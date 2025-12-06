@@ -11,8 +11,10 @@ import helmet from 'helmet';
 import compression from 'compression';
 import dotenv from 'dotenv';
 import metadataRoutes from './routes/metadata';
+import searchRoutes from './routes/search';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { requestLogger, logger } from './middleware/logger';
+import { metricsMiddleware, metricsHandler, healthCheckWithMetrics } from './middleware/metrics';
 
 // Load environment variables
 dotenv.config();
@@ -47,20 +49,21 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Request logging
 app.use(requestLogger);
 
+// Metrics collection
+app.use(metricsMiddleware);
+
+/**
+ * Metrics Endpoint
+ * Exposes Prometheus-compatible metrics for Cloud Monitoring
+ */
+app.get('/metrics', metricsHandler);
+
 /**
  * Health Check Endpoint
  * Used by GCP Cloud Run for liveness/readiness probes
+ * Enhanced with metrics summary
  */
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({
-    status: 'healthy',
-    service: 'nexus-ummid-metadata-api',
-    version: '1.0.0',
-    timestamp: new Date().toISOString(),
-    environment: NODE_ENV,
-    uptime: process.uptime()
-  });
-});
+app.get('/health', healthCheckWithMetrics);
 
 /**
  * Root Endpoint
@@ -74,7 +77,9 @@ app.get('/', (req: Request, res: Response) => {
     health: '/health',
     endpoints: {
       metadata: '/api/v1/metadata',
-      search: '/api/v1/metadata/search/query',
+      search: '/api/v1/search',
+      similarSearch: '/api/v1/search/similar/:itemId',
+      trending: '/api/v1/search/trending',
       enrich: '/api/v1/metadata/:id/enrich',
       validate: '/api/v1/metadata/:id/validate'
     }
@@ -85,6 +90,7 @@ app.get('/', (req: Request, res: Response) => {
  * API Routes
  */
 app.use('/api/v1/metadata', metadataRoutes);
+app.use('/api/v1/search', searchRoutes);
 
 /**
  * Error Handling
@@ -106,6 +112,7 @@ const server = app.listen(PORT, () => {
   logger.info(`📡 Server ready at http://localhost:${PORT}`);
   logger.info(`🏥 Health check at http://localhost:${PORT}/health`);
   logger.info(`📚 API endpoints at http://localhost:${PORT}/api/v1/metadata`);
+  logger.info(`🔍 Search endpoints at http://localhost:${PORT}/api/v1/search`);
 });
 
 /**

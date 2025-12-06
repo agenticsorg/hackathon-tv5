@@ -1,0 +1,565 @@
+{
+  "displayName": "Nexus-UMMID Metadata API - Production Monitoring",
+  "mosaicLayout": {
+    "columns": 12,
+    "tiles": [
+      {
+        "width": 6,
+        "height": 4,
+        "widget": {
+          "title": "Request Rate (req/s)",
+          "xyChart": {
+            "chartOptions": {
+              "mode": "COLOR"
+            },
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "resource.type=\"cloud_run_revision\" resource.labels.service_name=\"metadata-api\" metric.type=\"run.googleapis.com/request_count\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_RATE",
+                      "crossSeriesReducer": "REDUCE_SUM",
+                      "groupByFields": [
+                        "metric.labels.response_code_class"
+                      ]
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "targetAxis": "Y1",
+                "legendTemplate": "${metric.labels.response_code_class}"
+              }
+            ],
+            "yAxis": {
+              "label": "Requests/second",
+              "scale": "LINEAR"
+            },
+            "thresholds": [
+              {
+                "value": 1000,
+                "color": "YELLOW",
+                "direction": "ABOVE",
+                "label": "High Traffic"
+              },
+              {
+                "value": 5000,
+                "color": "RED",
+                "direction": "ABOVE",
+                "label": "Critical Traffic"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "xPos": 6,
+        "width": 6,
+        "height": 4,
+        "widget": {
+          "title": "Latency Percentiles (P50, P95, P99)",
+          "xyChart": {
+            "chartOptions": {
+              "mode": "COLOR"
+            },
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "resource.type=\"cloud_run_revision\" resource.labels.service_name=\"metadata-api\" metric.type=\"run.googleapis.com/request_latencies\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_DELTA",
+                      "crossSeriesReducer": "REDUCE_PERCENTILE_50",
+                      "groupByFields": []
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "targetAxis": "Y1",
+                "legendTemplate": "P50"
+              },
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "resource.type=\"cloud_run_revision\" resource.labels.service_name=\"metadata-api\" metric.type=\"run.googleapis.com/request_latencies\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_DELTA",
+                      "crossSeriesReducer": "REDUCE_PERCENTILE_95",
+                      "groupByFields": []
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "targetAxis": "Y1",
+                "legendTemplate": "P95"
+              },
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "resource.type=\"cloud_run_revision\" resource.labels.service_name=\"metadata-api\" metric.type=\"run.googleapis.com/request_latencies\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_DELTA",
+                      "crossSeriesReducer": "REDUCE_PERCENTILE_99",
+                      "groupByFields": []
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "targetAxis": "Y1",
+                "legendTemplate": "P99"
+              }
+            ],
+            "yAxis": {
+              "label": "Milliseconds",
+              "scale": "LINEAR"
+            },
+            "thresholds": [
+              {
+                "value": 200,
+                "color": "YELLOW",
+                "direction": "ABOVE",
+                "label": "Warning (200ms)"
+              },
+              {
+                "value": 500,
+                "color": "RED",
+                "direction": "ABOVE",
+                "label": "Critical (500ms)"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "yPos": 4,
+        "width": 4,
+        "height": 4,
+        "widget": {
+          "title": "Error Rate (%)",
+          "xyChart": {
+            "chartOptions": {
+              "mode": "COLOR"
+            },
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilterRatio": {
+                    "numerator": {
+                      "filter": "resource.type=\"cloud_run_revision\" resource.labels.service_name=\"metadata-api\" metric.type=\"run.googleapis.com/request_count\" metric.labels.response_code_class=\"5xx\"",
+                      "aggregation": {
+                        "alignmentPeriod": "60s",
+                        "perSeriesAligner": "ALIGN_RATE",
+                        "crossSeriesReducer": "REDUCE_SUM"
+                      }
+                    },
+                    "denominator": {
+                      "filter": "resource.type=\"cloud_run_revision\" resource.labels.service_name=\"metadata-api\" metric.type=\"run.googleapis.com/request_count\"",
+                      "aggregation": {
+                        "alignmentPeriod": "60s",
+                        "perSeriesAligner": "ALIGN_RATE",
+                        "crossSeriesReducer": "REDUCE_SUM"
+                      }
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "targetAxis": "Y1",
+                "legendTemplate": "5xx Error Rate"
+              },
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilterRatio": {
+                    "numerator": {
+                      "filter": "resource.type=\"cloud_run_revision\" resource.labels.service_name=\"metadata-api\" metric.type=\"run.googleapis.com/request_count\" metric.labels.response_code_class=\"4xx\"",
+                      "aggregation": {
+                        "alignmentPeriod": "60s",
+                        "perSeriesAligner": "ALIGN_RATE",
+                        "crossSeriesReducer": "REDUCE_SUM"
+                      }
+                    },
+                    "denominator": {
+                      "filter": "resource.type=\"cloud_run_revision\" resource.labels.service_name=\"metadata-api\" metric.type=\"run.googleapis.com/request_count\"",
+                      "aggregation": {
+                        "alignmentPeriod": "60s",
+                        "perSeriesAligner": "ALIGN_RATE",
+                        "crossSeriesReducer": "REDUCE_SUM"
+                      }
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "targetAxis": "Y1",
+                "legendTemplate": "4xx Error Rate"
+              }
+            ],
+            "yAxis": {
+              "label": "Error Rate",
+              "scale": "LINEAR"
+            },
+            "thresholds": [
+              {
+                "value": 0.01,
+                "color": "RED",
+                "direction": "ABOVE",
+                "label": "SLO Threshold (1%)"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "xPos": 4,
+        "yPos": 4,
+        "width": 4,
+        "height": 4,
+        "widget": {
+          "title": "Active Instances",
+          "xyChart": {
+            "chartOptions": {
+              "mode": "COLOR"
+            },
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "resource.type=\"cloud_run_revision\" resource.labels.service_name=\"metadata-api\" metric.type=\"run.googleapis.com/container/instance_count\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_MAX",
+                      "crossSeriesReducer": "REDUCE_SUM"
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "targetAxis": "Y1",
+                "legendTemplate": "Active Instances"
+              }
+            ],
+            "yAxis": {
+              "label": "Instance Count",
+              "scale": "LINEAR"
+            },
+            "thresholds": [
+              {
+                "value": 80,
+                "color": "YELLOW",
+                "direction": "ABOVE",
+                "label": "High Instance Count"
+              },
+              {
+                "value": 95,
+                "color": "RED",
+                "direction": "ABOVE",
+                "label": "Near Max (100)"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "xPos": 8,
+        "yPos": 4,
+        "width": 4,
+        "height": 4,
+        "widget": {
+          "title": "Memory Utilization (%)",
+          "xyChart": {
+            "chartOptions": {
+              "mode": "COLOR"
+            },
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "resource.type=\"cloud_run_revision\" resource.labels.service_name=\"metadata-api\" metric.type=\"run.googleapis.com/container/memory/utilizations\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_MEAN",
+                      "crossSeriesReducer": "REDUCE_PERCENTILE_95"
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "targetAxis": "Y1",
+                "legendTemplate": "P95 Memory %"
+              }
+            ],
+            "yAxis": {
+              "label": "Memory Utilization",
+              "scale": "LINEAR"
+            },
+            "thresholds": [
+              {
+                "value": 0.80,
+                "color": "YELLOW",
+                "direction": "ABOVE",
+                "label": "Warning (80%)"
+              },
+              {
+                "value": 0.90,
+                "color": "RED",
+                "direction": "ABOVE",
+                "label": "Critical (90%)"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "yPos": 8,
+        "width": 6,
+        "height": 4,
+        "widget": {
+          "title": "CPU Utilization (%)",
+          "xyChart": {
+            "chartOptions": {
+              "mode": "COLOR"
+            },
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "resource.type=\"cloud_run_revision\" resource.labels.service_name=\"metadata-api\" metric.type=\"run.googleapis.com/container/cpu/utilizations\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_MEAN",
+                      "crossSeriesReducer": "REDUCE_PERCENTILE_95"
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "targetAxis": "Y1",
+                "legendTemplate": "P95 CPU %"
+              }
+            ],
+            "yAxis": {
+              "label": "CPU Utilization",
+              "scale": "LINEAR"
+            },
+            "thresholds": [
+              {
+                "value": 0.70,
+                "color": "YELLOW",
+                "direction": "ABOVE",
+                "label": "Warning (70%)"
+              },
+              {
+                "value": 0.90,
+                "color": "RED",
+                "direction": "ABOVE",
+                "label": "Critical (90%)"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "xPos": 6,
+        "yPos": 8,
+        "width": 6,
+        "height": 4,
+        "widget": {
+          "title": "Request Duration by Endpoint (P95)",
+          "xyChart": {
+            "chartOptions": {
+              "mode": "COLOR"
+            },
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "resource.type=\"cloud_run_revision\" resource.labels.service_name=\"metadata-api\" metric.type=\"custom.googleapis.com/metadata-api/request_duration_milliseconds\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_DELTA",
+                      "crossSeriesReducer": "REDUCE_PERCENTILE_95",
+                      "groupByFields": [
+                        "metric.labels.endpoint"
+                      ]
+                    }
+                  }
+                },
+                "plotType": "LINE",
+                "targetAxis": "Y1",
+                "legendTemplate": "${metric.labels.endpoint}"
+              }
+            ],
+            "yAxis": {
+              "label": "Duration (ms)",
+              "scale": "LINEAR"
+            }
+          }
+        }
+      },
+      {
+        "yPos": 12,
+        "width": 4,
+        "height": 3,
+        "widget": {
+          "title": "SLO Compliance - Availability",
+          "scorecard": {
+            "timeSeriesQuery": {
+              "timeSeriesFilterRatio": {
+                "numerator": {
+                  "filter": "resource.type=\"cloud_run_revision\" resource.labels.service_name=\"metadata-api\" metric.type=\"run.googleapis.com/request_count\" metric.labels.response_code_class=\"2xx\"",
+                  "aggregation": {
+                    "alignmentPeriod": "3600s",
+                    "perSeriesAligner": "ALIGN_RATE",
+                    "crossSeriesReducer": "REDUCE_SUM"
+                  }
+                },
+                "denominator": {
+                  "filter": "resource.type=\"cloud_run_revision\" resource.labels.service_name=\"metadata-api\" metric.type=\"run.googleapis.com/request_count\"",
+                  "aggregation": {
+                    "alignmentPeriod": "3600s",
+                    "perSeriesAligner": "ALIGN_RATE",
+                    "crossSeriesReducer": "REDUCE_SUM"
+                  }
+                }
+              }
+            },
+            "thresholds": [
+              {
+                "value": 0.999,
+                "color": "GREEN",
+                "direction": "ABOVE",
+                "label": "Meeting SLO (99.9%)"
+              },
+              {
+                "value": 0.995,
+                "color": "YELLOW",
+                "direction": "ABOVE",
+                "label": "At Risk"
+              },
+              {
+                "value": 0.995,
+                "color": "RED",
+                "direction": "BELOW",
+                "label": "SLO Violated"
+              }
+            ],
+            "sparkChartView": {
+              "sparkChartType": "SPARK_LINE"
+            }
+          }
+        }
+      },
+      {
+        "xPos": 4,
+        "yPos": 12,
+        "width": 4,
+        "height": 3,
+        "widget": {
+          "title": "Error Budget Remaining",
+          "scorecard": {
+            "timeSeriesQuery": {
+              "timeSeriesFilterRatio": {
+                "numerator": {
+                  "filter": "resource.type=\"cloud_run_revision\" resource.labels.service_name=\"metadata-api\" metric.type=\"run.googleapis.com/request_count\" metric.labels.response_code_class!=\"2xx\"",
+                  "aggregation": {
+                    "alignmentPeriod": "3600s",
+                    "perSeriesAligner": "ALIGN_RATE",
+                    "crossSeriesReducer": "REDUCE_SUM"
+                  }
+                },
+                "denominator": {
+                  "filter": "resource.type=\"cloud_run_revision\" resource.labels.service_name=\"metadata-api\" metric.type=\"run.googleapis.com/request_count\"",
+                  "aggregation": {
+                    "alignmentPeriod": "3600s",
+                    "perSeriesAligner": "ALIGN_RATE",
+                    "crossSeriesReducer": "REDUCE_SUM"
+                  }
+                }
+              }
+            },
+            "thresholds": [
+              {
+                "value": 0.0001,
+                "color": "GREEN",
+                "direction": "BELOW",
+                "label": "Healthy (>90% budget)"
+              },
+              {
+                "value": 0.0005,
+                "color": "YELLOW",
+                "direction": "ABOVE",
+                "label": "Warning (<50% budget)"
+              },
+              {
+                "value": 0.001,
+                "color": "RED",
+                "direction": "ABOVE",
+                "label": "Critical (<10% budget)"
+              }
+            ],
+            "sparkChartView": {
+              "sparkChartType": "SPARK_BAR"
+            }
+          }
+        }
+      },
+      {
+        "xPos": 8,
+        "yPos": 12,
+        "width": 4,
+        "height": 3,
+        "widget": {
+          "title": "Startup Latency (P95)",
+          "scorecard": {
+            "timeSeriesQuery": {
+              "timeSeriesFilter": {
+                "filter": "resource.type=\"cloud_run_revision\" resource.labels.service_name=\"metadata-api\" metric.type=\"run.googleapis.com/container/startup_latencies\"",
+                "aggregation": {
+                  "alignmentPeriod": "3600s",
+                  "perSeriesAligner": "ALIGN_DELTA",
+                  "crossSeriesReducer": "REDUCE_PERCENTILE_95"
+                }
+              }
+            },
+            "thresholds": [
+              {
+                "value": 10000,
+                "color": "GREEN",
+                "direction": "BELOW",
+                "label": "Fast (<10s)"
+              },
+              {
+                "value": 30000,
+                "color": "YELLOW",
+                "direction": "ABOVE",
+                "label": "Slow (>30s)"
+              },
+              {
+                "value": 60000,
+                "color": "RED",
+                "direction": "ABOVE",
+                "label": "Critical (>60s)"
+              }
+            ],
+            "sparkChartView": {
+              "sparkChartType": "SPARK_LINE"
+            }
+          }
+        }
+      },
+      {
+        "yPos": 15,
+        "width": 12,
+        "height": 4,
+        "widget": {
+          "title": "Logs - Recent Errors",
+          "logsPanel": {
+            "resourceNames": [
+              "projects/agentics-foundation25lon-1899/locations/us-central1/services/metadata-api"
+            ],
+            "filter": "resource.type=\"cloud_run_revision\" resource.labels.service_name=\"metadata-api\" severity>=ERROR"
+          }
+        }
+      }
+    ]
+  }
+}

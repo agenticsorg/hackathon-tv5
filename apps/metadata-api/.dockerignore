@@ -1,0 +1,92 @@
+# Nexus-UMMID Metadata API - Docker Ignore File
+# Optimize build context and reduce image size
+
+# Node modules (installed during build)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Test files and coverage
+**/__tests__/
+**/__mocks__/
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+coverage/
+.nyc_output/
+jest.config.js
+jest.config.ts
+
+# Development files
+.env
+.env.local
+.env.development
+.env.test
+*.local
+
+# Source maps in production
+*.map
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Git files
+.git/
+.gitignore
+.gitattributes
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# CI/CD files
+.github/
+.gitlab-ci.yml
+.travis.yml
+cloudbuild.yaml
+
+# Docker files
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+.cache/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# ESLint and Prettier
+.eslintrc*
+.prettierrc*
+.editorconfig
+
+# TypeScript config (copied separately)
+# tsconfig.json is needed for build
+
+# Misc
+*.seed
+*.pid
+*.gz
+.lock-wscript

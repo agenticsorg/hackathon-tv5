@@ -1,0 +1,828 @@
+[
+  {
+    "userId": "user-001",
+    "username": "sci_fi_fanatic",
+    "email": "scifi@example.com",
+    "preferredGenres": ["sci-fi", "thriller", "action"],
+    "watchHistory": [
+      {
+        "contentId": "10.5240/A1B2-C3D4-E5F6-G7H8-I9J0-K1L2",
+        "contentType": "movie",
+        "title": "Quantum Horizon",
+        "watchedAt": "2024-11-15T20:30:00Z",
+        "rating": 9,
+        "completed": true
+      },
+      {
+        "contentId": "10.5240/SER-A1B2-C3D4-E5F6-G7H8-I9J0",
+        "contentType": "series",
+        "title": "Quantum Detectives",
+        "watchedAt": "2024-11-10T19:00:00Z",
+        "rating": 8,
+        "completed": false,
+        "currentSeason": 2,
+        "currentEpisode": 5
+      },
+      {
+        "contentId": "10.5240/C3D4-E5F6-G7H8-I9J0-K1L2-M3N4",
+        "contentType": "movie",
+        "title": "Shadow Protocol",
+        "watchedAt": "2024-11-01T21:00:00Z",
+        "rating": 9,
+        "completed": true
+      }
+    ],
+    "ratings": {
+      "10.5240/A1B2-C3D4-E5F6-G7H8-I9J0-K1L2": 9,
+      "10.5240/C3D4-E5F6-G7H8-I9J0-K1L2-M3N4": 9,
+      "10.5240/SER-A1B2-C3D4-E5F6-G7H8-I9J0": 8
+    },
+    "favoriteActors": ["Emma Chen", "Alex Zhang", "Dr. Quantum"],
+    "favoriteDirectors": ["Ava Martinez", "Christopher Nolan III"]
+  },
+  {
+    "userId": "user-002",
+    "username": "rom_com_lover",
+    "email": "romcom@example.com",
+    "preferredGenres": ["romance", "comedy"],
+    "watchHistory": [
+      {
+        "contentId": "10.5240/D4E5-F6G7-H8I9-J0K1-L2M3-N4O5",
+        "contentType": "movie",
+        "title": "Breakfast at Tiffany's Diner",
+        "watchedAt": "2024-11-20T18:00:00Z",
+        "rating": 8,
+        "completed": true
+      },
+      {
+        "contentId": "10.5240/P6Q7-R8S9-T0U1-V2W3-X4Y5-Z6A7",
+        "contentType": "movie",
+        "title": "Wedding Season",
+        "watchedAt": "2024-11-18T19:30:00Z",
+        "rating": 7,
+        "completed": true
+      },
+      {
+        "contentId": "10.5240/SER-H8I9-J0K1-L2M3-N4O5-P6Q7",
+        "contentType": "series",
+        "title": "Love in the City",
+        "watchedAt": "2024-11-12T20:00:00Z",
+        "rating": 8,
+        "completed": false,
+        "currentSeason": 3,
+        "currentEpisode": 8
+      }
+    ],
+    "ratings": {
+      "10.5240/D4E5-F6G7-H8I9-J0K1-L2M3-N4O5": 8,
+      "10.5240/P6Q7-R8S9-T0U1-V2W3-X4Y5-Z6A7": 7,
+      "10.5240/SER-H8I9-J0K1-L2M3-N4O5-P6Q7": 8
+    },
+    "favoriteActors": ["Jessica Miller", "Emma Davis", "Blake Matthews"],
+    "favoriteDirectors": ["Sophie Anderson", "Nancy Meyers III"]
+  },
+  {
+    "userId": "user-003",
+    "username": "horror_enthusiast",
+    "email": "horror@example.com",
+    "preferredGenres": ["horror", "thriller"],
+    "watchHistory": [
+      {
+        "contentId": "10.5240/I9J0-K1L2-M3N4-O5P6-Q7R8-S9T0",
+        "contentType": "movie",
+        "title": "The Haunting of Blackwood Manor",
+        "watchedAt": "2024-11-22T22:00:00Z",
+        "rating": 8,
+        "completed": true
+      },
+      {
+        "contentId": "10.5240/SER-E5F6-G7H8-I9J0-K1L2-M3N4",
+        "contentType": "series",
+        "title": "Darkwood Chronicles",
+        "watchedAt": "2024-11-15T21:30:00Z",
+        "rating": 9,
+        "completed": false,
+        "currentSeason": 2,
+        "currentEpisode": 7
+      },
+      {
+        "contentId": "10.5240/Z6A7-B8C9-D0E1-F2G3-H4I5-J6K7",
+        "contentType": "movie",
+        "title": "Bloodmoon Rising",
+        "watchedAt": "2024-11-08T23:00:00Z",
+        "rating": 8,
+        "completed": true
+      }
+    ],
+    "ratings": {
+      "10.5240/I9J0-K1L2-M3N4-O5P6-Q7R8-S9T0": 8,
+      "10.5240/SER-E5F6-G7H8-I9J0-K1L2-M3N4": 9,
+      "10.5240/Z6A7-B8C9-D0E1-F2G3-H4I5-J6K7": 8
+    },
+    "favoriteActors": ["Catherine Black", "Damien Blackwood"],
+    "favoriteDirectors": ["Mike Flanagan III", "Guillermo del Toro II"]
+  },
+  {
+    "userId": "user-004",
+    "username": "action_junkie",
+    "email": "action@example.com",
+    "preferredGenres": ["action", "thriller"],
+    "watchHistory": [
+      {
+        "contentId": "10.5240/G7H8-I9J0-K1L2-M3N4-O5P6-Q7R8",
+        "contentType": "movie",
+        "title": "Crimson Vendetta",
+        "watchedAt": "2024-11-21T20:00:00Z",
+        "rating": 8,
+        "completed": true
+      },
+      {
+        "contentId": "10.5240/O5P6-Q7R8-S9T0-U1V2-W3X4-Y5Z6",
+        "contentType": "movie",
+        "title": "Code Name: Phoenix",
+        "watchedAt": "2024-11-19T21:00:00Z",
+        "rating": 9,
+        "completed": true
+      },
+      {
+        "contentId": "10.5240/SER-S9T0-U1V2-W3X4-Y5Z6-A7B8",
+        "contentType": "series",
+        "title": "Agents of CIPHER",
+        "watchedAt": "2024-11-10T20:30:00Z",
+        "rating": 8,
+        "completed": false,
+        "currentSeason": 2,
+        "currentEpisode": 10
+      }
+    ],
+    "ratings": {
+      "10.5240/G7H8-I9J0-K1L2-M3N4-O5P6-Q7R8": 8,
+      "10.5240/O5P6-Q7R8-S9T0-U1V2-W3X4-Y5Z6": 9,
+      "10.5240/SER-S9T0-U1V2-W3X4-Y5Z6-A7B8": 8
+    },
+    "favoriteActors": ["Maya Singh", "Victoria Cross", "Agent Phoenix"],
+    "favoriteDirectors": ["Victor Kane", "Michael Stone"]
+  },
+  {
+    "userId": "user-005",
+    "username": "drama_queen",
+    "email": "drama@example.com",
+    "preferredGenres": ["drama"],
+    "watchHistory": [
+      {
+        "contentId": "10.5240/B2C3-D4E5-F6G7-H8I9-J0K1-L2M3",
+        "contentType": "movie",
+        "title": "The Last Lighthouse",
+        "watchedAt": "2024-11-23T19:00:00Z",
+        "rating": 8,
+        "completed": true
+      },
+      {
+        "contentId": "10.5240/SER-C3D4-E5F6-G7H8-I9J0-K1L2",
+        "contentType": "series",
+        "title": "Brooklyn Medical",
+        "watchedAt": "2024-11-16T20:00:00Z",
+        "rating": 8,
+        "completed": false,
+        "currentSeason": 4,
+        "currentEpisode": 12
+      },
+      {
+        "contentId": "10.5240/C9D0-E1F2-G3H4-I5J6-K7L8-M9N0",
+        "contentType": "movie",
+        "title": "Second Chances",
+        "watchedAt": "2024-11-05T18:30:00Z",
+        "rating": 8,
+        "completed": true
+      }
+    ],
+    "ratings": {
+      "10.5240/B2C3-D4E5-F6G7-H8I9-J0K1-L2M3": 8,
+      "10.5240/SER-C3D4-E5F6-G7H8-I9J0-K1L2": 8,
+      "10.5240/C9D0-E1F2-G3H4-I5J6-K7L8-M9N0": 8
+    },
+    "favoriteActors": ["James O'Brien", "Dr. Sarah Chen", "Marcus Stone"],
+    "favoriteDirectors": ["Claire Dubois", "Ron Howard II"]
+  },
+  {
+    "userId": "user-006",
+    "username": "comedy_central",
+    "email": "comedy@example.com",
+    "preferredGenres": ["comedy"],
+    "watchHistory": [
+      {
+        "contentId": "10.5240/H8I9-J0K1-L2M3-N4O5-P6Q7-R8S9",
+        "contentType": "movie",
+        "title": "Laugh Track",
+        "watchedAt": "2024-11-24T18:00:00Z",
+        "rating": 7,
+        "completed": true
+      },
+      {
+        "contentId": "10.5240/SER-D4E5-F6G7-H8I9-J0K1-L2M3",
+        "contentType": "series",
+        "title": "Laugh Factory",
+        "watchedAt": "2024-11-20T19:00:00Z",
+        "rating": 8,
+        "completed": false,
+        "currentSeason": 3,
+        "currentEpisode": 5
+      },
+      {
+        "contentId": "10.5240/B8C9-D0E1-F2G3-H4I5-J6K7-L8M9",
+        "contentType": "movie",
+        "title": "The Improv Wars",
+        "watchedAt": "2024-11-14T20:00:00Z",
+        "rating": 8,
+        "completed": true
+      }
+    ],
+    "ratings": {
+      "10.5240/H8I9-J0K1-L2M3-N4O5-P6Q7-R8S9": 7,
+      "10.5240/SER-D4E5-F6G7-H8I9-J0K1-L2M3": 8,
+      "10.5240/B8C9-D0E1-F2G3-H4I5-J6K7-L8M9": 8
+    },
+    "favoriteActors": ["Tom Harrison", "Jamie Hart", "Chris Parker"],
+    "favoriteDirectors": ["Amanda Wells", "Judd Apatow IV"]
+  },
+  {
+    "userId": "user-007",
+    "username": "binge_watcher",
+    "email": "binge@example.com",
+    "preferredGenres": ["drama", "thriller", "sci-fi"],
+    "watchHistory": [
+      {
+        "contentId": "10.5240/SER-B2C3-D4E5-F6G7-H8I9-J0K1",
+        "contentType": "series",
+        "title": "The Last Kingdom: Resistance",
+        "watchedAt": "2024-11-25T14:00:00Z",
+        "rating": 9,
+        "completed": true
+      },
+      {
+        "contentId": "10.5240/SER-G7H8-I9J0-K1L2-M3N4-O5P6",
+        "contentType": "series",
+        "title": "Cyber Squad",
+        "watchedAt": "2024-11-18T15:00:00Z",
+        "rating": 9,
+        "completed": false,
+        "currentSeason": 2,
+        "currentEpisode": 8
+      },
+      {
+        "contentId": "10.5240/E5F6-G7H8-I9J0-K1L2-M3N4-O5P6",
+        "contentType": "movie",
+        "title": "Echoes of Eternity",
+        "watchedAt": "2024-11-12T16:00:00Z",
+        "rating": 9,
+        "completed": true
+      }
+    ],
+    "ratings": {
+      "10.5240/SER-B2C3-D4E5-F6G7-H8I9-J0K1": 9,
+      "10.5240/SER-G7H8-I9J0-K1L2-M3N4-O5P6": 9,
+      "10.5240/E5F6-G7H8-I9J0-K1L2-M3N4-O5P6": 9
+    },
+    "favoriteActors": ["King Atlas", "Hacker Alex", "Nina Patel"],
+    "favoriteDirectors": ["Marcus Stone", "David Fincher III", "Daniel Park"]
+  },
+  {
+    "userId": "user-008",
+    "username": "family_friendly",
+    "email": "family@example.com",
+    "preferredGenres": ["comedy", "drama", "adventure"],
+    "watchHistory": [
+      {
+        "contentId": "10.5240/J0K1-L2M3-N4O5-P6Q7-R8S9-T0U1",
+        "contentType": "movie",
+        "title": "Starlight Serenade",
+        "watchedAt": "2024-11-22T17:00:00Z",
+        "rating": 8,
+        "completed": true
+      },
+      {
+        "contentId": "10.5240/SER-U1V2-W3X4-Y5Z6-A7B8-C9D0",
+        "contentType": "series",
+        "title": "Family Ties Reimagined",
+        "watchedAt": "2024-11-15T18:00:00Z",
+        "rating": 8,
+        "completed": false,
+        "currentSeason": 3,
+        "currentEpisode": 15
+      },
+      {
+        "contentId": "10.5240/H4I5-J6K7-L8M9-N0O1-P2Q3-R4S5",
+        "contentType": "movie",
+        "title": "Cooking with Chaos",
+        "watchedAt": "2024-11-10T19:00:00Z",
+        "rating": 7,
+        "completed": true
+      }
+    ],
+    "ratings": {
+      "10.5240/J0K1-L2M3-N4O5-P6Q7-R8S9-T0U1": 8,
+      "10.5240/SER-U1V2-W3X4-Y5Z6-A7B8-C9D0": 8,
+      "10.5240/H4I5-J6K7-L8M9-N0O1-P2Q3-R4S5": 7
+    },
+    "favoriteActors": ["Blake Matthews", "Grandma Rosa", "Gordon Ramsay III"],
+    "favoriteDirectors": ["Grace Harper", "Jon Favreau III"]
+  },
+  {
+    "userId": "user-009",
+    "username": "mystery_solver",
+    "email": "mystery@example.com",
+    "preferredGenres": ["mystery", "thriller", "crime"],
+    "watchHistory": [
+      {
+        "contentId": "10.5240/SER-J0K1-L2M3-N4O5-P6Q7-R8S9",
+        "contentType": "series",
+        "title": "The Baker Street Mystery",
+        "watchedAt": "2024-11-26T20:00:00Z",
+        "rating": 8,
+        "completed": false,
+        "currentSeason": 3,
+        "currentEpisode": 4
+      },
+      {
+        "contentId": "10.5240/M3N4-O5P6-Q7R8-S9T0-U1V2-W3X4",
+        "contentType": "movie",
+        "title": "Whispers in the Dark",
+        "watchedAt": "2024-11-20T21:00:00Z",
+        "rating": 8,
+        "completed": true
+      },
+      {
+        "contentId": "10.5240/SER-N4O5-P6Q7-R8S9-T0U1-V2W3",
+        "contentType": "series",
+        "title": "The Prosecutor",
+        "watchedAt": "2024-11-13T19:30:00Z",
+        "rating": 8,
+        "completed": false,
+        "currentSeason": 4,
+        "currentEpisode": 16
+      }
+    ],
+    "ratings": {
+      "10.5240/SER-J0K1-L2M3-N4O5-P6Q7-R8S9": 8,
+      "10.5240/M3N4-O5P6-Q7R8-S9T0-U1V2-W3X4": 8,
+      "10.5240/SER-N4O5-P6Q7-R8S9-T0U1-V2W3": 8
+    },
+    "favoriteActors": ["Detective Holmes VI", "Dr. Sarah Mitchell", "Prosecutor Kate Stone"],
+    "favoriteDirectors": ["Steven Moffat II", "Rebecca Frost"]
+  },
+  {
+    "userId": "user-010",
+    "username": "space_explorer",
+    "email": "space@example.com",
+    "preferredGenres": ["sci-fi", "adventure"],
+    "watchHistory": [
+      {
+        "contentId": "10.5240/Q7R8-S9T0-U1V2-W3X4-Y5Z6-A7B8",
+        "contentType": "movie",
+        "title": "The Void Between Stars",
+        "watchedAt": "2024-11-27T19:00:00Z",
+        "rating": 9,
+        "completed": true
+      },
+      {
+        "contentId": "10.5240/SER-I9J0-K1L2-M3N4-O5P6-Q7R8",
+        "contentType": "series",
+        "title": "Starship Odyssey",
+        "watchedAt": "2024-11-21T20:00:00Z",
+        "rating": 9,
+        "completed": false,
+        "currentSeason": 2,
+        "currentEpisode": 6
+      },
+      {
+        "contentId": "10.5240/B4C5-D6E7-F8G9-H0I1-J2K3-L4M5",
+        "contentType": "movie",
+        "title": "Zero Gravity",
+        "watchedAt": "2024-11-14T21:00:00Z",
+        "rating": 9,
+        "completed": true
+      }
+    ],
+    "ratings": {
+      "10.5240/Q7R8-S9T0-U1V2-W3X4-Y5Z6-A7B8": 9,
+      "10.5240/SER-I9J0-K1L2-M3N4-O5P6-Q7R8": 9,
+      "10.5240/B4C5-D6E7-F8G9-H0I1-J2K3-L4M5": 9
+    },
+    "favoriteActors": ["Commander Elena Voss", "Captain Voss", "Commander Sarah Voss"],
+    "favoriteDirectors": ["Christopher Nolan Jr.", "Alfonso Cuarón II"]
+  },
+  {
+    "userId": "user-011",
+    "username": "fantasy_fan",
+    "email": "fantasy@example.com",
+    "preferredGenres": ["fantasy", "adventure"],
+    "watchHistory": [
+      {
+        "contentId": "10.5240/Y1Z2-A3B4-C5D6-E7F8-G9H0-I1J2",
+        "contentType": "movie",
+        "title": "The Chronicles of Eldar",
+        "watchedAt": "2024-11-28T18:00:00Z",
+        "rating": 9,
+        "completed": true
+      },
+      {
+        "contentId": "10.5240/SER-K1L2-M3N4-O5P6-Q7R8-S9T0",
+        "contentType": "series",
+        "title": "Dragon Academy",
+        "watchedAt": "2024-11-22T19:00:00Z",
+        "rating": 9,
+        "completed": false,
+        "currentSeason": 2,
+        "currentEpisode": 7
+      },
+      {
+        "contentId": "10.5240/N4O5-P6Q7-R8S9-T0U1-V2W3-X4Y5",
+        "contentType": "movie",
+        "title": "Desert Rose",
+        "watchedAt": "2024-11-16T20:00:00Z",
+        "rating": 8,
+        "completed": true
+      }
+    ],
+    "ratings": {
+      "10.5240/Y1Z2-A3B4-C5D6-E7F8-G9H0-I1J2": 9,
+      "10.5240/SER-K1L2-M3N4-O5P6-Q7R8-S9T0": 9,
+      "10.5240/N4O5-P6Q7-R8S9-T0U1-V2W3-X4Y5": 8
+    },
+    "favoriteActors": ["Eldar the Bold", "Rider Aria", "Isabella Rose"],
+    "favoriteDirectors": ["Peter Jackson II", "George R.R. Martin II"]
+  },
+  {
+    "userId": "user-012",
+    "username": "documentary_buff",
+    "email": "docs@example.com",
+    "preferredGenres": ["documentary", "drama"],
+    "watchHistory": [
+      {
+        "contentId": "10.5240/SER-Z6A7-B8C9-D0E1-F2G3-H4I5",
+        "contentType": "series",
+        "title": "Ocean Deep",
+        "watchedAt": "2024-11-29T17:00:00Z",
+        "rating": 8,
+        "completed": false,
+        "currentSeason": 2,
+        "currentEpisode": 5
+      },
+      {
+        "contentId": "10.5240/Z2A3-B4C5-D6E7-F8G9-H0I1-J2K3",
+        "contentType": "movie",
+        "title": "Deadline",
+        "watchedAt": "2024-11-23T18:00:00Z",
+        "rating": 8,
+        "completed": true
+      },
+      {
+        "contentId": "10.5240/SER-T0U1-V2W3-X4Y5-Z6A7-B8C9",
+        "contentType": "series",
+        "title": "The Newsroom 2.0",
+        "watchedAt": "2024-11-17T19:00:00Z",
+        "rating": 8,
+        "completed": false,
+        "currentSeason": 3,
+        "currentEpisode": 8
+      }
+    ],
+    "ratings": {
+      "10.5240/SER-Z6A7-B8C9-D0E1-F2G3-H4I5": 8,
+      "10.5240/Z2A3-B4C5-D6E7-F8G9-H0I1-J2K3": 8,
+      "10.5240/SER-T0U1-V2W3-X4Y5-Z6A7-B8C9": 8
+    },
+    "favoriteActors": ["Dr. Marina", "Kate Mercer", "Anchor Sarah"],
+    "favoriteDirectors": ["James Cameron III", "Aaron Sorkin III"]
+  },
+  {
+    "userId": "user-013",
+    "username": "anime_otaku",
+    "email": "anime@example.com",
+    "preferredGenres": ["sci-fi", "action", "fantasy"],
+    "watchHistory": [
+      {
+        "contentId": "10.5240/K1L2-M3N4-O5P6-Q7R8-S9T0-U1V2",
+        "contentType": "movie",
+        "title": "Neon Dragons",
+        "watchedAt": "2024-11-30T20:00:00Z",
+        "rating": 8,
+        "completed": true
+      },
+      {
+        "contentId": "10.5240/SER-Q7R8-S9T0-U1V2-W3X4-Y5Z6",
+        "contentType": "series",
+        "title": "Mech Warriors",
+        "watchedAt": "2024-11-24T19:00:00Z",
+        "rating": 9,
+        "completed": false,
+        "currentSeason": 2,
+        "currentEpisode": 9
+      },
+      {
+        "contentId": "10.5240/SER-V2W3-X4Y5-Z6A7-B8C9-D0E1",
+        "contentType": "series",
+        "title": "Virtual Reality",
+        "watchedAt": "2024-11-18T20:00:00Z",
+        "rating": 9,
+        "completed": true
+      }
+    ],
+    "ratings": {
+      "10.5240/K1L2-M3N4-O5P6-Q7R8-S9T0-U1V2": 8,
+      "10.5240/SER-Q7R8-S9T0-U1V2-W3X4-Y5Z6": 9,
+      "10.5240/SER-V2W3-X4Y5-Z6A7-B8C9-D0E1": 9
+    },
+    "favoriteActors": ["Kenji Tanaka", "Pilot Maya", "Player Kirito II"],
+    "favoriteDirectors": ["Hiroshi Yamamoto", "Hideaki Anno II"]
+  },
+  {
+    "userId": "user-014",
+    "username": "foodie_critic",
+    "email": "foodie@example.com",
+    "preferredGenres": ["drama", "comedy"],
+    "watchHistory": [
+      {
+        "contentId": "10.5240/SER-L2M3-N4O5-P6Q7-R8S9-T0U1",
+        "contentType": "series",
+        "title": "Restaurant Wars",
+        "watchedAt": "2024-12-01T18:00:00Z",
+        "rating": 8,
+        "completed": false,
+        "currentSeason": 3,
+        "currentEpisode": 10
+      },
+      {
+        "contentId": "10.5240/R4S5-T6U7-V8W9-X0Y1-Z2A3-B4C5",
+        "contentType": "movie",
+        "title": "Family Recipe",
+        "watchedAt": "2024-11-25T19:00:00Z",
+        "rating": 8,
+        "completed": true
+      },
+      {
+        "contentId": "10.5240/SER-I5J6-K7L8-M9N0-O1P2-Q3R4",
+        "contentType": "series",
+        "title": "Food Truck Chronicles",
+        "watchedAt": "2024-11-19T18:30:00Z",
+        "rating": 8,
+        "completed": false,
+        "currentSeason": 3,
+        "currentEpisode": 6
+      }
+    ],
+    "ratings": {
+      "10.5240/SER-L2M3-N4O5-P6Q7-R8S9-T0U1": 8,
+      "10.5240/R4S5-T6U7-V8W9-X0Y1-Z2A3-B4C5": 8,
+      "10.5240/SER-I5J6-K7L8-M9N0-O1P2-Q3R4": 8
+    },
+    "favoriteActors": ["Chef Marco", "Sofia Garcia", "Chef Roy"],
+    "favoriteDirectors": ["Jon Favreau III", "Jon Chu II"]
+  },
+  {
+    "userId": "user-015",
+    "username": "tech_geek",
+    "email": "tech@example.com",
+    "preferredGenres": ["sci-fi", "thriller", "comedy"],
+    "watchHistory": [
+      {
+        "contentId": "10.5240/L2M3-N4O5-P6Q7-R8S9-T0U1-V2W3",
+        "contentType": "movie",
+        "title": "The Algorithm",
+        "watchedAt": "2024-12-02T19:00:00Z",
+        "rating": 8,
+        "completed": true
+      },
+      {
+        "contentId": "10.5240/SER-F6G7-H8I9-J0K1-L2M3-N4O5",
+        "contentType": "series",
+        "title": "Silicon Valley 2.0",
+        "watchedAt": "2024-11-26T20:00:00Z",
+        "rating": 8,
+        "completed": false,
+        "currentSeason": 3,
+        "currentEpisode": 8
+      },
+      {
+        "contentId": "10.5240/I5J6-K7L8-M9N0-O1P2-Q3R4-S5T6",
+        "contentType": "movie",
+        "title": "Neural Net",
+        "watchedAt": "2024-11-20T21:00:00Z",
+        "rating": 9,
+        "completed": true
+      }
+    ],
+    "ratings": {
+      "10.5240/L2M3-N4O5-P6Q7-R8S9-T0U1-V2W3": 8,
+      "10.5240/SER-F6G7-H8I9-J0K1-L2M3-N4O5": 8,
+      "10.5240/I5J6-K7L8-M9N0-O1P2-Q3R4-S5T6": 9
+    },
+    "favoriteActors": ["Hannah Lee", "CEO Maya", "Dr. Lisa Neural"],
+    "favoriteDirectors": ["Jordan Taylor", "Mike Judge II", "Alex Garland II"]
+  },
+  {
+    "userId": "user-016",
+    "username": "history_lover",
+    "email": "history@example.com",
+    "preferredGenres": ["drama", "adventure"],
+    "watchHistory": [
+      {
+        "contentId": "10.5240/N4O5-P6Q7-R8S9-T0U1-V2W3-X4Y5",
+        "contentType": "movie",
+        "title": "Desert Rose",
+        "watchedAt": "2024-12-03T17:00:00Z",
+        "rating": 8,
+        "completed": true
+      },
+      {
+        "contentId": "10.5240/J6K7-L8M9-N0O1-P2Q3-R4S5-T6U7",
+        "contentType": "movie",
+        "title": "The Inheritance",
+        "watchedAt": "2024-11-27T18:00:00Z",
+        "rating": 8,
+        "completed": true
+      },
+      {
+        "contentId": "10.5240/SER-L8M9-N0O1-P2Q3-R4S5-T6U7",
+        "contentType": "series",
+        "title": "Ancient Artifacts",
+        "watchedAt": "2024-11-21T19:00:00Z",
+        "rating": 8,
+        "completed": false,
+        "currentSeason": 2,
+        "currentEpisode": 8
+      }
+    ],
+    "ratings": {
+      "10.5240/N4O5-P6Q7-R8S9-T0U1-V2W3-X4Y5": 8,
+      "10.5240/J6K7-L8M9-N0O1-P2Q3-R4S5-T6U7": 8,
+      "10.5240/SER-L8M9-N0O1-P2Q3-R4S5-T6U7": 8
+    },
+    "favoriteActors": ["Isabella Rose", "Elizabeth Blackwell", "Dr. Croft III"],
+    "favoriteDirectors": ["Pierre Laurent", "Rian Johnson II"]
+  },
+  {
+    "userId": "user-017",
+    "username": "music_enthusiast",
+    "email": "music@example.com",
+    "preferredGenres": ["musical", "drama", "comedy"],
+    "watchHistory": [
+      {
+        "contentId": "10.5240/M5N6-O7P8-Q9R0-S1T2-U3V4-W5X6",
+        "contentType": "movie",
+        "title": "Harmony Hill",
+        "watchedAt": "2024-12-04T18:00:00Z",
+        "rating": 8,
+        "completed": true
+      },
+      {
+        "contentId": "10.5240/SER-C9D0-E1F2-G3H4-I5J6-K7L8",
+        "contentType": "series",
+        "title": "High School Musical: The Series 2.0",
+        "watchedAt": "2024-11-28T19:00:00Z",
+        "rating": 8,
+        "completed": false,
+        "currentSeason": 4,
+        "currentEpisode": 7
+      },
+      {
+        "contentId": "10.5240/J0K1-L2M3-N4O5-P6Q7-R8S9-T0U1",
+        "contentType": "movie",
+        "title": "Starlight Serenade",
+        "watchedAt": "2024-11-22T20:00:00Z",
+        "rating": 8,
+        "completed": true
+      }
+    ],
+    "ratings": {
+      "10.5240/M5N6-O7P8-Q9R0-S1T2-U3V4-W5X6": 8,
+      "10.5240/SER-C9D0-E1F2-G3H4-I5J6-K7L8": 8,
+      "10.5240/J0K1-L2M3-N4O5-P6Q7-R8S9-T0U1": 8
+    },
+    "favoriteActors": ["Teacher Ms. Johnson", "Lead Nini", "Blake Matthews"],
+    "favoriteDirectors": ["Ryan Coogler II", "Tim Federle II"]
+  },
+  {
+    "userId": "user-018",
+    "username": "superhero_fan",
+    "email": "superhero@example.com",
+    "preferredGenres": ["action", "sci-fi", "fantasy"],
+    "watchHistory": [
+      {
+        "contentId": "10.5240/SER-S9T0-U1V2-W3X4-Y5Z6-A7B8",
+        "contentType": "series",
+        "title": "Agents of CIPHER",
+        "watchedAt": "2024-12-05T19:00:00Z",
+        "rating": 8,
+        "completed": false,
+        "currentSeason": 2,
+        "currentEpisode": 14
+      },
+      {
+        "contentId": "10.5240/SER-J6K7-L8M9-N0O1-P2Q3-R4S5",
+        "contentType": "series",
+        "title": "Dimensional Rift",
+        "watchedAt": "2024-11-29T20:00:00Z",
+        "rating": 9,
+        "completed": false,
+        "currentSeason": 2,
+        "currentEpisode": 8
+      },
+      {
+        "contentId": "10.5240/U1V2-W3X4-Y5Z6-A7B8-C9D0-E1F2",
+        "contentType": "movie",
+        "title": "Iron Fist Legacy",
+        "watchedAt": "2024-11-23T21:00:00Z",
+        "rating": 8,
+        "completed": true
+      }
+    ],
+    "ratings": {
+      "10.5240/SER-S9T0-U1V2-W3X4-Y5Z6-A7B8": 8,
+      "10.5240/SER-J6K7-L8M9-N0O1-P2Q3-R4S5": 9,
+      "10.5240/U1V2-W3X4-Y5Z6-A7B8-C9D0-E1F2": 8
+    },
+    "favoriteActors": ["Agent Phoenix", "Hero Prime", "Mei Lin"],
+    "favoriteDirectors": ["Joss Whedon II", "Dan Harmon III"]
+  },
+  {
+    "userId": "user-019",
+    "username": "classic_cinema",
+    "email": "classic@example.com",
+    "preferredGenres": ["drama", "romance", "thriller"],
+    "watchHistory": [
+      {
+        "contentId": "10.5240/E7F8-G9H0-I1J2-K3L4-M5N6-O7P8",
+        "contentType": "movie",
+        "title": "Fractured Minds",
+        "watchedAt": "2024-12-01T19:00:00Z",
+        "rating": 8,
+        "completed": true
+      },
+      {
+        "contentId": "10.5240/I1J2-K3L4-M5N6-O7P8-Q9R0-S1T2",
+        "contentType": "movie",
+        "title": "Forever Young",
+        "watchedAt": "2024-11-25T20:00:00Z",
+        "rating": 8,
+        "completed": true
+      },
+      {
+        "contentId": "10.5240/T0U1-V2W3-X4Y5-Z6A7-B8C9-D0E1",
+        "contentType": "movie",
+        "title": "The Art of Letting Go",
+        "watchedAt": "2024-11-19T18:00:00Z",
+        "rating": 8,
+        "completed": true
+      }
+    ],
+    "ratings": {
+      "10.5240/E7F8-G9H0-I1J2-K3L4-M5N6-O7P8": 8,
+      "10.5240/I1J2-K3L4-M5N6-O7P8-Q9R0-S1T2": 8,
+      "10.5240/T0U1-V2W3-X4Y5-Z6A7-B8C9-D0E1": 8
+    },
+    "favoriteActors": ["Dr. Elizabeth Morgan", "Elizabeth Shaw", "Claire Anderson"],
+    "favoriteDirectors": ["M. Night Shyamalan II", "Sofia Coppola II"]
+  },
+  {
+    "userId": "user-020",
+    "username": "post_apocalyptic",
+    "email": "postapoc@example.com",
+    "preferredGenres": ["sci-fi", "action", "thriller"],
+    "watchHistory": [
+      {
+        "contentId": "10.5240/U7V8-W9X0-Y1Z2-A3B4-C5D6-E7F8",
+        "contentType": "movie",
+        "title": "Thunder Road Warriors",
+        "watchedAt": "2024-12-02T20:00:00Z",
+        "rating": 9,
+        "completed": true
+      },
+      {
+        "contentId": "10.5240/SER-B8C9-D0E1-F2G3-H4I5-J6K7",
+        "contentType": "series",
+        "title": "Wasteland Survivors",
+        "watchedAt": "2024-11-26T21:00:00Z",
+        "rating": 9,
+        "completed": false,
+        "currentSeason": 2,
+        "currentEpisode": 12
+      },
+      {
+        "contentId": "10.5240/SER-B2C3-D4E5-F6G7-H8I9-J0K1",
+        "contentType": "series",
+        "title": "The Last Kingdom: Resistance",
+        "watchedAt": "2024-11-20T22:00:00Z",
+        "rating": 9,
+        "completed": true
+      }
+    ],
+    "ratings": {
+      "10.5240/U7V8-W9X0-Y1Z2-A3B4-C5D6-E7F8": 9,
+      "10.5240/SER-B8C9-D0E1-F2G3-H4I5-J6K7": 9,
+      "10.5240/SER-B2C3-D4E5-F6G7-H8I9-J0K1": 9
+    },
+    "favoriteActors": ["Max Fury", "Leader Rick II", "King Atlas"],
+    "favoriteDirectors": ["George Miller III", "Robert Kirkman II", "Marcus Stone"]
+  }
+]
