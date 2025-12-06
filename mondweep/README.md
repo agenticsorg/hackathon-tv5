@@ -594,6 +594,27 @@ npm test         # Run 75+ TDD tests
 | `apps/metadata-api/docs/PHASE4_DEMO_PLAN.md` | Implementation plan |
 | `netlify.toml` | Alternative Netlify deployment |
 
+#### Key Demo Features
+
+##### "Enrich with AI" Button
+Generates AI-enhanced metadata for content items:
+- **Mood Tags**: Automatically generated from genres and content analysis (e.g., "thrilling", "emotional", "heartwarming")
+- **Keywords**: Extracted from synopsis/overview text using NLP techniques
+- **For TMDb Items**: Client-side enrichment using genre-to-mood mapping
+- **For Local Catalog**: Backend API enrichment (`POST /api/v1/metadata/:id/enrich`)
+
+##### "Platform Validation" Buttons
+Validates metadata completeness against streaming platform requirements:
+
+| Platform | Requirements | Purpose |
+|----------|-------------|---------|
+| **Netflix** | Title + Synopsis (50+ chars) + Genres + Poster | IMF package compliance |
+| **Amazon** | Title + Synopsis + Rating | Prime Video MEC feeds |
+| **FAST** | Title + Genres | Free Ad-Supported TV (lower bar) |
+
+- **For TMDb Items**: Client-side validation based on data completeness
+- **For Local Catalog**: Backend API validation (`POST /api/v1/metadata/:id/validate`)
+
 #### Final Deliverables (Pending)
 - [ ] Performance validation (400M user simulation)
 - [ ] Presentation materials (slides, talking points)
