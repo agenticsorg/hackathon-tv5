@@ -5,11 +5,74 @@
 [![npm](https://img.shields.io/badge/npm-@ruvector/postgres--cli-red.svg)](https://www.npmjs.com/package/@ruvector/postgres-cli)
 [![Hackathon](https://img.shields.io/badge/TV5-Hackathon-orange.svg)](https://agentics.org/hackathon)
 
-> **Solving the 45-minute media discovery problem with PostgreSQL vector operations**
+> **Next-generation media discovery powered by self-learning PostgreSQL vector intelligence**
 
-## 🎬 The Challenge
+## 🎬 The Problem We're Solving
 
-Every night, millions spend up to **45 minutes deciding what to watch**. Our solution: an AI-powered media gateway using PostgreSQL + pgvector for instant, personalized recommendations.
+Every night, millions spend up to **45 minutes deciding what to watch** — that's billions of hours lost globally. Why? Because current recommendation systems:
+
+- **Don't understand relationships** — They miss that loving "Inception" means you might love "Dark" (both are mind-bending, non-linear narratives)
+- **Can't learn across platforms** — Your Netflix preferences are invisible to Disney+
+- **Don't scale intelligently** — Searching 80K+ titles efficiently requires specialized techniques
+- **Lack true personalization** — They recommend what's popular, not what's *you*
+
+## 💡 Our Solution: Intelligent PostgreSQL
+
+We've built a **self-learning media gateway** directly in PostgreSQL that uses the same AI techniques powering ChatGPT and modern recommendation systems — but running in your database with <5ms latency.
+
+### What Makes This Different?
+
+| Traditional Search | RuVector PostgreSQL |
+|-------------------|---------------------|
+| Keyword matching ("action movies") | **Semantic understanding** ("movies that make you think") |
+| Flat category filters | **Hierarchical learning** (knows Noir is a type of Thriller) |
+| Isolated user data | **Federated intelligence** (learns across platforms privately) |
+| Slow at scale | **80K movies in 45ms** across 8 platforms |
+| Static algorithms | **Self-optimizing** through attention and feedback |
+
+---
+
+## 🧠 The AI Techniques (In Plain English)
+
+### 1. **Graph Neural Networks** — Understanding Relationships
+Instead of treating movies as isolated items, we model the *connections*:
+- You watched Movie A → Movie A stars Actor X → Actor X directed Movie B → **You might love Movie B**
+- This is how Netflix knows you'll like a show before it even exists in your history
+
+### 2. **Attention Mechanisms** — Focusing on What Matters
+Not all your watch history matters equally. The system learns to *pay attention* to:
+- Your recent 5-star ratings (high weight)
+- Movies you finished vs. abandoned (completion signals)
+- Time-of-day preferences (weekend binge vs. weeknight quick watch)
+
+### 3. **Hyperbolic Embeddings** — Natural Hierarchies
+Genres aren't flat lists. They're trees:
+```
+Action → Thriller → Psychological Thriller → Mind-Bending
+                 → Crime Thriller → Heist
+```
+Our Poincaré ball embeddings capture this naturally, so "mind-bending thriller" finds Inception, not Fast & Furious.
+
+### 4. **Federated Learning** — Privacy-Preserving Intelligence
+Your Netflix preferences can improve Disney+ recommendations *without sharing your actual watch history*. Each platform contributes anonymized preference vectors that aggregate into better global recommendations.
+
+### 5. **Self-Optimization** — Getting Smarter Over Time
+The system uses **quality-weighted aggregation**: recommendations that get positive feedback gain influence, poor recommendations lose weight. No manual tuning required.
+
+---
+
+## 📊 Why PostgreSQL?
+
+Large-scale media systems need:
+
+| Requirement | How We Solve It |
+|-------------|-----------------|
+| **Millisecond latency** | HNSW indexes: <5ms for 10K vectors |
+| **Massive scale** | Sharding: 80K movies across 8 platforms |
+| **Consistency** | Raft consensus: distributed agreement |
+| **Memory efficiency** | Quantization: 32x compression (384 dims → 48 bytes) |
+| **Hybrid search** | Vector + BM25: semantic + keyword combined |
+| **Production ready** | PostgreSQL: battle-tested, ACID-compliant |
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -33,12 +96,12 @@ Every night, millions spend up to **45 minutes deciding what to watch**. Our sol
 │           └────────────────────────┼────────────────────────┘              │
 │                                    ▼                                        │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                    Media Discovery Features                          │   │
-│  │  • Hyperbolic: Genre hierarchies (Action → Thriller → Noir)         │   │
-│  │  • GraphSAGE: User-movie-actor relationship graphs                  │   │
-│  │  • BM25 Hybrid: "sci-fi like Inception" + keyword search            │   │
-│  │  • Quantization: 80K movies in memory (32x compression)             │   │
-│  │  • Federated: Cross-platform preference aggregation                 │   │
+│  │                    Self-Learning Features                            │   │
+│  │  • Graph Neural Networks: User→Movie→Actor→Director connections     │   │
+│  │  • Attention: Weight recent preferences, ignore noise               │   │
+│  │  • Hyperbolic: Genre trees (Action→Thriller→Noir→Neo-Noir)          │   │
+│  │  • Federated: Cross-platform learning without data sharing          │   │
+│  │  • Quantization: 80K movies compressed for edge/mobile              │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
