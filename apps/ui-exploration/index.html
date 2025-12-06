@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Media Discovery Demo | 8-Genre Cold-Start</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ========================================
+       DESIGN SYSTEM - Cool Midnight + Genre Colors
+       ======================================== */
+    :root {
+      --bg-deep: #0D1117;
+      --bg-primary: #1A2332;
+      --bg-elevated: #242D3D;
+      --text-primary: #F0F6FC;
+      --text-secondary: #8B949E;
+      --accent-cyan: #4ECDC4;
+      --accent-cyan-dim: #2A9D8F;
+      --border-subtle: #30363D;
+
+      /* Genre Colors */
+      --genre-romance: #FF6B6B;
+      --genre-thriller: #4ECDC4;
+      --genre-comedy: #FFE66D;
+      --genre-scifi: #A855F7;
+      --genre-drama: #F97316;
+      --genre-action: #EF4444;
+      --genre-horror: #6B7280;
+      --genre-documentary: #10B981;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Typography */
+    .headline-hero { font-size: 3rem; font-weight: 700; letter-spacing: -0.04em; line-height: 1.1; }
+    .headline-h1 { font-size: 2.25rem; font-weight: 700; letter-spacing: -0.04em; }
+    .headline-h2 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .text-body { font-size: 1rem; color: var(--text-secondary); line-height: 1.6; }
+    .text-caption { font-size: 0.875rem; color: var(--text-secondary); }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Screens */
+    .screen { display: none; min-height: 100vh; padding: 2rem; }
+    .screen.active {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      animation: fadeIn 0.3s ease-out;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Sign-In */
+    .signin-card {
+      background: var(--bg-primary); border: 1px solid var(--border-subtle);
+      padding: 3rem; width: 100%; max-width: 420px; text-align: center;
+    }
+    .signin-card h1 { margin-bottom: 0.5rem; }
+    .signin-card .subtitle { margin-bottom: 2rem; }
+    .input-field {
+      width: 100%; padding: 1rem; background: var(--bg-deep);
+      border: 1px solid var(--border-subtle); color: var(--text-primary);
+      font-family: inherit; font-size: 1rem; margin-bottom: 1rem;
+      transition: border-color 0.1s ease-out;
+    }
+    .input-field:focus { outline: none; border-color: var(--accent-cyan); }
+    .input-field::placeholder { color: var(--text-secondary); }
+    .btn-primary {
+      width: 100%; padding: 1rem 2rem; background: var(--accent-cyan);
+      color: var(--bg-deep); border: none; font-family: inherit;
+      font-size: 1rem; font-weight: 700; cursor: pointer;
+      transition: background 0.1s ease-out;
+    }
+    .btn-primary:hover { background: var(--accent-cyan-dim); }
+
+    /* Discovery Grid - 4x2 */
+    .discovery-container { width: 100%; max-width: 1000px; }
+    .discovery-header { text-align: center; margin-bottom: 2rem; }
+    .discovery-header .instruction { margin-top: 0.5rem; }
+    .timer-display {
+      font-family: 'JetBrains Mono', monospace; font-size: 1.25rem;
+      color: var(--accent-cyan); margin-top: 1rem;
+    }
+    .thumbnail-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 1rem; margin-bottom: 2rem;
+    }
+    .thumbnail-item {
+      position: relative; aspect-ratio: 16/9; overflow: hidden; cursor: pointer;
+      border: 2px solid transparent; transition: border-color 0.1s ease-out, transform 0.15s ease-out;
+    }
+    .thumbnail-item:hover { transform: scale(1.02); }
+    .thumbnail-item img { width: 100%; height: 100%; object-fit: cover; }
+    .thumbnail-item .genre-label {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 0.5rem; background: rgba(0,0,0,0.7);
+      font-size: 0.75rem; font-weight: 500; text-transform: uppercase;
+      letter-spacing: 0.05em; opacity: 0; transition: opacity 0.15s ease-out;
+    }
+    .thumbnail-item:hover .genre-label { opacity: 1; }
+    .click-badge {
+      position: absolute; top: 8px; right: 8px; width: 28px; height: 28px;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700;
+      display: none; align-items: center; justify-content: center;
+    }
+    .thumbnail-item.clicked .click-badge { display: flex; }
+    .btn-continue { display: none; margin: 0 auto; max-width: 300px; }
+    .btn-continue.visible { display: block; }
+
+    /* Reveal Screen */
+    .reveal-container { text-align: center; max-width: 700px; width: 100%; }
+    .reveal-container h1 { margin-bottom: 2rem; }
+    .top-genres { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem; }
+    .genre-badge {
+      padding: 0.75rem 1.5rem; font-size: 1rem; font-weight: 700;
+      letter-spacing: 0.05em; animation: pulseIn 0.5s ease-out;
+    }
+    .genre-badge.rank-1 { font-size: 1.25rem; padding: 1rem 2rem; }
+    .genre-badge.rank-2 { opacity: 0.85; }
+    .genre-badge.rank-3 { opacity: 0.7; }
+    @keyframes pulseIn { 0% { opacity: 0; transform: scale(0.8); } 50% { transform: scale(1.05); } 100% { opacity: 1; transform: scale(1); } }
+
+    .genre-chart { margin: 2rem 0; }
+    .chart-bar {
+      display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;
+    }
+    .chart-label { width: 100px; text-align: right; font-size: 0.875rem; color: var(--text-secondary); }
+    .chart-track { flex: 1; height: 24px; background: var(--bg-elevated); position: relative; }
+    .chart-fill { height: 100%; transition: width 0.8s ease-out; display: flex; align-items: center; justify-content: flex-end; padding-right: 0.5rem; }
+    .chart-value { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--bg-deep); font-weight: 700; }
+
+    .insights-list { text-align: left; margin-bottom: 2rem; }
+    .insight-item {
+      padding: 1rem; background: var(--bg-primary);
+      border-left: 3px solid var(--accent-cyan); margin-bottom: 0.5rem;
+    }
+
+    /* Feed Screen */
+    .feed-container { width: 100%; max-width: 1000px; }
+    .feed-header { text-align: center; margin-bottom: 2rem; }
+    .feed-section { margin-bottom: 2rem; }
+    .feed-section h3 { margin-bottom: 1rem; color: var(--text-secondary); font-weight: 500; }
+    .feed-grid { display: grid; gap: 1rem; }
+    .feed-grid.primary { grid-template-columns: repeat(2, 1fr); }
+    .feed-grid.primary .thumbnail-item { aspect-ratio: 16/10; }
+    .feed-grid.secondary { grid-template-columns: repeat(2, 1fr); opacity: 0.85; }
+    .feed-grid.explore { grid-template-columns: repeat(4, 1fr); opacity: 0.6; }
+    .feed-grid.explore .thumbnail-item { aspect-ratio: 16/9; }
+    .cta-banner {
+      text-align: center; padding: 2rem; background: var(--bg-primary);
+      border: 1px solid var(--border-subtle); margin-top: 2rem;
+    }
+    .cta-banner .time-saved {
+      font-family: 'JetBrains Mono', monospace; font-size: 2.5rem;
+      color: var(--accent-cyan); margin-bottom: 0.5rem;
+    }
+    .btn-restart {
+      margin-top: 1rem; padding: 0.75rem 1.5rem; background: transparent;
+      border: 1px solid var(--accent-cyan); color: var(--accent-cyan);
+      font-family: inherit; font-size: 0.875rem; cursor: pointer;
+      transition: background 0.1s ease-out;
+    }
+    .btn-restart:hover { background: var(--accent-cyan); color: var(--bg-deep); }
+
+    /* Admin Widget */
+    .admin-widget {
+      position: fixed; bottom: 1rem; right: 1rem; width: 340px;
+      background: rgba(26, 35, 50, 0.95); border: 1px solid var(--border-subtle);
+      font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; z-index: 1000;
+    }
+    .widget-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.75rem 1rem; background: var(--bg-elevated); cursor: pointer;
+    }
+    .widget-header span { color: var(--text-secondary); font-size: 0.625rem; text-transform: uppercase; letter-spacing: 0.1em; }
+    .widget-toggle { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1rem; }
+    .widget-body { padding: 1rem; max-height: 450px; overflow-y: auto; }
+    .widget-body.collapsed { display: none; }
+    .total-time { font-size: 1.5rem; color: var(--accent-cyan); text-align: center; padding: 0.5rem; background: var(--bg-elevated); margin-bottom: 1rem; }
+    .metric-section { margin-bottom: 1rem; }
+    .metric-label { color: var(--text-secondary); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+    .leaderboard-item {
+      display: flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0;
+      border-bottom: 1px solid var(--bg-elevated);
+    }
+    .leaderboard-rank { width: 18px; font-weight: 700; color: var(--text-secondary); }
+    .leaderboard-color { width: 8px; height: 8px; }
+    .leaderboard-name { flex: 1; }
+    .leaderboard-value { font-weight: 500; }
+    .metric-row { display: flex; justify-content: space-between; padding: 0.25rem 0; }
+    .metric-name { color: var(--text-secondary); }
+    .metric-value { color: var(--text-primary); }
+  </style>
+</head>
+<body>
+
+  <!-- SCREEN 1: SIGN-IN -->
+  <section id="screen-signin" class="screen active">
+    <div class="signin-card">
+      <h1 class="headline-hero">Discover Your<br>Next Watch</h1>
+      <p class="text-body subtitle">No questionnaires. No endless scrolling.<br>Just a few moments of your attention.</p>
+      <input type="email" class="input-field" placeholder="Enter your email" disabled>
+      <button class="btn-primary" onclick="goToScreen('discovery')">Start Exploring</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 2: DISCOVERY GRID (8 genres) -->
+  <section id="screen-discovery" class="screen">
+    <div class="discovery-container">
+      <div class="discovery-header">
+        <h1 class="headline-h1">What catches your eye?</h1>
+        <p class="text-body instruction">Hover over the images that interest you</p>
+        <div class="timer-display" id="discovery-timer">0.000s</div>
+      </div>
+      <div class="thumbnail-grid" id="thumbnail-grid"></div>
+      <button class="btn-primary btn-continue" id="btn-continue" onclick="goToScreen('reveal')">See My Profile</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 3: PROFILE REVEAL -->
+  <section id="screen-reveal" class="screen">
+    <div class="reveal-container">
+      <h1 class="headline-h1">Your Viewing Profile</h1>
+      <div class="top-genres" id="top-genres"></div>
+      <div class="genre-chart" id="genre-chart"></div>
+      <div class="insights-list" id="insights-list"></div>
+      <button class="btn-primary" style="max-width: 300px;" onclick="goToScreen('results')">Show My Recommendations</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 4: PERSONALIZED FEED -->
+  <section id="screen-results" class="screen">
+    <div class="feed-container">
+      <div class="feed-header">
+        <h1 class="headline-h1">Curated for You</h1>
+        <p class="text-body">Based on your unique viewing style</p>
+      </div>
+      <div class="feed-section">
+        <h3 id="primary-title">Your Top Picks</h3>
+        <div class="feed-grid primary" id="primary-feed"></div>
+      </div>
+      <div class="feed-section">
+        <h3>More for You</h3>
+        <div class="feed-grid secondary" id="secondary-feed"></div>
+      </div>
+      <div class="feed-section">
+        <h3>Expand Your Horizons</h3>
+        <div class="feed-grid explore" id="explore-feed"></div>
+      </div>
+      <div class="cta-banner">
+        <div class="time-saved" id="time-saved">--</div>
+        <p class="text-body">Not 45 minutes.</p>
+        <button class="btn-restart" onclick="restartDemo()">Try Again</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ADMIN WIDGET -->
+  <div class="admin-widget">
+    <div class="widget-header" onclick="toggleWidget()">
+      <span>Genre Leaderboard</span>
+      <button class="widget-toggle" id="widget-toggle">−</button>
+    </div>
+    <div class="widget-body" id="widget-body">
+      <div class="total-time" id="widget-total-time">0.000s</div>
+      <div class="metric-section">
+        <div class="metric-label">Live Genre Rankings</div>
+        <div id="genre-leaderboard"></div>
+      </div>
+      <div class="metric-section">
+        <div class="metric-label">Click Sequence</div>
+        <div id="click-sequence" class="metric-value">No clicks yet</div>
+      </div>
+      <div class="metric-section">
+        <div class="metric-label">Behavior Signals</div>
+        <div class="metric-row">
+          <span class="metric-name">Avg Velocity</span>
+          <span class="metric-value" id="avg-velocity">0 px/s</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-name">Skip Events</span>
+          <span class="metric-value" id="skip-count">0</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-name">Hover Events</span>
+          <span class="metric-value" id="hover-count">0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ========================================
+    // 8-GENRE CONFIGURATION
+    // ========================================
+    const genres = [
+      { id: 'romance', name: 'Romance', color: '#FF6B6B',
+        src: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=400&h=225&fit=crop' },
+      { id: 'thriller', name: 'Thriller', color: '#4ECDC4',
+        src: 'https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?w=400&h=225&fit=crop' },
+      { id: 'comedy', name: 'Comedy', color: '#FFE66D',
+        src: 'https://images.unsplash.com/photo-1527224857830-43a7acc85260?w=400&h=225&fit=crop' },
+      { id: 'scifi', name: 'Sci-Fi', color: '#A855F7',
+        src: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=225&fit=crop' },
+      { id: 'drama', name: 'Drama', color: '#F97316',
+        src: 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&h=225&fit=crop' },
+      { id: 'action', name: 'Action', color: '#EF4444',
+        src: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400&h=225&fit=crop' },
+      { id: 'horror', name: 'Horror', color: '#6B7280',
+        src: 'https://images.unsplash.com/photo-1509248961725-9d3c0c9b8961?w=400&h=225&fit=crop' },
+      { id: 'documentary', name: 'Documentary', color: '#10B981',
+        src: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&h=225&fit=crop' },
+    ];
+
+    // Metrics state
+    const metrics = {
+      genres: {},
+      clickSequence: [],
+      mouseVelocity: [],
+      skipEvents: 0,
+      totalHovers: 0,
+      startTime: null,
+      totalTime: 0,
+    };
+
+    // Initialize genre metrics
+    genres.forEach(g => {
+      metrics.genres[g.id] = { hoverTime: 0, hoverCount: 0, clickOrder: null, ...g };
+    });
+
+    let discoveryTimer = null;
+    let currentHover = null;
+    let hoverStartTime = null;
+    let lastMousePos = { x: 0, y: 0, time: 0 };
+
+    // ========================================
+    // NAVIGATION
+    // ========================================
+    function goToScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-' + screenId).classList.add('active');
+
+      if (screenId === 'discovery') startDiscovery();
+      else if (screenId === 'reveal') showReveal();
+      else if (screenId === 'results') showResults();
+    }
+
+    // ========================================
+    // DISCOVERY
+    // ========================================
+    function startDiscovery() {
+      metrics.startTime = performance.now();
+
+      // Shuffle and render
+      const shuffled = [...genres].sort(() => Math.random() - 0.5);
+      const grid = document.getElementById('thumbnail-grid');
+      grid.innerHTML = '';
+
+      shuffled.forEach(g => {
+        const item = document.createElement('div');
+        item.className = 'thumbnail-item';
+        item.dataset.id = g.id;
+        item.innerHTML = `
+          <img src="${g.src}" alt="${g.name}">
+          <div class="genre-label" style="border-left: 3px solid ${g.color}">${g.name}</div>
+          <div class="click-badge" style="background: ${g.color}; color: #0D1117"></div>
+        `;
+
+        item.addEventListener('mouseenter', () => onHoverEnter(g.id));
+        item.addEventListener('mouseleave', () => onHoverLeave(g.id));
+        item.addEventListener('click', () => onThumbnailClick(g.id, item));
+        item.style.setProperty('--genre-color', g.color);
+
+        grid.appendChild(item);
+      });
+
+      discoveryTimer = requestAnimationFrame(updateTimer);
+      document.addEventListener('mousemove', trackVelocity);
+    }
+
+    function updateTimer() {
+      const elapsed = (performance.now() - metrics.startTime) / 1000;
+      metrics.totalTime = elapsed;
+
+      document.getElementById('discovery-timer').textContent = elapsed.toFixed(3) + 's';
+      document.getElementById('widget-total-time').textContent = elapsed.toFixed(3) + 's';
+
+      // Show button after 8s or 3+ interactions
+      if (elapsed > 8 || metrics.clickSequence.length >= 3) {
+        document.getElementById('btn-continue').classList.add('visible');
+      }
+
+      updateLeaderboard();
+      discoveryTimer = requestAnimationFrame(updateTimer);
+    }
+
+    function onHoverEnter(id) {
+      currentHover = id;
+      hoverStartTime = performance.now();
+      metrics.genres[id].hoverCount++;
+      metrics.totalHovers++;
+
+      // Visual feedback
+      const item = document.querySelector(`[data-id="${id}"]`);
+      if (item) item.style.borderColor = metrics.genres[id].color;
+    }
+
+    function onHoverLeave(id) {
+      if (currentHover === id && hoverStartTime) {
+        metrics.genres[id].hoverTime += performance.now() - hoverStartTime;
+      }
+      currentHover = null;
+      hoverStartTime = null;
+
+      const item = document.querySelector(`[data-id="${id}"]`);
+      if (item && !item.classList.contains('clicked')) item.style.borderColor = 'transparent';
+    }
+
+    function onThumbnailClick(id, element) {
+      if (metrics.genres[id].clickOrder !== null) return;
+
+      const num = metrics.clickSequence.length + 1;
+      metrics.clickSequence.push(id);
+      metrics.genres[id].clickOrder = num;
+
+      element.classList.add('clicked');
+      element.style.borderColor = metrics.genres[id].color;
+      element.querySelector('.click-badge').textContent = num;
+    }
+
+    function trackVelocity(e) {
+      const now = performance.now();
+      const dx = e.clientX - lastMousePos.x;
+      const dy = e.clientY - lastMousePos.y;
+      const dt = now - lastMousePos.time;
+
+      if (dt > 0) {
+        const speed = Math.sqrt(dx*dx + dy*dy) / dt * 1000;
+        metrics.mouseVelocity.push(speed);
+        if (speed > 2000) metrics.skipEvents++;
+      }
+
+      lastMousePos = { x: e.clientX, y: e.clientY, time: now };
+    }
+
+    // ========================================
+    // LEADERBOARD
+    // ========================================
+    function getGenreScores() {
+      return Object.values(metrics.genres)
+        .map(g => ({
+          ...g,
+          score: g.hoverTime + (g.clickOrder ? (9 - g.clickOrder) * 800 : 0)
+        }))
+        .sort((a, b) => b.score - a.score);
+    }
+
+    function updateLeaderboard() {
+      const sorted = getGenreScores();
+      const maxScore = Math.max(...sorted.map(g => g.score), 1);
+
+      document.getElementById('genre-leaderboard').innerHTML = sorted.map((g, i) => `
+        <div class="leaderboard-item">
+          <span class="leaderboard-rank">${i + 1}</span>
+          <span class="leaderboard-color" style="background: ${g.color}"></span>
+          <span class="leaderboard-name">${g.name}</span>
+          <span class="leaderboard-value">${g.hoverTime.toFixed(0)}ms</span>
+        </div>
+      `).join('');
+
+      // Click sequence
+      document.getElementById('click-sequence').textContent =
+        metrics.clickSequence.length > 0
+          ? metrics.clickSequence.map(id => metrics.genres[id].name).join(' → ')
+          : 'No clicks yet';
+
+      // Velocity
+      const avgVel = metrics.mouseVelocity.length > 0
+        ? metrics.mouseVelocity.reduce((a,b) => a+b, 0) / metrics.mouseVelocity.length : 0;
+      document.getElementById('avg-velocity').textContent = avgVel.toFixed(0) + ' px/s';
+      document.getElementById('skip-count').textContent = metrics.skipEvents;
+      document.getElementById('hover-count').textContent = metrics.totalHovers;
+    }
+
+    // ========================================
+    // REVEAL
+    // ========================================
+    function showReveal() {
+      cancelAnimationFrame(discoveryTimer);
+      document.removeEventListener('mousemove', trackVelocity);
+
+      const sorted = getGenreScores();
+      const top3 = sorted.slice(0, 3);
+      const maxScore = Math.max(...sorted.map(g => g.score), 1);
+
+      // Top 3 badges
+      document.getElementById('top-genres').innerHTML = top3.map((g, i) => `
+        <div class="genre-badge rank-${i+1}" style="background: ${g.color}; color: #0D1117">
+          #${i+1} ${g.name.toUpperCase()}
+        </div>
+      `).join('');
+
+      // Bar chart
+      document.getElementById('genre-chart').innerHTML = sorted.map(g => `
+        <div class="chart-bar">
+          <span class="chart-label">${g.name}</span>
+          <div class="chart-track">
+            <div class="chart-fill" style="background: ${g.color}; width: ${(g.score / maxScore * 100)}%">
+              <span class="chart-value">${g.score > 0 ? (g.score / 1000).toFixed(1) + 's' : ''}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      // Insights
+      const insights = [];
+      if (top3[0]) insights.push(`You gravitated toward <strong>${top3[0].name}</strong> content`);
+      if (metrics.clickSequence[0]) {
+        const first = metrics.genres[metrics.clickSequence[0]];
+        insights.push(`Your first click was <strong>${first.name}</strong>`);
+      }
+      const avgVel = metrics.mouseVelocity.length > 0
+        ? metrics.mouseVelocity.reduce((a,b) => a+b, 0) / metrics.mouseVelocity.length : 0;
+      if (avgVel < 500) insights.push('Your pattern: <strong>deliberate and focused</strong>');
+      else if (avgVel < 1000) insights.push('Your pattern: <strong>exploratory and curious</strong>');
+      else insights.push('Your pattern: <strong>quick scanner, decisive</strong>');
+
+      document.getElementById('insights-list').innerHTML =
+        insights.map(i => `<div class="insight-item">${i}</div>`).join('');
+    }
+
+    // ========================================
+    // RESULTS
+    // ========================================
+    function showResults() {
+      const sorted = getGenreScores();
+      const top2 = sorted.slice(0, 2);
+      const next2 = sorted.slice(2, 4);
+      const rest = sorted.slice(4);
+
+      document.getElementById('primary-title').textContent =
+        `Perfect for ${top2.map(g => g.name).join(' & ')} Fans`;
+
+      document.getElementById('primary-feed').innerHTML = top2.map(g => `
+        <div class="thumbnail-item" style="border: 2px solid ${g.color}">
+          <img src="${g.src}" alt="${g.name}">
+          <div class="genre-label" style="opacity: 1; border-left: 3px solid ${g.color}">${g.name}</div>
+        </div>
+      `).join('');
+
+      document.getElementById('secondary-feed').innerHTML = next2.map(g => `
+        <div class="thumbnail-item">
+          <img src="${g.src}" alt="${g.name}">
+          <div class="genre-label" style="opacity: 1; border-left: 3px solid ${g.color}">${g.name}</div>
+        </div>
+      `).join('');
+
+      document.getElementById('explore-feed').innerHTML = rest.map(g => `
+        <div class="thumbnail-item">
+          <img src="${g.src}" alt="${g.name}">
+        </div>
+      `).join('');
+
+      document.getElementById('time-saved').textContent = metrics.totalTime.toFixed(0) + ' seconds';
+    }
+
+    // ========================================
+    // UTILITIES
+    // ========================================
+    function toggleWidget() {
+      const body = document.getElementById('widget-body');
+      const toggle = document.getElementById('widget-toggle');
+      body.classList.toggle('collapsed');
+      toggle.textContent = body.classList.contains('collapsed') ? '+' : '−';
+    }
+
+    function restartDemo() {
+      genres.forEach(g => {
+        metrics.genres[g.id] = { hoverTime: 0, hoverCount: 0, clickOrder: null, ...g };
+      });
+      metrics.clickSequence = [];
+      metrics.mouseVelocity = [];
+      metrics.skipEvents = 0;
+      metrics.totalHovers = 0;
+      metrics.startTime = null;
+      metrics.totalTime = 0;
+
+      document.getElementById('btn-continue').classList.remove('visible');
+      goToScreen('signin');
+    }
+
+    // Initialize
+    updateLeaderboard();
+  </script>
+</body>
+</html>
