@@ -1,0 +1,31 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'omega-dev'
+    environment: 'development'
+
+scrape_configs:
+  # Constellation servers
+  - job_name: 'constellation'
+    static_configs:
+      - targets:
+          - 'constellation-1:9090'
+          - 'constellation-2:9090'
+          - 'constellation-3:9090'
+        labels:
+          service: 'constellation'
+
+  # RuVector-Postgres
+  - job_name: 'ruvector-postgres'
+    static_configs:
+      - targets:
+          - 'ruvector-postgres:8000'
+        labels:
+          service: 'database'
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets:
+          - 'localhost:9090'

@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "omega-constellation.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "omega-constellation.labels" . | nindent 4 }}
+data:
+  # Shard configuration
+  shard_id: {{ .Values.constellation.shard.id | quote }}
+  region: {{ .Values.constellation.shard.region | quote }}
+  max_devices: {{ .Values.constellation.shard.maxDevices | quote }}
+
+  # Sync protocol
+  sync_interval_min_secs: {{ .Values.config.sync.intervalMinSecs | quote }}
+  sync_interval_max_secs: {{ .Values.config.sync.intervalMaxSecs | quote }}
+  sync_batch_size: {{ .Values.config.sync.batchSize | quote }}
+  sync_compression_level: {{ .Values.config.sync.compressionLevel | quote }}
+
+  # Pattern quality
+  min_pattern_quality: {{ .Values.config.pattern.minQuality | quote }}
+  min_sample_count: {{ .Values.config.pattern.minSampleCount | quote }}
+  max_patterns_per_device: {{ .Values.config.pattern.maxPatternsPerDevice | quote }}
+
+  # Rate limiting
+  rate_limit_per_device_per_minute: {{ .Values.config.rateLimit.perDevicePerMinute | quote }}
+  rate_limit_burst: {{ .Values.config.rateLimit.burst | quote }}
+
+  # Logging
+  log_level: {{ .Values.config.logging.level | quote }}
+  log_format: {{ .Values.config.logging.format | quote }}
+
+{{- if .Values.monitoring.prometheus.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "omega-constellation.fullname" . }}-prometheus
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "omega-constellation.labels" . | nindent 4 }}
+    component: monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: {{ .Values.monitoring.prometheus.scrapeInterval }}
+      evaluation_interval: {{ .Values.monitoring.prometheus.scrapeInterval }}
+      external_labels:
+        cluster: {{ include "omega-constellation.fullname" . }}
+        region: {{ .Values.global.region }}
+        environment: {{ .Values.global.environment }}
+
+    scrape_configs:
+      - job_name: constellation
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - {{ .Release.Namespace }}
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: constellation
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: pod
+{{- end }}

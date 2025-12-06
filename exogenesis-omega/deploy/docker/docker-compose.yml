@@ -1,0 +1,177 @@
+# Docker Compose for Local Development
+# 3 constellation replicas + RuVector-Postgres + monitoring
+
+version: '3.9'
+
+services:
+  # ============================================================
+  # RuVector-Postgres Database (384-dim vectors for MiniLM)
+  # ============================================================
+  database:
+    image: ruvnet/ruvector-postgres:latest
+    container_name: omega-ruvector
+    environment:
+      POSTGRES_DB: omega
+      POSTGRES_USER: omega
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev_password_change_in_prod}
+      RUVECTOR_DIMENSIONS: 384
+      RUVECTOR_METRIC: cosine
+      RUVECTOR_HNSW_M: 32
+      RUVECTOR_HNSW_EF_CONSTRUCTION: 200
+      RUVECTOR_GNN_ENABLED: "true"
+      RUVECTOR_GNN_LEARNING_RATE: 0.001
+      RUVECTOR_COMPRESSION: adaptive
+    ports:
+      - "5432:5432"
+    volumes:
+      - ruvector_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U omega"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - omega-net
+
+  # ============================================================
+  # Constellation Server (Replica 1)
+  # Uses omega-core, omega-agentdb, omega-memory, omega-loops, omega-runtime
+  # ============================================================
+  constellation-1:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/Dockerfile.constellation
+    container_name: omega-constellation-1
+    environment:
+      SHARD_ID: 1
+      POSTGRES_URL: postgres://omega:${POSTGRES_PASSWORD:-dev_password_change_in_prod}@database:5432/omega
+      GRPC_ADDR: 0.0.0.0:50051
+      REST_ADDR: 0.0.0.0:8080
+      METRICS_ADDR: 0.0.0.0:9090
+      RUST_LOG: info
+    ports:
+      - "50051:50051"
+      - "8080:8080"
+      - "9090:9090"
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/constellation-server", "health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - omega-net
+
+  # ============================================================
+  # Constellation Server (Replica 2)
+  # ============================================================
+  constellation-2:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/Dockerfile.constellation
+    container_name: omega-constellation-2
+    environment:
+      SHARD_ID: 1
+      POSTGRES_URL: postgres://omega:${POSTGRES_PASSWORD:-dev_password_change_in_prod}@database:5432/omega
+      GRPC_ADDR: 0.0.0.0:50051
+      REST_ADDR: 0.0.0.0:8080
+      METRICS_ADDR: 0.0.0.0:9090
+      RUST_LOG: info
+    ports:
+      - "50052:50051"
+      - "8081:8080"
+      - "9091:9090"
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/constellation-server", "health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - omega-net
+
+  # ============================================================
+  # Constellation Server (Replica 3)
+  # ============================================================
+  constellation-3:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/Dockerfile.constellation
+    container_name: omega-constellation-3
+    environment:
+      SHARD_ID: 1
+      POSTGRES_URL: postgres://omega:${POSTGRES_PASSWORD:-dev_password_change_in_prod}@database:5432/omega
+      GRPC_ADDR: 0.0.0.0:50051
+      REST_ADDR: 0.0.0.0:8080
+      METRICS_ADDR: 0.0.0.0:9090
+      RUST_LOG: info
+    ports:
+      - "50053:50051"
+      - "8082:8080"
+      - "9092:9090"
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/constellation-server", "health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - omega-net
+
+  # ============================================================
+  # Prometheus (Metrics Collection)
+  # ============================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: omega-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - "9093:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - omega-net
+
+  # ============================================================
+  # Grafana (Visualization)
+  # ============================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: omega-grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_INSTALL_PLUGINS: grafana-clock-panel
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana-dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+    depends_on:
+      - prometheus
+    networks:
+      - omega-net
+
+volumes:
+  ruvector_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  omega-net:
+    driver: bridge

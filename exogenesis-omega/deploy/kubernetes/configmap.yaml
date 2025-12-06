@@ -1,0 +1,207 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: constellation-config
+  namespace: omega-system
+  labels:
+    app: constellation
+    component: config
+data:
+  # Shard configuration
+  shard_id: "1"
+  region: "us-east-1"
+  max_devices: "4000000"
+
+  # Network configuration
+  grpc_addr: "0.0.0.0:50051"
+  rest_addr: "0.0.0.0:8080"
+  metrics_addr: "0.0.0.0:9090"
+
+  # Sync protocol configuration
+  sync_interval_min_secs: "300"   # 5 minutes
+  sync_interval_max_secs: "900"   # 15 minutes
+  sync_batch_size: "100"
+  sync_compression_level: "3"
+
+  # Pattern quality thresholds
+  min_pattern_quality: "0.7"
+  min_sample_count: "3"
+  max_patterns_per_device: "10000"
+
+  # Federation configuration
+  federation_interval_secs: "3600"  # 1 hour
+  trend_decay_rate: "0.95"
+  min_sources_for_aggregation: "3"
+
+  # Database connection pool
+  db_pool_min_connections: "10"
+  db_pool_max_connections: "100"
+  db_connection_timeout_secs: "30"
+  db_idle_timeout_secs: "600"
+
+  # Rate limiting
+  rate_limit_per_device_per_minute: "1"
+  rate_limit_burst: "3"
+
+  # Logging
+  log_level: "info"
+  log_format: "json"
+
+  # Metrics
+  metrics_enabled: "true"
+  metrics_push_interval_secs: "60"
+
+  # Health check configuration
+  health_check_interval_secs: "10"
+  health_check_timeout_secs: "3"
+
+  # Graceful shutdown
+  shutdown_timeout_secs: "60"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: omega-system
+  labels:
+    app: prometheus
+    component: monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+      external_labels:
+        cluster: omega-constellation
+        region: us-east-1
+
+    scrape_configs:
+      # Constellation servers
+      - job_name: constellation
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - omega-system
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: constellation
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            target_label: __address__
+            regex: (.+):(.+)
+            replacement: $1:9090
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: pod
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: namespace
+
+      # RuVector-Postgres
+      - job_name: ruvector-postgres
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - omega-system
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: ruvector-postgres
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            target_label: __address__
+            regex: (.+):(.+)
+            replacement: $1:8000
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: pod
+
+      # Federation worker
+      - job_name: federation
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - omega-system
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: federation
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            target_label: __address__
+            regex: (.+):(.+)
+            replacement: $1:9091
+
+    # Alerting rules
+    rule_files:
+      - /etc/prometheus/rules/*.yml
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: omega-system
+  labels:
+    app: grafana
+    component: monitoring
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+      - name: 'Omega Constellation'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        options:
+          path: /var/lib/grafana/dashboards
+
+  omega-constellation-dashboard.json: |
+    {
+      "title": "Omega Constellation - System Overview",
+      "panels": [
+        {
+          "title": "Active Devices",
+          "targets": [
+            {
+              "expr": "sum(constellation_devices_active)"
+            }
+          ]
+        },
+        {
+          "title": "Sync Requests per Minute",
+          "targets": [
+            {
+              "expr": "rate(constellation_sync_requests_total[1m])"
+            }
+          ]
+        },
+        {
+          "title": "Sync Latency (p99)",
+          "targets": [
+            {
+              "expr": "histogram_quantile(0.99, constellation_sync_latency_ms_bucket)"
+            }
+          ]
+        },
+        {
+          "title": "Pattern Quality Distribution",
+          "targets": [
+            {
+              "expr": "histogram_quantile(0.5, constellation_pattern_quality_bucket)"
+            }
+          ]
+        }
+      ]
+    }

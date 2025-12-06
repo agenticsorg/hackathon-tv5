@@ -1,0 +1,214 @@
+{{- $_ := include "omega-constellation.validateConfig" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "omega-constellation.fullname" . }}-constellation
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "omega-constellation.constellation.labels" . | nindent 4 }}
+  {{- with include "omega-constellation.annotations" . }}
+  annotations:
+    {{- . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.constellation.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 3
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      {{- include "omega-constellation.constellation.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "omega-constellation.constellation.labels" . | nindent 8 }}
+        version: {{ .Values.constellation.image.tag | quote }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: {{ .Values.constellation.service.metrics.port | quote }}
+        prometheus.io/path: "/metrics"
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    spec:
+      {{- with .Values.constellation.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      serviceAccountName: {{ include "omega-constellation.serviceAccountName" . }}
+
+      {{- with .Values.constellation.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.constellation.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.constellation.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      securityContext:
+        {{- toYaml .Values.constellation.securityContext | nindent 8 }}
+
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z {{ include "omega-constellation.fullname" . }}-ruvector-postgres-primary 5432; do
+                echo "Waiting for RuVector-Postgres..."
+                sleep 2
+              done
+              echo "PostgreSQL is ready!"
+
+      containers:
+        - name: constellation
+          image: "{{ .Values.constellation.image.repository }}:{{ .Values.constellation.image.tag }}"
+          imagePullPolicy: {{ .Values.constellation.image.pullPolicy }}
+
+          ports:
+            - name: grpc
+              containerPort: {{ .Values.constellation.service.grpc.port }}
+              protocol: TCP
+            - name: http
+              containerPort: {{ .Values.constellation.service.http.port }}
+              protocol: TCP
+            - name: metrics
+              containerPort: {{ .Values.constellation.service.metrics.port }}
+              protocol: TCP
+
+          env:
+            - name: SHARD_ID
+              value: {{ .Values.constellation.shard.id | quote }}
+
+            - name: REGION
+              value: {{ .Values.constellation.shard.region | quote }}
+
+            - name: MAX_DEVICES
+              value: {{ .Values.constellation.shard.maxDevices | quote }}
+
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.ruvectorPostgres.auth.existingSecret | default (printf "%s-ruvector-postgres" (include "omega-constellation.fullname" .)) }}
+                  key: {{ .Values.ruvectorPostgres.auth.existingSecretPasswordKey | default "username" }}
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.ruvectorPostgres.auth.existingSecret | default (printf "%s-ruvector-postgres" (include "omega-constellation.fullname" .)) }}
+                  key: {{ .Values.ruvectorPostgres.auth.existingSecretPasswordKey | default "password" }}
+
+            - name: POSTGRES_URL
+              value: {{ include "omega-constellation.postgres.url" . | quote }}
+
+            - name: POSTGRES_READ_URLS
+              value: {{ include "omega-constellation.postgres.readUrls" . | quote }}
+
+            - name: GRPC_ADDR
+              value: "0.0.0.0:{{ .Values.constellation.service.grpc.port }}"
+
+            - name: REST_ADDR
+              value: "0.0.0.0:{{ .Values.constellation.service.http.port }}"
+
+            - name: METRICS_ADDR
+              value: "0.0.0.0:{{ .Values.constellation.service.metrics.port }}"
+
+            - name: RUST_LOG
+              value: {{ .Values.config.logging.level | quote }}
+
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+
+          resources:
+            {{- toYaml .Values.constellation.resources | nindent 12 }}
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 30
+
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: cache
+              mountPath: /data/omega/cache
+            {{- if .Values.tls.enabled }}
+            - name: tls
+              mountPath: /etc/tls
+              readOnly: true
+            {{- end }}
+
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: cache
+          emptyDir:
+            sizeLimit: 1Gi
+        {{- if .Values.tls.enabled }}
+        - name: tls
+          secret:
+            secretName: {{ .Values.tls.existingSecret | default (printf "%s-tls" (include "omega-constellation.fullname" .)) }}
+            items:
+              - key: {{ .Values.tls.certificateKey }}
+                path: tls.crt
+              - key: {{ .Values.tls.privateKeyKey }}
+                path: tls.key
+        {{- end }}
+
+      terminationGracePeriodSeconds: 60
+      dnsPolicy: ClusterFirst

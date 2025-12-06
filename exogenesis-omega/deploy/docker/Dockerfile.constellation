@@ -1,0 +1,80 @@
+# Multi-stage Dockerfile for Constellation Server
+# Target: <100MB final image
+
+# ============================================================
+# Build Stage
+# ============================================================
+FROM rust:1.75-slim as builder
+
+WORKDIR /build
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    libssl-dev \
+    protobuf-compiler \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy workspace manifest
+COPY Cargo.toml Cargo.lock ./
+
+# Copy all crates
+COPY crates ./crates
+COPY services ./services
+
+# Fetch omega-* crates from crates.io
+# This ensures we have the latest versions before building
+RUN cargo fetch
+
+# Build release binary with optimizations
+# Uses omega-core, omega-agentdb, omega-memory, omega-loops, omega-runtime, omega-persistence
+RUN cargo build --release --bin constellation-server \
+    && strip target/release/constellation-server
+
+# ============================================================
+# Runtime Stage
+# ============================================================
+FROM debian:bookworm-slim
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    libssl3 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN useradd -m -u 1000 omega && \
+    mkdir -p /data/omega && \
+    chown -R omega:omega /data/omega
+
+# Copy binary from builder
+COPY --from=builder /build/target/release/constellation-server /usr/local/bin/
+
+# Set ownership
+RUN chown omega:omega /usr/local/bin/constellation-server
+
+# Switch to non-root user
+USER omega
+
+# Expose ports
+EXPOSE 50051/tcp  # gRPC sync service
+EXPOSE 8080/tcp   # REST management API
+EXPOSE 9090/tcp   # Prometheus metrics
+
+# Health check
+HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=3 \
+    CMD ["/usr/local/bin/constellation-server", "health"] || exit 1
+
+# Set working directory
+WORKDIR /data/omega
+
+# Run constellation server
+ENTRYPOINT ["/usr/local/bin/constellation-server"]
+CMD []
+
+# Labels
+LABEL org.opencontainers.image.title="Exogenesis Omega Constellation Server"
+LABEL org.opencontainers.image.description="Distributed TV recommendation pattern aggregation server using omega-* crates and RuVector-Postgres"
+LABEL org.opencontainers.image.version="0.1.0"
+LABEL org.opencontainers.image.vendor="Exogenesis Omega"
+LABEL org.opencontainers.image.source="https://github.com/exogenesis-omega/omega-constellation"

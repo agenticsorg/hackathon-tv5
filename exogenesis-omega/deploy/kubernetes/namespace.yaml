@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: omega-system
+  labels:
+    name: omega-system
+    app: exogenesis-omega
+    environment: production
+  annotations:
+    description: "Exogenesis Omega - Distributed TV Recommendation System"

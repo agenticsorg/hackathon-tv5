@@ -1,0 +1,54 @@
+[package]
+name = "omega-tv-brain"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "TV-side integration layer using omega-* crates for intelligent recommendations"
+
+[dependencies]
+# Omega ecosystem crates (from crates.io)
+omega-core = { workspace = true }
+omega-agentdb = { workspace = true }
+omega-memory = { workspace = true }
+omega-loops = { workspace = true }
+omega-runtime = { workspace = true }
+omega-persistence = { workspace = true }
+
+# Internal crates
+omega-tv-sync = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true }
+async-trait = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Utilities
+uuid = { workspace = true }
+chrono = { workspace = true }
+rand = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+
+# Network (for sync client)
+reqwest = { workspace = true }
+zstd = { workspace = true }
+
+[dev-dependencies]
+mockall = { workspace = true }
+tokio = { workspace = true, features = ["test-util"] }
+tokio-test = "0.4"
+
+[lib]
+name = "omega_tv_brain"
+path = "src/lib.rs"

@@ -1,0 +1,36 @@
+[package]
+name = "omega-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+# Internal
+omega-constellation = { workspace = true }
+# omega-protocol = { workspace = true } # TODO: Add when protobuf definitions are ready
+# omega-brain = { workspace = true, optional = true } # TODO: Add TV brain simulator
+
+# Async runtime
+tokio = { workspace = true }
+
+# CLI
+clap = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+
+# HTTP client
+reqwest = { version = "0.11", features = ["json"] }
+
+[features]
+default = []
+# simulator = ["omega-brain"] # TODO: Enable when omega-brain is ready

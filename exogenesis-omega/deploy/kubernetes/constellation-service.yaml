@@ -1,0 +1,142 @@
+---
+# ClusterIP Service for internal communication
+apiVersion: v1
+kind: Service
+metadata:
+  name: constellation-server
+  namespace: omega-system
+  labels:
+    app: constellation
+    component: server
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+spec:
+  type: ClusterIP
+  clusterIP: None  # Headless service for direct pod access
+  selector:
+    app: constellation
+    component: server
+  ports:
+    - name: grpc
+      port: 50051
+      targetPort: 50051
+      protocol: TCP
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: None
+
+---
+# LoadBalancer Service for external gRPC traffic (TV devices)
+apiVersion: v1
+kind: Service
+metadata:
+  name: constellation-grpc-lb
+  namespace: omega-system
+  labels:
+    app: constellation
+    component: server
+  annotations:
+    # AWS Load Balancer annotations (adjust for your cloud provider)
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
+    service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "300"
+    # GCP annotations (if using GKE)
+    # cloud.google.com/load-balancer-type: "Internal"
+    # networking.gke.io/load-balancer-type: "Internal"
+spec:
+  type: LoadBalancer
+  selector:
+    app: constellation
+    component: server
+  ports:
+    - name: grpc
+      port: 50051
+      targetPort: 50051
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 900  # 15 minutes (typical sync interval)
+  # External traffic policy for source IP preservation
+  externalTrafficPolicy: Local
+
+---
+# LoadBalancer Service for management API
+apiVersion: v1
+kind: Service
+metadata:
+  name: constellation-api-lb
+  namespace: omega-system
+  labels:
+    app: constellation
+    component: server
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "${AWS_CERT_ARN}"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+spec:
+  type: LoadBalancer
+  selector:
+    app: constellation
+    component: server
+  ports:
+    - name: https
+      port: 443
+      targetPort: 8080
+      protocol: TCP
+  sessionAffinity: None
+  externalTrafficPolicy: Cluster
+
+---
+# ServiceAccount for constellation pods
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: constellation-server
+  namespace: omega-system
+  labels:
+    app: constellation
+    component: server
+
+---
+# Role for constellation server
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: constellation-server
+  namespace: omega-system
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+
+---
+# RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: constellation-server
+  namespace: omega-system
+subjects:
+  - kind: ServiceAccount
+    name: constellation-server
+    namespace: omega-system
+roleRef:
+  kind: Role
+  name: constellation-server
+  apiGroup: rbac.authorization.k8s.io
