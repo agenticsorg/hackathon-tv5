@@ -18,6 +18,30 @@
 
 ---
 
+## ⚡ Quick Start
+
+```bash
+# Run RuVector PostgreSQL with Docker
+docker run -d --name ruvector-pg \
+  -e POSTGRES_PASSWORD=secret \
+  -p 5432:5432 \
+  ruvnet/ruvector-postgres:latest
+
+# Connect and start using 53+ AI-powered SQL functions
+psql -h localhost -U postgres -d postgres
+```
+
+```sql
+-- Create vector table with HNSW index
+CREATE TABLE movies (id serial, title text, embedding vector(768));
+CREATE INDEX ON movies USING hnsw (embedding vector_cosine_ops);
+
+-- Self-learning search that improves over time
+SELECT ruvector_adaptive_search(query_embedding, 'movies', 100);
+```
+
+---
+
 ## 🎬 Why RuVector for Media Discovery?
 
 ### pgvector vs ruvector-postgres
