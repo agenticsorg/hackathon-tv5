@@ -1,0 +1,369 @@
+# Cloud Monitoring Alert Policies for Nexus-UMMID Metadata API
+# GCP Project: agentics-foundation25lon-1899
+# Service: metadata-api (Cloud Run)
+
+# SLO Definition: 99.9% availability (43.2 minutes downtime/month)
+# Error Budget: 0.1% = ~4.3 hours/month
+
+---
+# Alert Policy: High P99 Latency
+apiVersion: monitoring.googleapis.com/v1
+kind: AlertPolicy
+metadata:
+  displayName: "[Metadata API] High P99 Latency"
+  project: agentics-foundation25lon-1899
+spec:
+  conditions:
+    - displayName: "P99 latency exceeds 500ms"
+      conditionThreshold:
+        filter: |
+          resource.type="cloud_run_revision"
+          resource.labels.service_name="metadata-api"
+          metric.type="run.googleapis.com/request_latencies"
+        aggregations:
+          - alignmentPeriod: 60s
+            perSeriesAligner: ALIGN_DELTA
+            crossSeriesReducer: REDUCE_PERCENTILE_99
+            groupByFields:
+              - resource.service_name
+        comparison: COMPARISON_GT
+        thresholdValue: 500  # milliseconds
+        duration: 300s  # 5 minutes
+  combiner: OR
+  enabled: true
+  notificationChannels:
+    - projects/agentics-foundation25lon-1899/notificationChannels/email-oncall
+    - projects/agentics-foundation25lon-1899/notificationChannels/slack-alerts
+  alertStrategy:
+    autoClose: 604800s  # 7 days
+  documentation:
+    content: |
+      ## High P99 Latency Alert
+
+      **Severity**: Warning
+      **Impact**: User experience degradation
+
+      ### What this means:
+      99th percentile request latency has exceeded 500ms for 5 consecutive minutes.
+
+      ### Investigation steps:
+      1. Check Cloud Run metrics dashboard
+      2. Review application logs for slow queries
+      3. Check Firestore query performance
+      4. Verify external API connector performance
+      5. Check instance CPU/memory utilization
+
+      ### Remediation:
+      - Scale up Cloud Run instances if under load
+      - Optimize slow database queries
+      - Add caching for frequently accessed data
+      - Review and optimize external API calls
+
+      ### Runbook:
+      https://docs.nexus-ummid.io/runbooks/high-latency
+    mimeType: text/markdown
+
+---
+# Alert Policy: High Error Rate
+apiVersion: monitoring.googleapis.com/v1
+kind: AlertPolicy
+metadata:
+  displayName: "[Metadata API] High Error Rate"
+  project: agentics-foundation25lon-1899
+spec:
+  conditions:
+    - displayName: "Error rate exceeds 1%"
+      conditionThreshold:
+        filter: |
+          resource.type="cloud_run_revision"
+          resource.labels.service_name="metadata-api"
+          metric.type="run.googleapis.com/request_count"
+          metric.labels.response_code_class="5xx"
+        aggregations:
+          - alignmentPeriod: 60s
+            perSeriesAligner: ALIGN_RATE
+            crossSeriesReducer: REDUCE_SUM
+            groupByFields:
+              - resource.service_name
+        comparison: COMPARISON_GT
+        thresholdValue: 0.01  # 1% error rate
+        duration: 180s  # 3 minutes
+  combiner: OR
+  enabled: true
+  notificationChannels:
+    - projects/agentics-foundation25lon-1899/notificationChannels/pagerduty-critical
+    - projects/agentics-foundation25lon-1899/notificationChannels/slack-alerts
+  alertStrategy:
+    autoClose: 86400s  # 24 hours
+    notificationRateLimit:
+      period: 300s  # Don't spam - 5 min between notifications
+  severity: CRITICAL
+  documentation:
+    content: |
+      ## High Error Rate Alert
+
+      **Severity**: Critical
+      **Impact**: Service degradation, SLO at risk
+
+      ### What this means:
+      Server error rate (5xx) has exceeded 1% for 3 consecutive minutes.
+      This burns through our error budget rapidly.
+
+      ### Investigation steps:
+      1. Check error logs immediately: `gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=metadata-api AND severity>=ERROR"`
+      2. Review recent deployments (possible bad deploy)
+      3. Check Firestore health and quotas
+      4. Verify external API connector health
+      5. Check for upstream service failures
+
+      ### Remediation:
+      - Rollback recent deployment if needed
+      - Fix critical bugs immediately
+      - Add circuit breakers for failing dependencies
+      - Scale resources if necessary
+
+      ### Runbook:
+      https://docs.nexus-ummid.io/runbooks/high-error-rate
+    mimeType: text/markdown
+
+---
+# Alert Policy: High Instance Count
+apiVersion: monitoring.googleapis.com/v1
+kind: AlertPolicy
+metadata:
+  displayName: "[Metadata API] High Instance Count"
+  project: agentics-foundation25lon-1899
+spec:
+  conditions:
+    - displayName: "Instance count exceeds 80"
+      conditionThreshold:
+        filter: |
+          resource.type="cloud_run_revision"
+          resource.labels.service_name="metadata-api"
+          metric.type="run.googleapis.com/container/instance_count"
+        aggregations:
+          - alignmentPeriod: 60s
+            perSeriesAligner: ALIGN_MAX
+            crossSeriesReducer: REDUCE_SUM
+            groupByFields:
+              - resource.service_name
+        comparison: COMPARISON_GT
+        thresholdValue: 80
+        duration: 300s  # 5 minutes
+  combiner: OR
+  enabled: true
+  notificationChannels:
+    - projects/agentics-foundation25lon-1899/notificationChannels/email-oncall
+    - projects/agentics-foundation25lon-1899/notificationChannels/slack-alerts
+  alertStrategy:
+    autoClose: 3600s  # 1 hour
+  severity: WARNING
+  documentation:
+    content: |
+      ## High Instance Count Alert
+
+      **Severity**: Warning
+      **Impact**: Potential cost spike, possible traffic surge or inefficiency
+
+      ### What this means:
+      Cloud Run has scaled to more than 80 instances (80% of max 100).
+      This could indicate:
+      - Legitimate traffic surge
+      - DDoS attack
+      - Application inefficiency causing slow requests
+      - Memory leaks preventing instance reuse
+
+      ### Investigation steps:
+      1. Check request rate dashboard
+      2. Review traffic sources (legitimate vs. suspicious)
+      3. Check average request duration (slow = more instances needed)
+      4. Review memory usage per instance
+      5. Check for request queuing
+
+      ### Remediation:
+      - If legitimate traffic: increase max instances or optimize performance
+      - If attack: enable Cloud Armor rate limiting
+      - If performance issue: profile and optimize code
+      - If memory leak: fix and deploy
+
+      ### Cost Impact:
+      80+ instances at $0.00002400/vCPU-second can be significant.
+
+      ### Runbook:
+      https://docs.nexus-ummid.io/runbooks/high-instance-count
+    mimeType: text/markdown
+
+---
+# Alert Policy: High Memory Usage
+apiVersion: monitoring.googleapis.com/v1
+kind: AlertPolicy
+metadata:
+  displayName: "[Metadata API] High Memory Usage"
+  project: agentics-foundation25lon-1899
+spec:
+  conditions:
+    - displayName: "Memory utilization exceeds 80%"
+      conditionThreshold:
+        filter: |
+          resource.type="cloud_run_revision"
+          resource.labels.service_name="metadata-api"
+          metric.type="run.googleapis.com/container/memory/utilizations"
+        aggregations:
+          - alignmentPeriod: 60s
+            perSeriesAligner: ALIGN_MEAN
+            crossSeriesReducer: REDUCE_PERCENTILE_95
+            groupByFields:
+              - resource.service_name
+        comparison: COMPARISON_GT
+        thresholdValue: 0.80  # 80% memory utilization
+        duration: 300s  # 5 minutes
+  combiner: OR
+  enabled: true
+  notificationChannels:
+    - projects/agentics-foundation25lon-1899/notificationChannels/email-oncall
+    - projects/agentics-foundation25lon-1899/notificationChannels/slack-alerts
+  alertStrategy:
+    autoClose: 3600s  # 1 hour
+  severity: WARNING
+  documentation:
+    content: |
+      ## High Memory Usage Alert
+
+      **Severity**: Warning
+      **Impact**: Risk of OOM kills, performance degradation
+
+      ### What this means:
+      P95 memory utilization across instances has exceeded 80% for 5 minutes.
+      Risk of out-of-memory errors and container restarts.
+
+      ### Investigation steps:
+      1. Check memory profile: `gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=metadata-api AND textPayload=~\"memory\""`
+      2. Review heap snapshots if available
+      3. Check for memory leaks in application code
+      4. Review caching strategies (too much caching?)
+      5. Check AgentDB learning cache size
+
+      ### Remediation:
+      - Increase Cloud Run memory allocation (currently 512Mi)
+      - Fix memory leaks
+      - Implement cache eviction policies
+      - Optimize data structures
+      - Consider using streaming for large responses
+
+      ### Runbook:
+      https://docs.nexus-ummid.io/runbooks/high-memory-usage
+    mimeType: text/markdown
+
+---
+# Alert Policy: SLO Burn Rate (Fast Burn)
+apiVersion: monitoring.googleapis.com/v1
+kind: AlertPolicy
+metadata:
+  displayName: "[Metadata API] SLO Fast Burn Rate"
+  project: agentics-foundation25lon-1899
+spec:
+  conditions:
+    - displayName: "Error budget burning at 10x rate (exhausts in 3 days)"
+      conditionThreshold:
+        filter: |
+          resource.type="cloud_run_revision"
+          resource.labels.service_name="metadata-api"
+          metric.type="run.googleapis.com/request_count"
+          metric.labels.response_code_class!="2xx"
+        aggregations:
+          - alignmentPeriod: 3600s  # 1 hour window
+            perSeriesAligner: ALIGN_RATE
+            crossSeriesReducer: REDUCE_SUM
+            groupByFields:
+              - resource.service_name
+        comparison: COMPARISON_GT
+        thresholdValue: 0.001  # 0.1% error rate (10x SLO)
+        duration: 3600s  # 1 hour
+  combiner: OR
+  enabled: true
+  notificationChannels:
+    - projects/agentics-foundation25lon-1899/notificationChannels/pagerduty-critical
+    - projects/agentics-foundation25lon-1899/notificationChannels/slack-alerts
+  alertStrategy:
+    autoClose: 86400s
+    notificationRateLimit:
+      period: 1800s  # 30 min between notifications
+  severity: CRITICAL
+  documentation:
+    content: |
+      ## SLO Fast Burn Rate Alert
+
+      **Severity**: Critical
+      **Impact**: Error budget will be exhausted in ~3 days at this rate
+
+      ### What this means:
+      The service is consuming error budget 10x faster than sustainable.
+      At this rate, we'll exhaust our monthly error budget in 72 hours.
+
+      ### SLO Context:
+      - Target: 99.9% availability
+      - Error Budget: 0.1% (43.2 min/month)
+      - Current Burn: 1.0% error rate (10x budget)
+
+      ### Immediate Actions:
+      1. Declare incident
+      2. Assemble on-call team
+      3. Identify root cause
+      4. Implement immediate mitigation
+      5. Consider feature freeze if needed
+
+      ### Runbook:
+      https://docs.nexus-ummid.io/runbooks/slo-burn-rate
+    mimeType: text/markdown
+
+---
+# Alert Policy: Deployment Health
+apiVersion: monitoring.googleapis.com/v1
+kind: AlertPolicy
+metadata:
+  displayName: "[Metadata API] Unhealthy Deployment"
+  project: agentics-foundation25lon-1899
+spec:
+  conditions:
+    - displayName: "Health check failures"
+      conditionThreshold:
+        filter: |
+          resource.type="cloud_run_revision"
+          resource.labels.service_name="metadata-api"
+          metric.type="run.googleapis.com/container/startup_latencies"
+        aggregations:
+          - alignmentPeriod: 60s
+            perSeriesAligner: ALIGN_MAX
+        comparison: COMPARISON_GT
+        thresholdValue: 60000  # 60 seconds startup time
+        duration: 60s
+  combiner: OR
+  enabled: true
+  notificationChannels:
+    - projects/agentics-foundation25lon-1899/notificationChannels/pagerduty-critical
+  severity: CRITICAL
+  documentation:
+    content: |
+      ## Unhealthy Deployment Alert
+
+      **Severity**: Critical
+      **Impact**: New instances failing to start, deployment may be broken
+
+      ### What this means:
+      New Cloud Run instances are taking >60s to start or failing health checks.
+      This prevents successful deployment and autoscaling.
+
+      ### Investigation:
+      1. Check recent deployment logs
+      2. Verify environment variables
+      3. Check Firestore connectivity
+      4. Review startup sequence errors
+
+      ### Remediation:
+      - Rollback to previous working revision
+      - Fix deployment configuration
+      - Verify all dependencies are available
+
+      ### Runbook:
+      https://docs.nexus-ummid.io/runbooks/deployment-health
+    mimeType: text/markdown
