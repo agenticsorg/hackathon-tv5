@@ -6,8 +6,9 @@ import { UserStore, User } from '../../persistence/user-store';
 export interface RegisterRequest {
   email: string;
   password: string;
-  dateOfBirth: string;
-  displayName: string;
+  dateOfBirth?: string;
+  displayName?: string;
+  name?: string; // Alternative to displayName for frontend compatibility
 }
 
 export interface LoginRequest {
@@ -35,10 +36,13 @@ export function createAuthRouter(
    */
   router.post('/register', async (req: Request, res: Response): Promise<void> => {
     try {
-      const { email, password, dateOfBirth, displayName } = req.body as RegisterRequest;
+      const { email, password, dateOfBirth, displayName, name } = req.body as RegisterRequest;
 
-      // Validate input
-      if (!email || !password || !dateOfBirth || !displayName) {
+      // Use name as fallback for displayName (frontend compatibility)
+      const finalDisplayName = displayName || name;
+
+      // Validate input - only email, password, and displayName/name are required
+      if (!email || !password || !finalDisplayName) {
         res.status(400).json({
           success: false,
           data: null,
@@ -46,7 +50,7 @@ export function createAuthRouter(
             code: 'E003',
             message: 'Missing required fields',
             details: {
-              required: ['email', 'password', 'dateOfBirth', 'displayName']
+              required: ['email', 'password', 'name or displayName']
             }
           },
           timestamp: new Date().toISOString()
@@ -113,8 +117,8 @@ export function createAuthRouter(
         id: userId,
         email,
         password: hashedPassword,
-        displayName,
-        dateOfBirth,
+        displayName: finalDisplayName,
+        dateOfBirth: dateOfBirth || '', // Optional field
         createdAt: now,
         lastActive: now
       };
@@ -131,10 +135,11 @@ export function createAuthRouter(
         data: {
           userId,
           email,
-          displayName,
+          displayName: finalDisplayName,
           token,
           refreshToken,
-          expiresAt: expiresAt.toISOString()
+          expiresAt: expiresAt.toISOString(),
+          createdAt: new Date(now).toISOString()
         },
         error: null,
         timestamp: new Date().toISOString()
@@ -225,7 +230,8 @@ export function createAuthRouter(
           displayName: user.displayName,
           token,
           refreshToken,
-          expiresAt: expiresAt.toISOString()
+          expiresAt: expiresAt.toISOString(),
+          createdAt: new Date(user.createdAt).toISOString()
         },
         error: null,
         timestamp: new Date().toISOString()

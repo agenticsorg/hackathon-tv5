@@ -1,10 +1,16 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { ValidationError, ApiResponse, InternalError } from '../middleware/error-handler.js';
-import { FeedbackRequest, FeedbackResponse, EmotionalState } from '../../types/index.js';
+import { FeedbackRequest, FeedbackResponse } from '../../feedback/types.js';
+import { EmotionalState } from '../../emotion/types.js';
 import { getServices } from '../../services/index.js';
 import { EmotionalExperience } from '../../rl/types.js';
+import { getFeedbackStore } from '../../persistence/index.js';
+import { FeedbackSubmission } from '../../types/feedback.js';
 
 const router = Router();
+
+// Get shared feedback store instance
+const feedbackStore = getFeedbackStore();
 
 // Store for tracking user sessions (stateBeforeViewing for reward calculation)
 const userSessionStore = new Map<string, { stateBefore: any; desiredState: any; contentId: string }>();
@@ -99,7 +105,7 @@ router.post(
           valence: stateBefore.valence,
           arousal: stateBefore.arousal,
           stressLevel: stateBefore.stress,
-          primaryEmotion: 'neutral',
+          primaryEmotion: 'joy' as const, // Default to 'joy' - closest to neutral positive
           emotionVector: new Float32Array(8),
           confidence: stateBefore.confidence,
           timestamp: Date.now() - feedbackRequest.watchDuration * 60000,
@@ -134,6 +140,44 @@ router.post(
       const policyUpdate = await services.policyEngine.updatePolicy(
         feedbackRequest.userId,
         experience
+      );
+
+      // Persist feedback to store for progress tracking
+      const submission: FeedbackSubmission = {
+        userId: feedbackRequest.userId,
+        contentId: feedbackRequest.contentId,
+        contentTitle: feedbackRequest.contentId, // Use contentId as title fallback
+        sessionId: sessionKey,
+        emotionBefore: {
+          valence: stateBefore.valence,
+          arousal: stateBefore.arousal,
+          stressLevel: stateBefore.stress,
+          primaryEmotion: 'neutral',
+          emotionVector: new Float32Array(8),
+          confidence: stateBefore.confidence,
+          timestamp: Date.now() - feedbackRequest.watchDuration * 60000,
+        },
+        emotionAfter: {
+          valence: feedbackRequest.actualPostState.valence,
+          arousal: feedbackRequest.actualPostState.arousal,
+          stressLevel: feedbackRequest.actualPostState.stressLevel ?? 0.3,
+          primaryEmotion: 'neutral',
+          emotionVector: new Float32Array(8),
+          confidence: 0.8,
+          timestamp: Date.now(),
+        },
+        starRating: feedbackRequest.explicitRating ?? 3,
+        completed: feedbackRequest.completed,
+        watchDuration: feedbackRequest.watchDuration * 60000, // Convert to ms
+        totalDuration: feedbackRequest.watchDuration * 60000 * 1.2, // Estimate total
+        timestamp: new Date(),
+      };
+
+      await feedbackStore.saveFeedback(
+        submission,
+        feedbackResult.reward,
+        0.5, // qValueBefore placeholder
+        policyUpdate.newQValue
       );
 
       // Clean up session

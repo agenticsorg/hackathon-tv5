@@ -8,6 +8,7 @@ import { rateLimiter } from './middleware/rate-limiter.js';
 import emotionRoutes from './routes/emotion.js';
 import recommendRoutes from './routes/recommend.js';
 import feedbackRoutes from './routes/feedback.js';
+import progressRoutes from './routes/progress.js';
 import { createAuthRouter } from './routes/auth.js';
 import { getServices } from '../services/index.js';
 
@@ -59,6 +60,7 @@ export function createApp(): Express {
   app.use('/api/v1/emotion', emotionRoutes);
   app.use('/api/v1/recommend', recommendRoutes);
   app.use('/api/v1/feedback', feedbackRoutes);
+  app.use('/api/v1/progress', progressRoutes);
 
   // 404 handler
   app.use((req, res) => {
