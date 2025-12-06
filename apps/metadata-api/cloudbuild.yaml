@@ -13,6 +13,8 @@ substitutions:
   _CPU: '1'
   _TIMEOUT: 300s
   _CONCURRENCY: '80'
+  # Gemini API Key - Set via Cloud Build trigger substitution variables
+  _GEMINI_API_KEY: ''
 
 options:
   machineType: 'N1_HIGHCPU_8'
@@ -71,7 +73,7 @@ steps:
       - '--timeout=${_TIMEOUT}'
       - '--concurrency=${_CONCURRENCY}'
       - '--port=8080'
-      - '--set-env-vars=NODE_ENV=production,GCP_PROJECT=${_GCP_PROJECT}'
+      - '--set-env-vars=NODE_ENV=production,GCP_PROJECT=${_GCP_PROJECT},GEMINI_API_KEY=${_GEMINI_API_KEY}'
       - '--service-account=metadata-api-sa@${_GCP_PROJECT}.iam.gserviceaccount.com'
       - '--labels=service=nexus-ummid,component=metadata-api,environment=production'
     waitFor:

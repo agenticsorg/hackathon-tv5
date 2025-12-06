@@ -1,0 +1,90 @@
+{
+  "$schema": "https://arw.dev/schema/manifest-v1.json",
+  "name": "Nexus-UMMID",
+  "description": "Cognitive Hypergraph Media Metadata Platform - Unified Media Metadata Integration & Distribution",
+  "version": "1.0.0",
+  "provider": {
+    "name": "Nexus-UMMID Platform",
+    "url": "https://nexus-ummid-demo-181630922804.us-central1.run.app"
+  },
+  "capabilities": {
+    "metadata": {
+      "description": "Media metadata management with AI enrichment",
+      "endpoints": {
+        "list": "GET /api/v1/metadata",
+        "get": "GET /api/v1/metadata/:id",
+        "create": "POST /api/v1/metadata",
+        "update": "PUT /api/v1/metadata/:id",
+        "delete": "DELETE /api/v1/metadata/:id",
+        "enrich": "POST /api/v1/metadata/:id/enrich",
+        "validate": "POST /api/v1/metadata/:id/validate"
+      }
+    },
+    "search": {
+      "description": "Semantic search and discovery",
+      "endpoints": {
+        "search": "GET /api/v1/search?q=:query",
+        "similar": "GET /api/v1/search/similar/:id",
+        "trending": "GET /api/v1/search/trending",
+        "stats": "GET /api/v1/search/stats"
+      }
+    },
+    "platforms": {
+      "description": "Platform-specific validation and distribution",
+      "supported": ["netflix", "amazon", "fast"],
+      "validation": {
+        "netflix": {
+          "requirements": ["title", "synopsis (50+ chars)", "genres", "poster"],
+          "format": "IMF"
+        },
+        "amazon": {
+          "requirements": ["title", "synopsis", "rating"],
+          "format": "MEC"
+        },
+        "fast": {
+          "requirements": ["title", "genres"],
+          "format": "MRSS"
+        }
+      }
+    },
+    "learning": {
+      "description": "Self-learning system with pattern recognition",
+      "features": [
+        "mood-based discovery",
+        "genre preference tracking",
+        "interaction analytics",
+        "personalized recommendations"
+      ]
+    }
+  },
+  "api": {
+    "base_url": "https://nexus-ummid-api-181630922804.us-central1.run.app",
+    "documentation": "https://nexus-ummid-api-181630922804.us-central1.run.app/api-docs",
+    "health": "https://nexus-ummid-api-181630922804.us-central1.run.app/health",
+    "authentication": "none",
+    "rate_limit": "1000 requests/hour"
+  },
+  "ai_integration": {
+    "enrichment": {
+      "model": "gemini-2.0",
+      "capabilities": ["mood_tagging", "keyword_extraction", "synopsis_enhancement"]
+    },
+    "embeddings": {
+      "model": "text-embedding-004",
+      "dimensions": 768
+    },
+    "learning": {
+      "system": "AgentDB",
+      "features": ["pattern_discovery", "reflexion_memory", "skill_consolidation"]
+    }
+  },
+  "mcp": {
+    "enabled": true,
+    "tools": 5,
+    "description": "Model Context Protocol server for AI assistant integration"
+  },
+  "contact": {
+    "support": "https://github.com/mondweep/hackathon-tv5/issues",
+    "documentation": "https://github.com/mondweep/hackathon-tv5"
+  }
+}

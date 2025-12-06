@@ -347,38 +347,52 @@
                                 class="bg-gray-800/50 rounded-xl overflow-hidden cursor-pointer card-hover transition-all duration-300 fade-in"
                             >
                                 <div class="aspect-[2/3] relative overflow-hidden">
+                                    <!-- TMDb Poster -->
+                                    <img
+                                        x-show="item.poster_path"
+                                        :src="'https://image.tmdb.org/t/p/w500' + item.poster_path"
+                                        :alt="item.title || item.name"
+                                        class="w-full h-full object-cover"
+                                        loading="lazy"
+                                    >
+                                    <!-- Fallback for no poster -->
                                     <div
+                                        x-show="!item.poster_path"
                                         class="w-full h-full flex items-center justify-center text-6xl"
                                         :style="'background: linear-gradient(135deg, ' + getGradient(item.genres?.[0] || 'default') + ')'"
                                     >
-                                        <span x-text="getEmoji(item.type)"></span>
+                                        <span x-text="getEmoji(item.media_type || item.type)"></span>
                                     </div>
                                     <div class="absolute top-2 left-2">
                                         <span
                                             class="px-2 py-1 text-xs font-medium rounded-full"
-                                            :class="item.type === 'movie' ? 'bg-blue-600' : 'bg-purple-600'"
-                                            x-text="item.type"
+                                            :class="(item.media_type || item.type) === 'movie' ? 'bg-blue-600' : 'bg-purple-600'"
+                                            x-text="item.media_type || item.type"
                                         ></span>
                                     </div>
+                                    <!-- TMDb badge -->
+                                    <div x-show="item.isTmdb" class="absolute top-2 right-2">
+                                        <span class="px-2 py-1 text-xs font-medium bg-green-600/80 rounded-full">TMDb</span>
+                                    </div>
                                     <!-- Watched badge -->
-                                    <div x-show="isWatched(item.id)" class="absolute top-2 right-2">
+                                    <div x-show="isWatched(item.id) && !item.isTmdb" class="absolute top-2 right-2">
                                         <span class="px-2 py-1 text-xs font-medium bg-green-600 rounded-full">✓ Watched</span>
+                                    </div>
+                                    <!-- Rating badge -->
+                                    <div x-show="item.vote_average" class="absolute bottom-2 right-2">
+                                        <span class="px-2 py-1 text-xs font-medium bg-yellow-600/90 rounded-full flex items-center gap-1">
+                                            ⭐ <span x-text="item.vote_average?.toFixed(1)"></span>
+                                        </span>
                                     </div>
                                 </div>
                                 <div class="p-4">
-                                    <h4 class="font-semibold truncate" x-text="item.title"></h4>
+                                    <h4 class="font-semibold truncate" x-text="item.title || item.name"></h4>
                                     <div class="flex items-center space-x-2 text-sm text-gray-400 mt-1">
-                                        <span x-text="item.releaseDate ? new Date(item.releaseDate).getFullYear() : 'N/A'"></span>
-                                        <span>•</span>
-                                        <span x-text="item.rating || 'NR'"></span>
-                                        <span x-show="item.duration">•</span>
-                                        <span x-show="item.duration" x-text="item.duration + ' min'"></span>
+                                        <span x-text="(item.release_date || item.first_air_date || item.releaseDate) ? new Date(item.release_date || item.first_air_date || item.releaseDate).getFullYear() : 'N/A'"></span>
+                                        <span x-show="item.rating">•</span>
+                                        <span x-show="item.rating" x-text="item.rating"></span>
                                     </div>
-                                    <div class="flex flex-wrap gap-1 mt-2">
-                                        <template x-for="genre in (item.genres || []).slice(0, 2)" :key="genre">
-                                            <span class="px-2 py-0.5 text-xs bg-gray-700 rounded-full" x-text="genre"></span>
-                                        </template>
-                                    </div>
+                                    <p x-show="item.overview" class="text-xs text-gray-500 mt-2 line-clamp-2" x-text="item.overview"></p>
                                 </div>
                             </div>
                         </template>
@@ -430,14 +444,31 @@
                                     @click="selectItem(item)"
                                     class="bg-gray-800/50 rounded-xl overflow-hidden cursor-pointer card-hover transition-all duration-300 fade-in relative"
                                 >
-                                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+                                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 z-10"></div>
                                     <div class="aspect-[2/3] relative overflow-hidden">
+                                        <!-- TMDb Poster -->
+                                        <img
+                                            x-show="item.poster_path"
+                                            :src="'https://image.tmdb.org/t/p/w500' + item.poster_path"
+                                            :alt="item.title || item.name"
+                                            class="w-full h-full object-cover"
+                                            loading="lazy"
+                                        >
+                                        <!-- Fallback for no poster -->
                                         <div
+                                            x-show="!item.poster_path"
                                             class="w-full h-full flex items-center justify-center text-6xl"
                                             :style="'background: linear-gradient(135deg, ' + getGradient(item.genres?.[0] || 'default') + ')'"
                                         >
-                                            <span x-text="getEmoji(item.type)"></span>
+                                            <span x-text="getEmoji(item.media_type || item.type)"></span>
                                         </div>
+                                        <!-- Rating badge -->
+                                        <div x-show="item.vote_average" class="absolute top-2 right-2">
+                                            <span class="px-2 py-1 text-xs font-medium bg-yellow-600/90 rounded-full flex items-center gap-1">
+                                                ⭐ <span x-text="item.vote_average?.toFixed(1)"></span>
+                                            </span>
+                                        </div>
+                                        <!-- Recommendation reason -->
                                         <div class="absolute bottom-2 left-2 right-2">
                                             <div class="bg-black/70 rounded-lg px-2 py-1 text-xs">
                                                 <span class="text-indigo-400">Why: </span>
@@ -446,11 +477,11 @@
                                         </div>
                                     </div>
                                     <div class="p-4">
-                                        <h4 class="font-semibold truncate" x-text="item.title"></h4>
+                                        <h4 class="font-semibold truncate" x-text="item.title || item.name"></h4>
                                         <div class="flex items-center space-x-2 text-sm text-gray-400 mt-1">
-                                            <span x-text="item.releaseDate ? new Date(item.releaseDate).getFullYear() : 'N/A'"></span>
-                                            <span>•</span>
-                                            <span x-text="item.rating || 'NR'"></span>
+                                            <span x-text="(item.release_date || item.first_air_date) ? new Date(item.release_date || item.first_air_date).getFullYear() : 'N/A'"></span>
+                                            <span x-show="item.media_type">•</span>
+                                            <span x-show="item.media_type" x-text="item.media_type === 'movie' ? '🎬 Movie' : '📺 TV'"></span>
                                         </div>
                                     </div>
                                 </div>
@@ -491,12 +522,26 @@
                     </template>
                 </div>
 
+                <!-- Loading State for Mood Results -->
+                <div x-show="loading && selectedMood" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                    <template x-for="i in 10">
+                        <div class="bg-gray-800/50 rounded-xl overflow-hidden">
+                            <div class="aspect-[2/3] skeleton"></div>
+                            <div class="p-4 space-y-2">
+                                <div class="h-4 skeleton rounded w-3/4"></div>
+                                <div class="h-3 skeleton rounded w-1/2"></div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
                 <!-- Mood Results -->
-                <template x-if="selectedMood && moodItems.length > 0">
+                <template x-if="selectedMood && moodItems.length > 0 && !loading">
                     <div>
                         <h3 class="text-xl font-semibold mb-4">
                             <span x-text="moods.find(m => m.id === selectedMood)?.emoji"></span>
                             Perfect for feeling <span class="text-indigo-400" x-text="moods.find(m => m.id === selectedMood)?.name.toLowerCase()"></span>
+                            <span class="text-gray-400 text-base font-normal ml-2">(<span x-text="moodItems.length"></span> titles from TMDb)</span>
                         </h3>
                         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                             <template x-for="item in moodItems" :key="item.id">
@@ -505,19 +550,42 @@
                                     class="bg-gray-800/50 rounded-xl overflow-hidden cursor-pointer card-hover transition-all duration-300 fade-in"
                                 >
                                     <div class="aspect-[2/3] relative overflow-hidden">
+                                        <!-- TMDb Poster -->
+                                        <img
+                                            x-show="item.poster_path"
+                                            :src="TMDB_IMAGE_BASE + '/' + TMDB_POSTER_SIZE + item.poster_path"
+                                            :alt="item.title || item.name"
+                                            class="w-full h-full object-cover"
+                                            loading="lazy"
+                                        >
+                                        <!-- Fallback for no poster -->
                                         <div
+                                            x-show="!item.poster_path"
                                             class="w-full h-full flex items-center justify-center text-6xl"
                                             :style="'background: linear-gradient(135deg, ' + getGradient(item.genres?.[0] || 'default') + ')'"
                                         >
-                                            <span x-text="getEmoji(item.type)"></span>
+                                            <span x-text="getEmoji(item.media_type || item.type)"></span>
+                                        </div>
+                                        <!-- Rating Badge -->
+                                        <div class="absolute top-2 left-2 flex gap-1">
+                                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-orange-600">
+                                                ⭐ <span x-text="item.vote_average?.toFixed(1)"></span>
+                                            </span>
+                                        </div>
+                                        <!-- Mood Match Badge -->
+                                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+                                            <div class="text-xs text-purple-300">
+                                                <span x-text="moods.find(m => m.id === selectedMood)?.emoji"></span>
+                                                <span x-text="item.matchedMood || 'Matches mood'"></span>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="p-4">
-                                        <h4 class="font-semibold truncate" x-text="item.title"></h4>
-                                        <div class="flex flex-wrap gap-1 mt-2">
-                                            <template x-for="tag in (item.moodTags || []).slice(0, 2)" :key="tag">
-                                                <span class="px-2 py-0.5 text-xs bg-purple-600/30 text-purple-300 rounded-full" x-text="tag"></span>
-                                            </template>
+                                        <h4 class="font-semibold truncate" x-text="item.title || item.name"></h4>
+                                        <div class="flex items-center space-x-2 text-sm text-gray-400 mt-1">
+                                            <span x-text="(item.release_date || item.first_air_date || '').substring(0, 4)"></span>
+                                            <span>•</span>
+                                            <span x-text="item.vote_count + ' votes'"></span>
                                         </div>
                                     </div>
                                 </div>
@@ -525,6 +593,12 @@
                         </div>
                     </div>
                 </template>
+
+                <!-- Empty mood results -->
+                <div x-show="selectedMood && moodItems.length === 0 && !loading" class="text-center py-8">
+                    <div class="text-4xl mb-2" x-text="moods.find(m => m.id === selectedMood)?.emoji"></div>
+                    <p class="text-gray-400">No results found for this mood. Try another one!</p>
+                </div>
             </div>
         </section>
 
@@ -554,14 +628,31 @@
                                 class="bg-gray-800/50 rounded-xl overflow-hidden cursor-pointer card-hover transition-all duration-300 fade-in relative"
                             >
                                 <div class="aspect-[2/3] relative overflow-hidden">
+                                    <!-- TMDb Poster -->
+                                    <img
+                                        x-show="item.poster_path"
+                                        :src="TMDB_IMAGE_BASE + '/' + TMDB_POSTER_SIZE + item.poster_path"
+                                        :alt="item.title"
+                                        class="w-full h-full object-cover"
+                                        loading="lazy"
+                                    >
+                                    <!-- Fallback gradient -->
                                     <div
+                                        x-show="!item.poster_path"
                                         class="w-full h-full flex items-center justify-center text-6xl"
                                         :style="'background: linear-gradient(135deg, ' + getGradient(item.genres?.[0] || 'default') + ')'"
                                     >
                                         <span x-text="getEmoji(item.type)"></span>
                                     </div>
-                                    <div class="absolute bottom-2 left-2 right-2">
-                                        <div class="bg-black/70 rounded-lg px-2 py-1 text-xs text-gray-300">
+                                    <!-- Rating Badge -->
+                                    <div x-show="item.vote_average" class="absolute top-2 left-2">
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-orange-600">
+                                            ⭐ <span x-text="item.vote_average?.toFixed(1)"></span>
+                                        </span>
+                                    </div>
+                                    <!-- Viewed date overlay -->
+                                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+                                        <div class="text-xs text-gray-300">
                                             Viewed <span x-text="formatDate(item.viewedAt)"></span>
                                         </div>
                                     </div>
@@ -569,9 +660,9 @@
                                 <div class="p-4">
                                     <h4 class="font-semibold truncate" x-text="item.title"></h4>
                                     <div class="flex items-center space-x-2 text-sm text-gray-400 mt-1">
-                                        <span x-text="item.releaseDate ? new Date(item.releaseDate).getFullYear() : 'N/A'"></span>
+                                        <span x-text="(item.release_date || item.releaseDate || '').substring(0, 4) || 'N/A'"></span>
                                         <span>•</span>
-                                        <span x-text="item.type"></span>
+                                        <span x-text="item.type || item.media_type || 'movie'"></span>
                                     </div>
                                 </div>
                             </div>
@@ -844,6 +935,94 @@
                         <p>• <span x-text="userProfile.favoriteGenres.length"></span> favorite genres</p>
                     </div>
                 </div>
+
+                <!-- Learning Insights Section -->
+                <div class="pt-4 border-t border-gray-800">
+                    <h3 class="text-lg font-semibold mb-3 flex items-center">
+                        <span class="mr-2">🧠</span> What I've Learned About You
+                    </h3>
+                    <div class="space-y-3 text-sm">
+                        <!-- Mood Patterns -->
+                        <div x-show="getTopMoods().length > 0">
+                            <p class="text-gray-400 mb-1">Your mood patterns:</p>
+                            <div class="flex flex-wrap gap-2">
+                                <template x-for="mood in getTopMoods()" :key="mood.id">
+                                    <span class="px-2 py-1 bg-purple-600/30 text-purple-300 rounded-full text-xs">
+                                        <span x-text="mood.emoji + ' ' + mood.name"></span>
+                                        <span class="text-purple-400 ml-1" x-text="'(' + mood.count + ')'"></span>
+                                    </span>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Genre Preferences from interactions -->
+                        <div x-show="Object.keys(learningInsights.genrePreferences).length > 0">
+                            <p class="text-gray-400 mb-1">Genres you explore most:</p>
+                            <div class="flex flex-wrap gap-2">
+                                <template x-for="item in Object.entries(learningInsights.genrePreferences).sort((a,b) => b[1]-a[1]).slice(0,5)" :key="item[0]">
+                                    <span class="px-2 py-1 bg-indigo-600/30 text-indigo-300 rounded-full text-xs">
+                                        <span x-text="item[0]"></span>
+                                        <span class="text-indigo-400 ml-1" x-text="'(' + item[1] + ')'"></span>
+                                    </span>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Learning Summary -->
+                        <div class="bg-gray-800/50 rounded-lg p-3 mt-3">
+                            <p class="text-gray-300 mb-2">📈 System Learning Summary:</p>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400">AI Enrichments:</span>
+                                    <span class="text-green-400 font-medium" x-text="learningInsights.enrichmentCount"></span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400">Validations:</span>
+                                    <span class="text-blue-400 font-medium" x-text="learningInsights.validationCount"></span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400">Mood Selections:</span>
+                                    <span class="text-purple-400 font-medium" x-text="Object.values(learningInsights.moodSelections).reduce((a,b) => a+b, 0)"></span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400">Watch History:</span>
+                                    <span class="text-orange-400 font-medium" x-text="watchHistory.length"></span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400">Search Queries:</span>
+                                    <span class="text-cyan-400 font-medium" x-text="(learningInsights.searchQueries || []).length"></span>
+                                </div>
+                            </div>
+                            <p x-show="learningInsights.lastUpdated" class="text-gray-500 text-xs mt-2">
+                                Last updated: <span x-text="new Date(learningInsights.lastUpdated).toLocaleString()"></span>
+                            </p>
+                        </div>
+
+                        <!-- Recent Search Queries with NLP interpretation -->
+                        <div x-show="learningInsights.searchQueries && learningInsights.searchQueries.length > 0" class="mt-3">
+                            <p class="text-gray-400 mb-2">Recent searches (with AI interpretation):</p>
+                            <div class="space-y-1 max-h-32 overflow-y-auto">
+                                <template x-for="(query, index) in (learningInsights.searchQueries || []).slice(0, 5)" :key="index">
+                                    <div class="text-xs bg-gray-800/50 rounded px-2 py-1 flex items-center gap-1">
+                                        <span x-show="query.method === 'gemini'" class="text-green-400" title="Interpreted by Gemini AI">🤖</span>
+                                        <span x-show="query.method !== 'gemini'" class="text-yellow-400" title="Rule-based interpretation">📝</span>
+                                        <span class="text-gray-300" x-text="query.original"></span>
+                                        <span class="text-gray-500">→</span>
+                                        <span class="text-cyan-400" x-text="query.interpreted"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Personalization message -->
+                        <p class="text-gray-500 text-xs italic mt-2" x-show="getLearningsSummary().totalInteractions > 0">
+                            Based on <span x-text="getLearningsSummary().totalInteractions"></span> interactions, I'm learning your preferences to provide better recommendations.
+                        </p>
+                        <p class="text-gray-500 text-xs italic mt-2" x-show="getLearningsSummary().totalInteractions === 0">
+                            Start exploring content to help me learn your preferences!
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -960,18 +1139,32 @@
                 ],
                 allGenres: ['Action', 'Comedy', 'Drama', 'Horror', 'Romance', 'Sci-Fi', 'Thriller', 'Documentary', 'Adventure', 'Crime'],
                 moods: [
-                    { id: 'happy', name: 'Happy', emoji: '😊', description: 'Feel-good & uplifting', keywords: ['feel-good', 'uplifting', 'heartwarming', 'funny', 'lighthearted'] },
-                    { id: 'excited', name: 'Excited', emoji: '🔥', description: 'Action & adventure', keywords: ['thrilling', 'action-packed', 'adventurous', 'epic', 'intense'] },
-                    { id: 'thoughtful', name: 'Thoughtful', emoji: '🤔', description: 'Mind-bending & deep', keywords: ['thought-provoking', 'philosophical', 'intelligent', 'mind-bending', 'compelling'] },
-                    { id: 'scared', name: 'Scared', emoji: '😱', description: 'Horror & suspense', keywords: ['scary', 'tense', 'chilling', 'atmospheric', 'suspenseful'] },
-                    { id: 'romantic', name: 'Romantic', emoji: '💕', description: 'Love & relationships', keywords: ['romantic', 'sweet', 'passionate', 'emotional', 'nostalgic'] },
-                    { id: 'inspired', name: 'Inspired', emoji: '✨', description: 'Motivational & moving', keywords: ['inspiring', 'moving', 'powerful', 'redemptive', 'hopeful'] },
-                    { id: 'relaxed', name: 'Relaxed', emoji: '😌', description: 'Easy watching', keywords: ['relaxing', 'beautiful', 'calming', 'easy', 'comfortable'] },
-                    { id: 'dark', name: 'Dark', emoji: '🌑', description: 'Intense & gritty', keywords: ['dark', 'gritty', 'intense', 'dramatic', 'gripping'] }
+                    { id: 'happy', name: 'Happy', emoji: '😊', description: 'Feel-good & uplifting', keywords: ['feel-good', 'uplifting', 'heartwarming', 'funny', 'lighthearted'], tmdbGenres: [35, 10751, 16] },
+                    { id: 'excited', name: 'Excited', emoji: '🔥', description: 'Action & adventure', keywords: ['thrilling', 'action-packed', 'adventurous', 'epic', 'intense'], tmdbGenres: [28, 12, 878] },
+                    { id: 'thoughtful', name: 'Thoughtful', emoji: '🤔', description: 'Mind-bending & deep', keywords: ['thought-provoking', 'philosophical', 'intelligent', 'mind-bending', 'compelling'], tmdbGenres: [18, 99, 9648] },
+                    { id: 'scared', name: 'Scared', emoji: '😱', description: 'Horror & suspense', keywords: ['scary', 'tense', 'chilling', 'atmospheric', 'suspenseful'], tmdbGenres: [27, 53] },
+                    { id: 'romantic', name: 'Romantic', emoji: '💕', description: 'Love & relationships', keywords: ['romantic', 'sweet', 'passionate', 'emotional', 'nostalgic'], tmdbGenres: [10749, 18] },
+                    { id: 'inspired', name: 'Inspired', emoji: '✨', description: 'Motivational & moving', keywords: ['inspiring', 'moving', 'powerful', 'redemptive', 'hopeful'], tmdbGenres: [18, 99, 36] },
+                    { id: 'relaxed', name: 'Relaxed', emoji: '😌', description: 'Easy watching', keywords: ['relaxing', 'beautiful', 'calming', 'easy', 'comfortable'], tmdbGenres: [35, 10751, 16] },
+                    { id: 'dark', name: 'Dark', emoji: '🌑', description: 'Intense & gritty', keywords: ['dark', 'gritty', 'intense', 'dramatic', 'gripping'], tmdbGenres: [80, 53, 18] }
                 ],
 
+                // Learning insights (simulated self-learning)
+                learningInsights: {
+                    moodSelections: {},
+                    genrePreferences: {},
+                    enrichmentCount: 0,
+                    validationCount: 0,
+                    searchQueries: [],
+                    lastUpdated: null
+                },
+
                 async init() {
+                    // Load from localStorage first for immediate display
+                    this.loadLearningInsights();
+                    // Then sync with API (async, non-blocking for initial render)
                     this.loadUserData();
+                    // Load content
                     await this.loadTrending('movie');
                     await this.loadCatalog();
                 },
@@ -1046,8 +1239,16 @@
                     }
                 },
 
-                // Persistence
-                loadUserData() {
+                // User ID for API persistence (use browser fingerprint or generate)
+                userId: localStorage.getItem('nexus-user-id') || (() => {
+                    const id = 'user-' + Math.random().toString(36).substr(2, 9);
+                    localStorage.setItem('nexus-user-id', id);
+                    return id;
+                })(),
+
+                // Persistence - uses API with localStorage fallback
+                async loadUserData() {
+                    // First load from localStorage for immediate display
                     const profile = localStorage.getItem('nexus-profile');
                     if (profile) {
                         this.userProfile = JSON.parse(profile);
@@ -1056,14 +1257,68 @@
                     if (history) {
                         this.watchHistory = JSON.parse(history);
                     }
+
+                    // Then try to sync from API
+                    try {
+                        const response = await fetch(`${API_BASE}/api/v1/user/${this.userId}`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.success && data.data) {
+                                // Merge API data with local (API takes precedence if newer)
+                                if (data.data.preferences?.name) {
+                                    this.userProfile = { ...this.userProfile, ...data.data.preferences };
+                                }
+                                if (data.data.history?.length > 0) {
+                                    // Merge histories, keeping unique items
+                                    const apiHistory = data.data.history;
+                                    const localIds = new Set(this.watchHistory.map(h => h.id));
+                                    const newItems = apiHistory.filter(h => !localIds.has(h.id));
+                                    this.watchHistory = [...this.watchHistory, ...newItems]
+                                        .sort((a, b) => new Date(b.viewedAt) - new Date(a.viewedAt));
+                                }
+                                if (data.data.learning) {
+                                    this.learningInsights = { ...this.learningInsights, ...data.data.learning };
+                                }
+                                console.log('User data synced from API');
+                            }
+                        }
+                    } catch (error) {
+                        console.log('API sync unavailable, using localStorage');
+                    }
                 },
 
-                saveProfile() {
+                async saveProfile() {
+                    // Always save to localStorage
                     localStorage.setItem('nexus-profile', JSON.stringify(this.userProfile));
+
+                    // Also sync to API
+                    try {
+                        await fetch(`${API_BASE}/api/v1/user/${this.userId}/preferences`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.userProfile)
+                        });
+                    } catch (error) {
+                        console.log('API sync failed, data saved locally');
+                    }
                 },
 
-                saveHistory() {
+                async saveHistory() {
+                    // Always save to localStorage
                     localStorage.setItem('nexus-history', JSON.stringify(this.watchHistory));
+
+                    // Also sync latest item to API if available
+                    if (this.watchHistory.length > 0) {
+                        try {
+                            await fetch(`${API_BASE}/api/v1/user/${this.userId}/history`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(this.watchHistory[0])
+                            });
+                        } catch (error) {
+                            console.log('API sync failed, data saved locally');
+                        }
+                    }
                 },
 
                 // Catalog & Search
@@ -1085,13 +1340,80 @@
                     this.loading = false;
                 },
 
+                // Natural Language Query Interpretation using Gemini AI
+                // Calls the API to interpret conversational queries
+                async interpretQuery(query) {
+                    const original = query.trim();
+
+                    try {
+                        const response = await fetch(`${API_BASE}/api/v1/ai/interpret-query`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ query: original })
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.success && data.data) {
+                                const method = data.data.method === 'gemini' ? '🤖 Gemini' : '📝 Fallback';
+                                console.log(`NLP (${method}): "${original}" → "${data.data.interpreted}"`);
+                                return {
+                                    interpreted: data.data.interpreted,
+                                    method: data.data.method
+                                };
+                            }
+                        }
+                    } catch (error) {
+                        console.error('AI interpretation failed:', error);
+                    }
+
+                    // Client-side fallback if API fails
+                    const fallback = this.fallbackInterpret(original);
+                    console.log(`NLP (client fallback): "${original}" → "${fallback}"`);
+                    return { interpreted: fallback, method: 'client-fallback' };
+                },
+
+                // Client-side fallback interpretation
+                fallbackInterpret(query) {
+                    const original = query.trim().toLowerCase();
+                    const fillerPhrases = [
+                        'i want to see', 'i want to watch', 'show me', 'find me',
+                        'something about', 'something with', 'movies about', 'looking for'
+                    ];
+                    let cleaned = original;
+                    fillerPhrases.forEach(p => { cleaned = cleaned.replace(new RegExp(p, 'gi'), ' '); });
+                    const stopWords = ['a', 'an', 'the', 'is', 'are', 'to', 'of', 'in', 'for', 'on', 'with', 'that'];
+                    const words = cleaned.split(/\s+/).filter(w => w.length > 1 && !stopWords.includes(w));
+                    return words.join(' ').trim() || original;
+                },
+
                 async search() {
                     if (!this.searchQuery.trim()) {
                         return this.loadCatalog();
                     }
 
                     this.loading = true;
+
+                    // Interpret natural language query using AI
+                    const interpretation = await this.interpretQuery(this.searchQuery);
+                    const interpretedQuery = interpretation.interpreted;
+
+                    // Track search query in learning
+                    this.trackSearchQuery(this.searchQuery, interpretedQuery, interpretation.method);
+
                     try {
+                        // First, search TMDb for real movie/TV data
+                        const tmdbResults = await this.searchTmdb(interpretedQuery);
+
+                        if (tmdbResults.length > 0) {
+                            this.items = tmdbResults;
+                            this.filteredItems = [...this.items];
+                            this.applyFilters();
+                            this.loading = false;
+                            return;
+                        }
+
+                        // Fallback to local catalog API
                         const response = await fetch(`${API_BASE}/api/v1/search?q=${encodeURIComponent(this.searchQuery)}`);
                         const data = await response.json();
                         if (data.success && data.data && data.data.results?.length > 0) {
@@ -1100,8 +1422,9 @@
                                 similarity: r.similarity
                             }));
                         } else {
+                            // Final fallback: filter local catalog
                             await this.loadCatalog();
-                            const queryTerms = this.searchQuery.toLowerCase().split(/\s+/);
+                            const queryTerms = interpretedQuery.toLowerCase().split(/\s+/);
                             this.items = this.items.filter(item => {
                                 const searchableText = [
                                     item.title,
@@ -1120,6 +1443,65 @@
                         console.error('Search failed:', error);
                     }
                     this.loading = false;
+                },
+
+                // Search TMDb for movies and TV shows
+                async searchTmdb(query) {
+                    try {
+                        // Search both movies and TV shows
+                        const [movieResponse, tvResponse] = await Promise.all([
+                            fetch(`${TMDB_BASE}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&page=1`),
+                            fetch(`${TMDB_BASE}/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&page=1`)
+                        ]);
+
+                        const [movieData, tvData] = await Promise.all([
+                            movieResponse.json(),
+                            tvResponse.json()
+                        ]);
+
+                        // Combine and sort by popularity
+                        const movies = (movieData.results || []).map(m => ({
+                            ...m,
+                            media_type: 'movie',
+                            isTmdb: true
+                        }));
+
+                        const tvShows = (tvData.results || []).map(t => ({
+                            ...t,
+                            media_type: 'tv',
+                            isTmdb: true
+                        }));
+
+                        const combined = [...movies, ...tvShows]
+                            .sort((a, b) => b.popularity - a.popularity)
+                            .slice(0, 20);
+
+                        return combined;
+                    } catch (error) {
+                        console.error('TMDb search failed:', error);
+                        return [];
+                    }
+                },
+
+                // Track search queries for learning
+                trackSearchQuery(originalQuery, interpretedQuery, method = 'unknown') {
+                    if (!this.learningInsights.searchQueries) {
+                        this.learningInsights.searchQueries = [];
+                    }
+
+                    this.learningInsights.searchQueries.unshift({
+                        original: originalQuery,
+                        interpreted: interpretedQuery,
+                        method: method, // 'gemini', 'fallback', or 'client-fallback'
+                        timestamp: new Date().toISOString()
+                    });
+
+                    // Keep last 20 queries
+                    if (this.learningInsights.searchQueries.length > 20) {
+                        this.learningInsights.searchQueries = this.learningInsights.searchQueries.slice(0, 20);
+                    }
+
+                    this.saveLearningInsights();
                 },
 
                 filterByGenre(genre) {
@@ -1185,54 +1567,94 @@
                     }
                 },
 
-                // For You / Recommendations
+                // For You / Recommendations - fetches from TMDb based on preferences
                 async loadForYou() {
                     if (this.userProfile.favoriteGenres.length === 0) {
                         this.forYouItems = [];
                         return;
                     }
 
-                    await this.loadCatalog();
+                    this.loading = true;
 
-                    // Score items based on user preferences
-                    const scored = this.items.map(item => {
-                        let score = 0;
-                        const genres = item.genres || [];
-                        const moods = item.moodTags || [];
+                    // Map user's favorite genres to TMDb genre IDs
+                    const genreToTmdbId = {
+                        'Action': 28, 'Comedy': 35, 'Drama': 18, 'Horror': 27,
+                        'Romance': 10749, 'Sci-Fi': 878, 'Thriller': 53,
+                        'Documentary': 99, 'Adventure': 12, 'Crime': 80,
+                        'Animation': 16, 'Fantasy': 14, 'Mystery': 9648
+                    };
 
-                        // Genre matching
-                        genres.forEach(g => {
-                            if (this.userProfile.favoriteGenres.some(fg => fg.toLowerCase() === g.toLowerCase())) {
-                                score += 10;
-                            }
-                        });
+                    const tmdbGenreIds = this.userProfile.favoriteGenres
+                        .map(g => genreToTmdbId[g])
+                        .filter(Boolean);
 
-                        // Mood matching
-                        this.userProfile.preferredMoods.forEach(pm => {
-                            const moodDef = this.moods.find(m => m.id === pm);
-                            if (moodDef) {
-                                moods.forEach(mt => {
-                                    if (moodDef.keywords.some(k => mt.toLowerCase().includes(k))) {
-                                        score += 5;
-                                    }
-                                });
-                            }
-                        });
+                    if (tmdbGenreIds.length === 0) {
+                        // Fallback to local catalog
+                        await this.loadCatalog();
+                        this.forYouItems = this.items.slice(0, 10);
+                        this.loading = false;
+                        return;
+                    }
 
-                        // Exclude already watched
-                        if (this.isWatched(item.id)) {
-                            score -= 50;
+                    try {
+                        // Fetch personalized recommendations from TMDb
+                        const genreIds = tmdbGenreIds.join(',');
+                        const response = await fetch(
+                            `${TMDB_BASE}/discover/movie?api_key=${TMDB_API_KEY}&with_genres=${genreIds}&sort_by=popularity.desc&vote_average.gte=6.5&vote_count.gte=100`
+                        );
+                        const data = await response.json();
+
+                        if (data.results && data.results.length > 0) {
+                            // Filter out already watched items
+                            const watchedIds = new Set(this.watchHistory.map(h => h.id));
+                            const filtered = data.results.filter(item => !watchedIds.has(item.id));
+
+                            this.forYouItems = filtered.slice(0, 15).map(item => ({
+                                ...item,
+                                media_type: 'movie',
+                                isTmdb: true,
+                                recommendationReason: this.getPersonalizedReason(item)
+                            }));
+                        } else {
+                            this.forYouItems = [];
                         }
+                    } catch (error) {
+                        console.error('Failed to load personalized recommendations:', error);
+                        // Fallback to local catalog
+                        await this.loadCatalog();
+                        this.forYouItems = this.items.slice(0, 10);
+                    }
 
-                        return { ...item, score };
-                    });
+                    this.loading = false;
+                },
 
-                    // Sort by score and take top results
-                    scored.sort((a, b) => b.score - a.score);
-                    this.forYouItems = scored.filter(i => i.score > 0).slice(0, 10);
+                // Get personalized recommendation reason
+                getPersonalizedReason(item) {
+                    // Find matching genres
+                    const genreToTmdbId = {
+                        'Action': 28, 'Comedy': 35, 'Drama': 18, 'Horror': 27,
+                        'Romance': 10749, 'Sci-Fi': 878, 'Thriller': 53,
+                        'Documentary': 99, 'Adventure': 12, 'Crime': 80
+                    };
+                    const tmdbIdToGenre = Object.fromEntries(
+                        Object.entries(genreToTmdbId).map(([k, v]) => [v, k])
+                    );
+
+                    const itemGenreIds = item.genre_ids || [];
+                    for (const gid of itemGenreIds) {
+                        const genreName = tmdbIdToGenre[gid];
+                        if (genreName && this.userProfile.favoriteGenres.includes(genreName)) {
+                            return `You like ${genreName}`;
+                        }
+                    }
+                    return 'Matches your taste';
                 },
 
                 getRecommendationReason(item) {
+                    // For TMDb items with genre_ids
+                    if (item.recommendationReason) return item.recommendationReason;
+
+                    // For local catalog items
                     const matchedGenres = (item.genres || []).filter(g =>
                         this.userProfile.favoriteGenres.some(fg => fg.toLowerCase() === g.toLowerCase())
                     );
@@ -1242,32 +1664,144 @@
                     return 'Matches your taste';
                 },
 
-                // Mood-based discovery
-                selectMood(moodId) {
+                // Mood-based discovery - fetches from TMDb based on mood's genre mapping
+                async selectMood(moodId) {
                     this.selectedMood = moodId;
+                    this.loading = true;
                     const mood = this.moods.find(m => m.id === moodId);
-                    if (!mood) return;
+                    if (!mood) {
+                        this.loading = false;
+                        return;
+                    }
 
-                    this.moodItems = this.items.filter(item => {
-                        const itemMoods = [...(item.moodTags || []), ...(item.keywords || [])];
-                        return mood.keywords.some(k =>
-                            itemMoods.some(im => im.toLowerCase().includes(k))
+                    // Track mood selection for learning
+                    this.trackMoodSelection(moodId);
+
+                    // Fetch from TMDb using genre-based discover API
+                    try {
+                        const genreIds = mood.tmdbGenres.join(',');
+                        const response = await fetch(
+                            `${TMDB_BASE}/discover/movie?api_key=${TMDB_API_KEY}&with_genres=${genreIds}&sort_by=popularity.desc&vote_average.gte=6`
                         );
-                    });
+                        const data = await response.json();
+                        if (data.results) {
+                            this.moodItems = data.results.map(item => ({
+                                ...item,
+                                media_type: 'movie',
+                                isTmdb: true,
+                                matchedMood: mood.name
+                            }));
+                        }
+                    } catch (error) {
+                        console.error('Failed to load mood-based content:', error);
+                        // Fallback to local catalog filtering
+                        this.moodItems = this.items.filter(item => {
+                            const itemMoods = [...(item.moodTags || []), ...(item.keywords || [])];
+                            return mood.keywords.some(k =>
+                                itemMoods.some(im => im.toLowerCase().includes(k))
+                            );
+                        });
+                    }
+                    this.loading = false;
                 },
 
-                // Watch History
+                // Track mood selection for learning insights
+                trackMoodSelection(moodId) {
+                    this.learningInsights.moodSelections[moodId] =
+                        (this.learningInsights.moodSelections[moodId] || 0) + 1;
+                    this.learningInsights.lastUpdated = new Date().toISOString();
+                    this.saveLearningInsights();
+                },
+
+                // Get top moods from learning data
+                getTopMoods() {
+                    const entries = Object.entries(this.learningInsights.moodSelections);
+                    return entries
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 3)
+                        .map(([id, count]) => {
+                            const mood = this.moods.find(m => m.id === id);
+                            return { ...mood, count };
+                        });
+                },
+
+                // Save learning insights to localStorage and API
+                async saveLearningInsights() {
+                    localStorage.setItem('nexus-learning', JSON.stringify(this.learningInsights));
+
+                    // Also sync to API
+                    try {
+                        await fetch(`${API_BASE}/api/v1/user/${this.userId}/learning`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.learningInsights)
+                        });
+                    } catch (error) {
+                        console.log('Learning sync failed, data saved locally');
+                    }
+                },
+
+                // Load learning insights from localStorage (API sync happens in loadUserData)
+                loadLearningInsights() {
+                    const data = localStorage.getItem('nexus-learning');
+                    if (data) {
+                        this.learningInsights = { ...this.learningInsights, ...JSON.parse(data) };
+                    }
+                },
+
+                // Track enrichment action for learning
+                trackEnrichment(item) {
+                    this.learningInsights.enrichmentCount++;
+                    // Track genre preferences from enriched items
+                    (item.genres || []).forEach(genre => {
+                        this.learningInsights.genrePreferences[genre] =
+                            (this.learningInsights.genrePreferences[genre] || 0) + 1;
+                    });
+                    this.learningInsights.lastUpdated = new Date().toISOString();
+                    this.saveLearningInsights();
+                },
+
+                // Track validation action for learning
+                trackValidation(platform) {
+                    this.learningInsights.validationCount++;
+                    this.learningInsights.lastUpdated = new Date().toISOString();
+                    this.saveLearningInsights();
+                },
+
+                // Get learning summary for display
+                getLearningsSummary() {
+                    const topGenres = Object.entries(this.learningInsights.genrePreferences)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 3)
+                        .map(([genre, count]) => ({ genre, count }));
+
+                    const topMoods = this.getTopMoods();
+
+                    const totalInteractions =
+                        Object.values(this.learningInsights.moodSelections).reduce((a, b) => a + b, 0) +
+                        this.learningInsights.enrichmentCount +
+                        this.learningInsights.validationCount;
+
+                    return {
+                        topGenres,
+                        topMoods,
+                        enrichmentCount: this.learningInsights.enrichmentCount,
+                        validationCount: this.learningInsights.validationCount,
+                        totalInteractions,
+                        lastUpdated: this.learningInsights.lastUpdated
+                    };
+                },
+
+                // Watch History - stores full item data for TMDb items
                 loadHistory() {
-                    // Already loaded from localStorage
+                    // Already loaded from localStorage in loadUserData
                 },
 
                 get watchHistoryItems() {
+                    // History now stores full item data, sorted by viewedAt
                     return this.watchHistory
-                        .map(h => {
-                            const item = this.items.find(i => i.id === h.id);
-                            return item ? { ...item, viewedAt: h.viewedAt } : null;
-                        })
-                        .filter(Boolean)
+                        .filter(h => h.item) // Only items with full data
+                        .map(h => ({ ...h.item, viewedAt: h.viewedAt }))
                         .sort((a, b) => new Date(b.viewedAt) - new Date(a.viewedAt));
                 },
 
@@ -1275,12 +1809,43 @@
                     return this.watchHistory.some(h => h.id === itemId);
                 },
 
+                // Add item to watch history with full data
+                addToHistory(item) {
+                    // Remove if already exists (to update position)
+                    this.watchHistory = this.watchHistory.filter(h => h.id !== item.id);
+
+                    // Add to front with full item data
+                    this.watchHistory.unshift({
+                        id: item.id,
+                        viewedAt: new Date().toISOString(),
+                        item: {
+                            id: item.id,
+                            title: item.title || item.name,
+                            type: item.type || item.media_type || 'movie',
+                            poster_path: item.poster_path,
+                            backdrop_path: item.backdrop_path,
+                            vote_average: item.vote_average,
+                            release_date: item.release_date || item.first_air_date,
+                            overview: item.overview || item.synopsis,
+                            genres: item.genres || [],
+                            isTmdb: item.isTmdb || false
+                        }
+                    });
+
+                    // Keep only last 50 items
+                    if (this.watchHistory.length > 50) {
+                        this.watchHistory = this.watchHistory.slice(0, 50);
+                    }
+
+                    this.saveHistory();
+                },
+
                 toggleWatched(item) {
                     const idx = this.watchHistory.findIndex(h => h.id === item.id);
                     if (idx >= 0) {
                         this.watchHistory.splice(idx, 1);
                     } else {
-                        this.watchHistory.unshift({ id: item.id, viewedAt: new Date().toISOString() });
+                        this.addToHistory(item);
                     }
                     this.saveHistory();
                 },
@@ -1332,11 +1897,8 @@
                     if (item.isTmdb) {
                         await this.loadTmdbDetails(item);
                     }
-                    // Add to history when viewing
-                    if (!this.isWatched(item.id)) {
-                        this.watchHistory.unshift({ id: item.id, viewedAt: new Date().toISOString() });
-                        this.saveHistory();
-                    }
+                    // Add to history when viewing (with full item data)
+                    this.addToHistory(this.selectedItem);
                 },
 
                 async validatePlatform(itemId, platform) {
@@ -1362,6 +1924,7 @@
                         };
 
                         this.platformValidation[platform] = validationResults[platform] ?? false;
+                        this.trackValidation(platform);
                         this.validatingPlatform = null;
                         return;
                     }
@@ -1450,6 +2013,9 @@
                             keywords: [...new Set([...(item.keywords || []), ...generatedKeywords])].slice(0, 8),
                             enrichedAt: new Date().toISOString()
                         };
+
+                        // Track enrichment for learning
+                        this.trackEnrichment(item);
 
                         this.enriching = false;
                         return;

@@ -1,0 +1,96 @@
+# Nexus-UMMID - Cognitive Hypergraph Media Metadata Platform
+
+## Overview
+Nexus-UMMID is a unified media metadata integration and distribution platform that solves the "30-minute decision problem" - the time users spend deciding what to watch across fragmented streaming platforms.
+
+## API Base URL
+https://nexus-ummid-api-181630922804.us-central1.run.app
+
+## Demo UI
+https://nexus-ummid-demo-181630922804.us-central1.run.app
+
+## Available Endpoints
+
+### Health Check
+GET /health
+Returns: { status: "healthy", timestamp: "..." }
+
+### Metadata Management
+GET /api/v1/metadata - List all metadata items
+GET /api/v1/metadata/:id - Get single item
+POST /api/v1/metadata - Create new item
+PUT /api/v1/metadata/:id - Update item
+DELETE /api/v1/metadata/:id - Delete item
+
+### AI Enrichment
+POST /api/v1/metadata/:id/enrich
+Generates: mood tags, keywords, enhanced synopsis using AI
+
+### Platform Validation
+POST /api/v1/metadata/:id/validate
+Body: { "platform": "netflix" | "amazon" | "fast" }
+Validates metadata completeness for streaming platform requirements
+
+### Search & Discovery
+GET /api/v1/search?q=:query - Semantic search
+GET /api/v1/search/similar/:id - Find similar content
+GET /api/v1/search/trending - Get trending items
+GET /api/v1/search/stats - Search statistics
+
+## Platform Requirements
+
+### Netflix (IMF Format)
+- Title (required)
+- Synopsis (50+ characters)
+- Genres (at least one)
+- Poster image
+
+### Amazon Prime (MEC Format)
+- Title (required)
+- Synopsis (required)
+- Rating (required)
+
+### FAST Platforms (MRSS Format)
+- Title (required)
+- Genres (at least one)
+
+## AI Capabilities
+
+### Enrichment
+- Model: Gemini 2.0
+- Features: mood tagging, keyword extraction, synopsis enhancement
+
+### Embeddings
+- Model: text-embedding-004
+- Dimensions: 768
+- Latency: <100ms
+
+### Learning System (AgentDB)
+- Pattern discovery from user interactions
+- Reflexion memory for self-improvement
+- Skill consolidation for reusable approaches
+
+## Integration Examples
+
+### Search for content
+```bash
+curl "https://nexus-ummid-api-181630922804.us-central1.run.app/api/v1/search?q=action"
+```
+
+### Enrich metadata with AI
+```bash
+curl -X POST "https://nexus-ummid-api-181630922804.us-central1.run.app/api/v1/metadata/asset-001/enrich"
+```
+
+### Validate for Netflix
+```bash
+curl -X POST "https://nexus-ummid-api-181630922804.us-central1.run.app/api/v1/metadata/asset-001/validate" \
+  -H "Content-Type: application/json" \
+  -d '{"platform": "netflix"}'
+```
+
+## Machine-Readable Manifest
+/.well-known/arw-manifest.json
+
+## Support
+GitHub: https://github.com/mondweep/hackathon-tv5
