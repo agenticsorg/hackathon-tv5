@@ -1341,6 +1341,32 @@
 
                 async validatePlatform(itemId, platform) {
                     this.validatingPlatform = platform;
+
+                    // For TMDb items, simulate validation based on data completeness
+                    if (this.selectedItem?.isTmdb) {
+                        await new Promise(r => setTimeout(r, 500)); // Simulate API delay
+                        const item = this.selectedItem;
+
+                        // Validation rules per platform
+                        const hasTitle = !!(item.title || item.name);
+                        const hasSynopsis = !!(item.overview) && item.overview.length >= 50;
+                        const hasGenres = !!(item.genres) && item.genres.length > 0;
+                        const hasRating = !!(item.vote_average);
+                        const hasPoster = !!(item.poster_path);
+
+                        // Platform-specific requirements
+                        const validationResults = {
+                            netflix: hasTitle && hasSynopsis && hasGenres && hasPoster,
+                            amazon: hasTitle && hasSynopsis && hasRating,
+                            fast: hasTitle && hasGenres // FAST has lower requirements
+                        };
+
+                        this.platformValidation[platform] = validationResults[platform] ?? false;
+                        this.validatingPlatform = null;
+                        return;
+                    }
+
+                    // For local catalog items, use the API
                     try {
                         const response = await fetch(`${API_BASE}/api/v1/metadata/${itemId}/validate`, {
                             method: 'POST',
@@ -1358,6 +1384,78 @@
 
                 async enrichItem(itemId) {
                     this.enriching = true;
+
+                    // For TMDb items, generate enrichment client-side
+                    if (this.selectedItem?.isTmdb) {
+                        await new Promise(r => setTimeout(r, 800)); // Simulate AI processing
+                        const item = this.selectedItem;
+
+                        // Generate mood tags based on genres and overview
+                        const moodMapping = {
+                            'Action': ['thrilling', 'intense', 'action-packed'],
+                            'Adventure': ['adventurous', 'epic', 'exciting'],
+                            'Animation': ['colorful', 'imaginative', 'family-friendly'],
+                            'Comedy': ['funny', 'lighthearted', 'entertaining'],
+                            'Crime': ['gritty', 'suspenseful', 'noir'],
+                            'Documentary': ['educational', 'thought-provoking', 'informative'],
+                            'Drama': ['emotional', 'dramatic', 'compelling'],
+                            'Family': ['heartwarming', 'wholesome', 'feel-good'],
+                            'Fantasy': ['magical', 'imaginative', 'epic'],
+                            'History': ['epic', 'educational', 'powerful'],
+                            'Horror': ['scary', 'tense', 'chilling'],
+                            'Music': ['inspiring', 'emotional', 'rhythmic'],
+                            'Mystery': ['intriguing', 'suspenseful', 'mysterious'],
+                            'Romance': ['romantic', 'emotional', 'heartwarming'],
+                            'Science Fiction': ['mind-bending', 'futuristic', 'thought-provoking'],
+                            'TV Movie': ['entertaining', 'easy-watching'],
+                            'Thriller': ['tense', 'gripping', 'suspenseful'],
+                            'War': ['intense', 'powerful', 'emotional'],
+                            'Western': ['adventurous', 'rugged', 'classic']
+                        };
+
+                        // Generate mood tags from genres
+                        const generatedMoodTags = [];
+                        (item.genres || []).forEach(genre => {
+                            const moods = moodMapping[genre] || [];
+                            generatedMoodTags.push(...moods);
+                        });
+
+                        // Add overview-based tags
+                        const overview = (item.overview || '').toLowerCase();
+                        if (overview.includes('love')) generatedMoodTags.push('romantic');
+                        if (overview.includes('family')) generatedMoodTags.push('family-friendly');
+                        if (overview.includes('revenge')) generatedMoodTags.push('intense');
+                        if (overview.includes('mystery')) generatedMoodTags.push('mysterious');
+                        if (overview.includes('journey')) generatedMoodTags.push('adventurous');
+
+                        // Deduplicate
+                        const uniqueMoodTags = [...new Set(generatedMoodTags)].slice(0, 6);
+
+                        // Generate keywords from overview
+                        const generatedKeywords = item.keywords || [];
+                        if (generatedKeywords.length === 0) {
+                            // Extract key terms from overview
+                            const stopWords = ['the', 'a', 'an', 'is', 'are', 'was', 'were', 'to', 'of', 'in', 'for', 'on', 'with', 'at', 'by', 'from', 'as', 'and', 'or', 'but', 'not', 'be', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'shall', 'can', 'this', 'that', 'these', 'those', 'it', 'its', 'his', 'her', 'their', 'them', 'he', 'she', 'they', 'who', 'which', 'what', 'when', 'where', 'why', 'how', 'all', 'each', 'every', 'both', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 'just', 'also', 'into', 'after', 'before', 'between', 'under', 'over', 'again', 'once'];
+                            const words = overview.split(/\W+/).filter(w => w.length > 4 && !stopWords.includes(w));
+                            const wordFreq = {};
+                            words.forEach(w => { wordFreq[w] = (wordFreq[w] || 0) + 1; });
+                            const sortedWords = Object.entries(wordFreq).sort((a, b) => b[1] - a[1]);
+                            generatedKeywords.push(...sortedWords.slice(0, 5).map(([w]) => w));
+                        }
+
+                        // Update selected item
+                        this.selectedItem = {
+                            ...this.selectedItem,
+                            moodTags: uniqueMoodTags,
+                            keywords: [...new Set([...(item.keywords || []), ...generatedKeywords])].slice(0, 8),
+                            enrichedAt: new Date().toISOString()
+                        };
+
+                        this.enriching = false;
+                        return;
+                    }
+
+                    // For local catalog items, use the API
                     try {
                         const response = await fetch(`${API_BASE}/api/v1/metadata/${itemId}/enrich`, {
                             method: 'POST',
