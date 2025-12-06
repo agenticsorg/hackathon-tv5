@@ -14,34 +14,26 @@ import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 // Mock Firestore types
 type DocumentReference = {
   id: string;
-  set: jest.Mock;
-  get: jest.Mock;
-  update: jest.Mock;
-  delete: jest.Mock;
+  set: jest.Mock<any>;
+  get: jest.Mock<any>;
+  update: jest.Mock<any>;
+  delete: jest.Mock<any>;
 };
 
-type QuerySnapshot = {
-  docs: Array<{
-    id: string;
-    data: () => any;
-    exists: boolean;
-  }>;
-  size: number;
-  empty: boolean;
-};
+
 
 type CollectionReference = {
-  doc: jest.Mock<DocumentReference>;
-  add: jest.Mock;
-  get: jest.Mock<QuerySnapshot>;
-  where: jest.Mock<CollectionReference>;
-  orderBy: jest.Mock<CollectionReference>;
-  limit: jest.Mock<CollectionReference>;
-  offset: jest.Mock<CollectionReference>;
+  doc: jest.Mock<any>;
+  add: jest.Mock<any>;
+  get: jest.Mock<any>;
+  where: jest.Mock<any>;
+  orderBy: jest.Mock<any>;
+  limit: jest.Mock<any>;
+  offset: jest.Mock<any>;
 };
 
 type Firestore = {
-  collection: jest.Mock<CollectionReference>;
+  collection: jest.Mock<any>;
 };
 
 // Mock Firestore
@@ -99,7 +91,7 @@ describe('MetadataService', () => {
       // Act
       const createMetadata = async (data: any) => {
         const timestamp = new Date().toISOString();
-        const docRef = await mockCollection.add({
+        const docRef = await mockFirestore.collection('metadata').add({
           ...data,
           createdAt: timestamp,
           updatedAt: timestamp,
@@ -501,7 +493,7 @@ describe('MetadataService', () => {
         const snapshot = await query.get();
 
         return {
-          items: snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })),
+          items: snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() })),
           total: snapshot.size,
           limit: options.limit,
           offset: options.offset,
@@ -536,7 +528,7 @@ describe('MetadataService', () => {
 
         const snapshot = await query.get();
         return {
-          items: snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })),
+          items: snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() })),
           total: snapshot.size,
         };
       };
@@ -571,11 +563,11 @@ describe('MetadataService', () => {
         }
 
         const snapshot = await firestoreQuery.get();
-        let results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        let results = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
 
         // Client-side text search (in real implementation would use full-text search)
         if (query.query) {
-          results = results.filter(item =>
+          results = results.filter((item: any) =>
             item.title?.toLowerCase().includes(query.query.toLowerCase())
           );
         }
@@ -600,9 +592,9 @@ describe('MetadataService', () => {
       });
 
       // Act
-      const searchMetadata = async (query: any) => {
-        const snapshot = await mockCollection.get();
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const searchMetadata = async (_query: any) => {
+        const snapshot = await (mockCollection.get as any)();
+        return snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
       };
 
       const results = await searchMetadata({ query: 'nonexistent' });

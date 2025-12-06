@@ -19,27 +19,26 @@ type Request = {
 };
 
 type Response = {
-  status: jest.Mock;
-  json: jest.Mock;
-  send: jest.Mock;
+  status: jest.Mock<any>;
+  json: jest.Mock<any>;
+  send: jest.Mock<any>;
 };
 
-type NextFunction = jest.Mock;
+
 
 // Mock MetadataService
 const mockMetadataService = {
-  createMetadata: jest.fn(),
-  getMetadata: jest.fn(),
-  updateMetadata: jest.fn(),
-  deleteMetadata: jest.fn(),
-  listMetadata: jest.fn(),
-  searchMetadata: jest.fn(),
+  createMetadata: jest.fn() as jest.Mock<any>,
+  getMetadata: jest.fn() as jest.Mock<any>,
+  updateMetadata: jest.fn() as jest.Mock<any>,
+  deleteMetadata: jest.fn() as jest.Mock<any>,
+  listMetadata: jest.fn() as jest.Mock<any>,
+  searchMetadata: jest.fn() as jest.Mock<any>,
 };
 
 describe('Metadata API Endpoints', () => {
   let req: Request;
   let res: Response;
-  let next: NextFunction;
 
   beforeEach(() => {
     // Reset mocks before each test
@@ -52,7 +51,6 @@ describe('Metadata API Endpoints', () => {
       send: jest.fn().mockReturnThis(),
     };
 
-    next = jest.fn();
     req = {};
   });
 
@@ -67,7 +65,7 @@ describe('Metadata API Endpoints', () => {
       };
 
       // Act
-      const healthHandler = (req: Request, res: Response) => {
+      const healthHandler = (_req: Request, res: Response) => {
         res.status(200).json({
           status: 'healthy',
           service: 'nexus-ummid-metadata-api',
@@ -85,7 +83,7 @@ describe('Metadata API Endpoints', () => {
 
     it('should include database connection status', async () => {
       // Act
-      const healthHandler = (req: Request, res: Response) => {
+      const healthHandler = (_req: Request, res: Response) => {
         res.status(200).json({
           status: 'healthy',
           service: 'nexus-ummid-metadata-api',
