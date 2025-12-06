@@ -94,8 +94,8 @@ router.get(
       const threshold = req.query.threshold ? parseFloat(req.query.threshold as string) : undefined;
 
       // Parse backends
-      const backends = req.query.backends
-        ? (req.query.backends as string).split(',').map(b => b.trim() as 'ruvector' | 'vertex-ai')
+      const backends: ('ruvector' | 'vertex-ai')[] = req.query.backends
+        ? (req.query.backends as string).split(',').filter(b => b === 'ruvector' || b === 'vertex-ai') as ('ruvector' | 'vertex-ai')[]
         : ['ruvector'];
 
       // Parse filters
@@ -287,7 +287,7 @@ router.get(
  * GET /api/v1/search/stats
  * Get search service statistics
  */
-router.get('/stats', async (req: Request, res: Response) => {
+router.get('/stats', async (_req: Request, res: Response) => {
   try {
     const service = await getSearchService();
     const stats = service.getStats();

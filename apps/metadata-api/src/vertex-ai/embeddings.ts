@@ -6,7 +6,6 @@
  */
 
 import { PredictionServiceClient } from '@google-cloud/aiplatform';
-import { google } from '@google-cloud/aiplatform/build/protos/protos';
 import winston from 'winston';
 
 // Logger configuration
@@ -226,7 +225,15 @@ export class VertexAIEmbeddings {
         task_type: 'SEMANTIC_SIMILARITY'
       };
 
-      const instanceValue = this.client.helpers.toValue(instance);
+      // Convert instance to protobuf Value manually
+      const instanceValue = {
+        structValue: {
+          fields: {
+            content: { stringValue: instance.content },
+            task_type: { stringValue: instance.task_type }
+          }
+        }
+      };
 
       const request = {
         endpoint: this.endpoint,

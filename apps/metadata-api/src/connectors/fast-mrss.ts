@@ -12,7 +12,7 @@
  * @see SMPTE ST 2067 for IMF interoperability
  */
 
-import { MediaMetadata, ValidationResult, ValidationError, ValidationWarning } from '../types/index.js';
+import { MediaMetadata, ValidationError, ValidationWarning } from '../types/index.js';
 import {
   PlatformConnector,
   Platform,
@@ -20,9 +20,7 @@ import {
   PlatformValidationResult,
   MRSSPackage,
   MRSSItem,
-  MRSSMediaContent,
   MRSSMediaThumbnail,
-  MRSSMediaRating,
   ConnectorConfig,
   ConnectorCapabilities
 } from './types.js';
@@ -423,8 +421,6 @@ export class FASTMRSSConnector implements PlatformConnector {
       }
     }
 
-    const now = new Date();
-
     // Build MRSS package
     const mrssPackage: MRSSPackage = {
       format: 'mrss',
@@ -768,7 +764,7 @@ export class FASTMRSSConnector implements PlatformConnector {
   /**
    * Parse MRSS XML to metadata (stub implementation)
    */
-  private parseFromMRSSXML(xml: string): MediaMetadata {
+  private parseFromMRSSXML(_xml: string): MediaMetadata {
     // In production, use a proper XML parser like fast-xml-parser
     throw new Error('MRSS XML parsing not yet implemented. Use JSON format for parsing.');
   }
@@ -794,10 +790,10 @@ export class FASTMRSSConnector implements PlatformConnector {
     return 'SD';
   }
 
-  private calculateCompliance(errors: ValidationError[], warnings: ValidationWarning[], checks: any): number {
+  private calculateCompliance(errors: ValidationError[], warnings: ValidationWarning[], _checks: any): number {
     const errorWeight = errors.length * 15;
     const warningWeight = warnings.length * 5;
-    const technicalWeight = Object.values(checks).filter(v => !v).length * 10;
+    const technicalWeight = Object.values(_checks).filter(v => !v).length * 10;
 
     return Math.max(0, 100 - errorWeight - warningWeight - technicalWeight);
   }

@@ -176,18 +176,18 @@ export class PatternLearner {
   /**
    * Analyze patterns to extract statistics
    */
-  private analyzePatterns(patterns: Array<{ pattern: any; similarity: number }>) {
-    const qualities = patterns.map(p => p.pattern.quality);
-    const latencies = patterns.map(p => p.pattern.latencyMs);
-    const tokens = patterns.map(p => p.pattern.tokensUsed);
-    const similarities = patterns.map(p => p.similarity);
+  private analyzePatterns(_patterns: Array<{ pattern: any; similarity: number }>) {
+    const qualities = _patterns.map(p => p.pattern.quality);
+    const latencies = _patterns.map(p => p.pattern.latencyMs);
+    const tokens = _patterns.map(p => p.pattern.tokensUsed);
+    const similarities = _patterns.map(p => p.similarity);
 
     return {
       avgQuality: this.average(qualities),
       avgLatency: this.average(latencies),
       avgTokens: this.average(tokens),
       avgSimilarity: this.average(similarities),
-      count: patterns.length
+      count: _patterns.length
     };
   }
 
@@ -196,7 +196,7 @@ export class PatternLearner {
    * Based on pattern count, average similarity, and quality consistency
    */
   private calculateConfidence(
-    patterns: Array<{ pattern: any; similarity: number }>,
+    _patterns: Array<{ pattern: any; similarity: number }>,
     stats: { avgQuality: number; avgSimilarity: number; count: number }
   ): number {
     // More patterns = higher confidence (up to 0.3)
@@ -214,7 +214,7 @@ export class PatternLearner {
   /**
    * Generate human-readable reason for suggestion
    */
-  private generateReason(approach: string, patternCount: number, stats: any): string {
+  private generateReason(_approach: string, patternCount: number, stats: any): string {
     const qualityPct = Math.round(stats.avgQuality * 100);
     return `Based on ${patternCount} similar enrichments, this approach achieved ${qualityPct}% average quality with ${Math.round(stats.avgLatency)}ms latency.`;
   }
@@ -222,7 +222,7 @@ export class PatternLearner {
   /**
    * Get default suggestions when not enough data is available
    */
-  private getDefaultSuggestions(metadata: Partial<MediaMetadata>): EnrichmentSuggestion[] {
+  private getDefaultSuggestions(_metadata: Partial<MediaMetadata>): EnrichmentSuggestion[] {
     return [
       {
         approach: 'default_enrichment',
@@ -251,16 +251,16 @@ export class PatternLearner {
    * Generate semantic embedding for metadata (placeholder)
    * In production, integrate with actual embedding service (e.g., Vertex AI)
    */
-  private generateEmbedding(metadata: Partial<MediaMetadata>): number[] {
+  private generateEmbedding(_metadata: Partial<MediaMetadata>): number[] {
     // Placeholder: Generate simple embedding based on metadata features
     // In production, use Vertex AI Embeddings or similar service
     const embedding = new Array(384).fill(0);
 
     // Hash-based pseudo-embedding (replace with actual embedding service)
     const features = [
-      metadata.type || '',
-      ...(metadata.genres || []),
-      ...(metadata.keywords || [])
+      _metadata.type || '',
+      ...(_metadata.genres || []),
+      ...(_metadata.keywords || [])
     ].join(' ');
 
     for (let i = 0; i < features.length; i++) {

@@ -224,12 +224,12 @@ export const metricsCollector = new MetricsCollector();
  * Metrics middleware
  * Automatically tracks request duration and counts
  */
-export const metricsMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+export const metricsMiddleware = (_req: Request, res: Response, next: NextFunction): void => {
   const startTime = Date.now();
   metricsCollector.incrementInFlight();
 
   // Normalize endpoint path (remove IDs and query params)
-  const normalizedPath = req.path
+  const normalizedPath = _req.path
     .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, '/:id')
     .replace(/\/\d+/g, '/:id')
     .replace(/\?.*$/, '');
@@ -239,7 +239,7 @@ export const metricsMiddleware = (req: Request, res: Response, next: NextFunctio
   res.send = function (data): Response {
     const duration = Date.now() - startTime;
     const statusCode = res.statusCode;
-    const method = req.method;
+    const method = _req.method;
 
     // Record metrics
     metricsCollector.recordRequestDuration(normalizedPath, method, statusCode, duration);
@@ -259,7 +259,7 @@ export const metricsMiddleware = (req: Request, res: Response, next: NextFunctio
         path: normalizedPath,
         statusCode,
         duration_ms: duration,
-        user_agent: req.get('user-agent')
+        user_agent: _req.get('user-agent')
       });
     }
 
@@ -273,8 +273,8 @@ export const metricsMiddleware = (req: Request, res: Response, next: NextFunctio
  * Metrics endpoint handler
  * Exposes metrics in Prometheus format
  */
-export const metricsHandler = (req: Request, res: Response): void => {
-  const format = req.query.format || 'prometheus';
+export const metricsHandler = (_req: Request, res: Response): void => {
+  const format = _req.query.format || 'prometheus';
 
   if (format === 'json') {
     res.setHeader('Content-Type', 'application/json');
@@ -288,7 +288,7 @@ export const metricsHandler = (req: Request, res: Response): void => {
 /**
  * Health check with metrics
  */
-export const healthCheckWithMetrics = (req: Request, res: Response): void => {
+export const healthCheckWithMetrics = (_req: Request, res: Response): void => {
   const summary = metricsCollector.getMetricsSummary() as any;
   const totalRequests = Object.values(summary.endpoints).reduce(
     (sum: number, endpoint: any) => sum + endpoint.total_requests,

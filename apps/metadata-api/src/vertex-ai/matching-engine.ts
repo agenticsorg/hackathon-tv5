@@ -6,7 +6,6 @@
  */
 
 import { IndexServiceClient, IndexEndpointServiceClient } from '@google-cloud/aiplatform';
-import { google } from '@google-cloud/aiplatform/build/protos/protos';
 import winston from 'winston';
 
 // Logger configuration
@@ -194,23 +193,6 @@ export class MatchingEngineClient {
         vectorCount: vectors.length
       });
 
-      // Get the index resource name
-      const indexName = await this.getIndexName(indexId);
-
-      // Prepare datapoints for upsertion
-      const datapoints = vectors.map(vector => ({
-        datapointId: vector.id,
-        featureVector: vector.embedding,
-        restricts: vector.metadata ? this.convertMetadataToRestricts(vector.metadata) : []
-      }));
-
-      // For large batches, we need to use streaming or batch operations
-      // For now, we'll use a direct update (in production, use streaming for large datasets)
-      const updateRequest = {
-        index: indexName,
-        datapoints: datapoints as any
-      };
-
       // Note: In production, you would use updateIndex with proper batching
       // For this implementation, we're demonstrating the structure
       logger.warn('Vector upsertion requires streaming API for production use');
@@ -244,16 +226,16 @@ export class MatchingEngineClient {
    * @returns Array of search results
    */
   async findNeighbors(
-    indexId: string,
-    query: number[],
-    k: number = 10,
-    filters?: Record<string, any>
+    _indexId: string,
+    _query: number[],
+    _k: number = 10,
+    _filters?: Record<string, any>
   ): Promise<MatchingEngineSearchResult[]> {
-    if (!query || query.length === 0) {
+    if (!_query || _query.length === 0) {
       throw new Error('Query vector cannot be empty');
     }
 
-    if (k <= 0 || k > 1000) {
+    if (_k <= 0 || _k > 1000) {
       throw new Error('k must be between 1 and 1000');
     }
 
@@ -261,28 +243,11 @@ export class MatchingEngineClient {
 
     try {
       logger.info('Finding neighbors', {
-        indexId,
-        k,
-        queryDimensions: query.length,
-        hasFilters: !!filters
+        indexId: _indexId,
+        k: _k,
+        queryDimensions: _query.length,
+        hasFilters: !!_filters
       });
-
-      // Get deployed index endpoint
-      const endpointName = await this.getEndpointName(indexId);
-
-      // Prepare query request
-      const deployedIndexId = `${indexId}_deployed`;
-      const queries = [{
-        featureVector: query,
-        neighborCount: k,
-        perCrowdingAttributeNeighborCount: k
-      }];
-
-      // Add metadata filters if provided
-      if (filters) {
-        const restricts = this.convertMetadataToRestricts(filters);
-        queries[0] = { ...queries[0], ...{ restricts } } as any;
-      }
 
       // Execute search
       // Note: This is a simplified implementation
@@ -294,7 +259,7 @@ export class MatchingEngineClient {
 
       const latency = Date.now() - startTime;
       logger.info('Neighbors found', {
-        indexId,
+        indexId: _indexId,
         resultCount: results.length,
         latencyMs: latency
       });
@@ -304,8 +269,8 @@ export class MatchingEngineClient {
     } catch (error) {
       logger.error('Failed to find neighbors', {
         error: error instanceof Error ? error.message : 'Unknown error',
-        indexId,
-        k
+        indexId: _indexId,
+        k: _k
       });
       throw error;
     }
@@ -317,21 +282,21 @@ export class MatchingEngineClient {
    * @param indexId - Index to deploy
    * @returns Deployed index endpoint name
    */
-  async deployIndex(indexId: string): Promise<string> {
+  async deployIndex(_indexId: string): Promise<string> {
     const startTime = Date.now();
 
     try {
-      logger.info('Deploying index', { indexId });
+      logger.info('Deploying index', { indexId: _indexId });
 
       // Get or create endpoint
       const endpointName = await this.getOrCreateEndpoint();
-      const indexName = await this.getIndexName(indexId);
+      const indexName = await this.getIndexName(_indexId);
 
       // Deploy index to endpoint
       const deployedIndex = {
-        id: `${indexId}_deployed`,
+        id: `${_indexId}_deployed`,
         index: indexName,
-        displayName: `${indexId} deployment`,
+        displayName: `${_indexId} deployment`,
         automaticResources: {
           minReplicaCount: 1,
           maxReplicaCount: 2
@@ -343,11 +308,11 @@ export class MatchingEngineClient {
         deployedIndex: deployedIndex as any
       });
 
-      const [response] = await operation.promise();
+      await operation.promise();
 
       const latency = Date.now() - startTime;
       logger.info('Index deployed', {
-        indexId,
+        indexId: _indexId,
         endpointName,
         latencyMs: latency
       });
@@ -357,7 +322,7 @@ export class MatchingEngineClient {
     } catch (error) {
       logger.error('Failed to deploy index', {
         error: error instanceof Error ? error.message : 'Unknown error',
-        indexId
+        indexId: _indexId
       });
       throw error;
     }
@@ -479,28 +444,6 @@ export class MatchingEngineClient {
     }
   }
 
-  /**
-   * Get endpoint name for an index
-   *
-   * @param indexId - Index identifier
-   * @returns Endpoint resource name
-   */
-  private async getEndpointName(indexId: string): Promise<string> {
-    return this.getOrCreateEndpoint();
-  }
-
-  /**
-   * Convert metadata object to Matching Engine restricts format
-   *
-   * @param metadata - Metadata object
-   * @returns Array of restrict filters
-   */
-  private convertMetadataToRestricts(metadata: Record<string, any>): any[] {
-    return Object.entries(metadata).map(([key, value]) => ({
-      namespace: key,
-      allowList: Array.isArray(value) ? value : [value]
-    }));
-  }
 
   /**
    * Close client connections

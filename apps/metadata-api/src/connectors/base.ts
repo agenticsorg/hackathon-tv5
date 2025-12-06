@@ -63,7 +63,7 @@ export abstract class BasePlatformConnector implements PlatformConnector {
    * @param fieldName - Name of the field for error reporting
    * @returns True if valid, false otherwise
    */
-  protected hasRequiredField(value: unknown, fieldName: string): boolean {
+  protected hasRequiredField(value: unknown, _fieldName: string): boolean {
     return value !== undefined && value !== null && value !== '';
   }
 
@@ -73,9 +73,9 @@ export abstract class BasePlatformConnector implements PlatformConnector {
    * @param date - Date to validate
    * @returns True if valid date, false otherwise
    */
-  protected isValidDate(date: unknown): boolean {
-    if (!date) return false;
-    const d = date instanceof Date ? date : new Date(date as string);
+  protected isValidDate(_date: unknown): boolean {
+    if (!_date) return false;
+    const d = _date instanceof Date ? _date : new Date(_date as string);
     return d instanceof Date && !isNaN(d.getTime());
   }
 

@@ -68,7 +68,7 @@ app.get('/health', healthCheckWithMetrics);
 /**
  * Root Endpoint
  */
-app.get('/', (req: Request, res: Response) => {
+app.get('/', (_req: Request, res: Response) => {
   res.json({
     service: 'Nexus-UMMID Metadata API',
     version: '1.0.0',

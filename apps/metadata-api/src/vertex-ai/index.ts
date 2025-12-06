@@ -273,6 +273,7 @@ export async function healthCheck(): Promise<{
 
   try {
     // Test embeddings service
+    const { getEmbeddingsInstance } = await import('./embeddings.js');
     const embeddings = getEmbeddingsInstance();
     await embeddings.generateEmbedding('health check');
     services.embeddings = true;
@@ -282,6 +283,7 @@ export async function healthCheck(): Promise<{
 
   try {
     // Test matching engine service
+    const { getMatchingEngineInstance } = await import('./matching-engine.js');
     const matchingEngine = getMatchingEngineInstance();
     await matchingEngine.listIndexes();
     services.matchingEngine = true;

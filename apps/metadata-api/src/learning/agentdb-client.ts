@@ -56,19 +56,13 @@ export interface AgentDBClientConfig {
  */
 export class AgentDBClient {
   private db: Database.Database;
-  private embeddingDim: number;
-  private vectorSearchEnabled: boolean;
 
   constructor(config: AgentDBClientConfig = {}) {
     const {
       dbPath = path.join(process.cwd(), 'mondweep', '.swarm', 'memory.db'),
-      embeddingDimension = 384,
-      vectorSearchEnabled = true
     } = config;
 
     this.db = new Database(dbPath);
-    this.embeddingDim = embeddingDimension;
-    this.vectorSearchEnabled = vectorSearchEnabled;
 
     this.initialize();
   }
@@ -168,7 +162,7 @@ export class AgentDBClient {
    * @returns Array of pattern matches with similarity scores
    */
   public retrieveSimilarPatterns(
-    input: any,
+    _input: any,
     limit: number = 10,
     minQuality: number = 0.7
   ): PatternMatch[] {
@@ -183,7 +177,7 @@ export class AgentDBClient {
 
     return patterns.map(p => ({
       pattern: this.deserializePattern(p),
-      similarity: this.calculateSimilarity(input, JSON.parse(p.input_metadata))
+      similarity: this.calculateSimilarity(_input, JSON.parse(p.input_metadata))
     })).sort((a, b) => b.similarity - a.similarity);
   }
 
@@ -211,7 +205,7 @@ export class AgentDBClient {
    * @param approach - Enrichment approach name
    * @returns Success rate and statistics
    */
-  public getApproachStats(approach: string): {
+  public getApproachStats(_approach: string): {
     totalAttempts: number;
     successCount: number;
     successRate: number;
@@ -228,7 +222,7 @@ export class AgentDBClient {
         AVG(tokens_used) as avg_tokens
       FROM enrichment_patterns
       WHERE approach = ?
-    `).get(approach) as any;
+    `).get(_approach) as any;
 
     const totalAttempts = stats.total_attempts || 0;
     const successCount = stats.success_count || 0;
@@ -351,31 +345,6 @@ export class AgentDBClient {
     return totalFields > 0 ? score : 0;
   }
 
-  /**
-   * Calculate cosine similarity between two embedding vectors
-   *
-   * @param a - First embedding vector
-   * @param b - Second embedding vector
-   * @returns Cosine similarity score (0-1)
-   */
-  private cosineSimilarity(a: number[], b: number[]): number {
-    if (a.length !== b.length) {
-      throw new Error('Embedding dimensions must match');
-    }
-
-    let dotProduct = 0;
-    let normA = 0;
-    let normB = 0;
-
-    for (let i = 0; i < a.length; i++) {
-      dotProduct += a[i] * b[i];
-      normA += a[i] * a[i];
-      normB += b[i] * b[i];
-    }
-
-    const denominator = Math.sqrt(normA) * Math.sqrt(normB);
-    return denominator === 0 ? 0 : dotProduct / denominator;
-  }
 }
 
 export default AgentDBClient;

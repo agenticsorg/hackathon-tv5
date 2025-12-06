@@ -172,7 +172,7 @@ export class HybridSearchService {
   /**
    * Search using Vertex AI
    */
-  private async searchVertexAI(query: string, limit: number): Promise<SearchResult[]> {
+  private async searchVertexAI(_query: string, _limit: number): Promise<SearchResult[]> {
     // Placeholder for Vertex AI integration
     // In production, this would call Vertex AI Matching Engine or Vector Search
     throw new Error('Vertex AI not configured');
@@ -353,7 +353,9 @@ export class HybridSearchService {
     // Limit cache size to 1000 entries
     if (this.cache.size > 1000) {
       const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
+      if (firstKey) {
+        this.cache.delete(firstKey);
+      }
     }
   }
 

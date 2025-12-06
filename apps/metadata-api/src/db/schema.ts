@@ -15,8 +15,6 @@ import type {
   StreamingPlatform,
   Hyperedge,
   ContentMetrics,
-  ApiRequest,
-  EidrCacheEntry,
 } from './models';
 
 // ============================================================================
