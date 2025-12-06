@@ -1,5 +1,9 @@
 -- EmotiStream PostgreSQL Schema
 -- This schema supports the RL-based content recommendation system
+-- Uses ruvector extension for SIMD-optimized emotion vector operations
+
+-- Enable ruvector extension (provides vector similarity, temporal compression, attention mechanisms)
+CREATE EXTENSION IF NOT EXISTS ruvector;
 
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
@@ -32,6 +36,32 @@ CREATE TABLE IF NOT EXISTS emotion_analyses (
 
 CREATE INDEX IF NOT EXISTS idx_emotion_user ON emotion_analyses(user_id);
 CREATE INDEX IF NOT EXISTS idx_emotion_created ON emotion_analyses(created_at DESC);
+
+-- Emotion embeddings table (using ruvector for fast similarity search)
+-- Stores 8-dimensional emotion vectors for content and user states
+CREATE TABLE IF NOT EXISTS emotion_embeddings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    entity_type VARCHAR(20) NOT NULL CHECK (entity_type IN ('user_state', 'content', 'desired_state')),
+    entity_id VARCHAR(255) NOT NULL,
+    embedding ruvector(8),  -- 8-dim emotion vector: [joy, sadness, anger, fear, surprise, disgust, trust, anticipation]
+    valence REAL,
+    arousal REAL,
+    stress REAL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_embeddings_entity ON emotion_embeddings(entity_type, entity_id);
+
+-- User emotion history with EMA tracking (temporal patterns)
+CREATE TABLE IF NOT EXISTS user_emotion_ema (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id VARCHAR(255) NOT NULL,
+    ema_embedding ruvector(8),  -- Exponential moving average of user's emotional state
+    alpha REAL DEFAULT 0.3,     -- EMA smoothing factor
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(user_id)
+);
 
 -- Content catalog table
 CREATE TABLE IF NOT EXISTS content (

@@ -1,9 +1,11 @@
 version: '3.8'
 
 services:
-  # PostgreSQL Database
+  # PostgreSQL Database with RuVector extension
+  # ruvector-postgres provides SIMD-optimized vector operations for emotion embeddings
   db:
-    image: postgres:16-alpine
+    image: ruvnet/ruvector-postgres:latest
+    platform: linux/amd64
     container_name: emotistream-db
     environment:
       POSTGRES_DB: emotistream
@@ -11,6 +13,11 @@ services:
       POSTGRES_PASSWORD: emotistream_pass
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    command: >
+      bash -c "
+        rm -f /docker-entrypoint-initdb.d/init.sql 2>/dev/null || true;
+        docker-entrypoint.sh postgres
+      "
     ports:
       - "5432:5432"
     healthcheck:
