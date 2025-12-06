@@ -19,6 +19,24 @@
 
 ## 🎬 Why RuVector for Media Discovery?
 
+### pgvector vs ruvector-postgres
+
+| Feature | pgvector | ruvector-postgres |
+|---------|----------|-------------------|
+| Vector Search | HNSW, IVFFlat | HNSW, IVFFlat (SIMD optimized) |
+| Distance Metrics | 3 | **8+ (including hyperbolic)** |
+| Attention Mechanisms | ❌ | **39 types** |
+| Graph Neural Networks | ❌ | **GCN, GraphSAGE, GAT** |
+| Hyperbolic Embeddings | ❌ | **Poincaré, Lorentz** |
+| Sparse Vectors / BM25 | Partial | **Full support (14 functions)** |
+| Self-Learning | ❌ | **ReasoningBank (7 functions)** |
+| Agent Routing | ❌ | **Tiny Dancer (11 functions)** |
+| Graph/Cypher Queries | ❌ | **Full support (8 functions)** |
+| AVX-512/NEON SIMD | Partial | **Full (~2x faster)** |
+| SQL Functions | ~10 | **53+** |
+
+### Traditional vs RuVector
+
 | Traditional Approach | RuVector Media Gateway |
 |---------------------|------------------------|
 | Static search results | **Self-learning GNN** — results improve over time |
@@ -229,14 +247,55 @@ const strategy = router.route(query, {
 
 ### Run PostgreSQL Benchmarks
 
+The benchmarks use **ruvector-postgres** — a drop-in pgvector replacement with **53+ SQL functions**:
+
 ```bash
-# Setup RuVector PostgreSQL extension
+# Setup RuVector PostgreSQL extension (replaces pgvector)
 npm install -g @ruvector/postgres-cli
-ruvector-pg setup
+ruvector-pg install
+
+# Or via Docker
+docker run -d -e POSTGRES_PASSWORD=secret -p 5432:5432 ruvector/postgres:latest
 
 # Run media gateway benchmarks
 psql -d postgres -f benchmarks/ruvector_benchmark_optimized.sql
 psql -d postgres -f benchmarks/tv5_raft_scale_benchmark.sql
+```
+
+### RuVector-Postgres SQL Functions for Media Gateway
+
+```sql
+-- Hyperbolic embeddings for genre hierarchies
+SELECT ruvector_poincare_distance(movie_a.embedding, movie_b.embedding, -1.0);
+SELECT ruvector_mobius_add(genre_a, genre_b, -1.0);  -- Combine genres
+
+-- Graph Neural Networks for recommendation graphs
+SELECT ruvector_gnn_graphsage_layer(user_features, movie_features, weights);
+SELECT ruvector_gnn_gat_layer(features, adjacency, attention_weights);
+
+-- 39 Attention mechanisms
+SELECT ruvector_attention_multi_head(query, keys, values, 8);  -- 8 heads
+SELECT ruvector_attention_flash(query, keys, values, 64);      -- Memory efficient
+
+-- Sparse vectors + BM25 for hybrid search
+SELECT ruvector_bm25_score(query_terms, doc_freqs, doc_len, avg_len, total);
+SELECT ruvector_sparse_cosine(user_prefs, movie_tags);
+
+-- Agent routing (Tiny Dancer)
+SELECT ruvector_route_query(query_embedding, agent_registry);
+SELECT ruvector_adaptive_route(query, context, 0.01);
+
+-- Self-learning (ReasoningBank)
+SELECT ruvector_record_trajectory(input, output, success, context);
+SELECT ruvector_adaptive_search(query, context, ef_search);
+SELECT ruvector_learning_feedback(search_id, relevance_scores);
+
+-- Graph queries with Cypher
+SELECT ruvector_cypher_query('
+  MATCH (u:User)-[:WATCHED]->(m:Movie)-[:STARS]->(a:Actor)
+  RETURN a.name, count(m) as movies
+  ORDER BY movies DESC LIMIT 10
+');
 ```
 
 ---
