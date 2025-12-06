@@ -21,4 +21,8 @@ export class EpsilonGreedyStrategy {
   decay(): void {
     this.epsilon = Math.max(this.minEpsilon, this.epsilon * this.decayRate);
   }
+
+  getEpsilon(): number {
+    return this.epsilon;
+  }
 }

@@ -1,10 +1,32 @@
-import { QTableEntry } from './types';
+import { QTableEntry } from './types.js';
+import { FileStore } from '../persistence/file-store.js';
 
 export class QTable {
   private table: Map<string, QTableEntry>;
+  private store: FileStore<QTableEntry>;
+  private readonly PERSISTENCE_FILE = 'qtable.json';
 
   constructor() {
     this.table = new Map();
+    this.store = new FileStore<QTableEntry>(this.PERSISTENCE_FILE);
+    this.loadFromStore();
+  }
+
+  /**
+   * Load Q-table entries from persistent storage
+   */
+  private loadFromStore(): void {
+    for (const [key, entry] of this.store.entries()) {
+      this.table.set(key, entry);
+    }
+    console.log(`📊 Loaded ${this.table.size} Q-table entries from storage`);
+  }
+
+  /**
+   * Force save to disk (useful for shutdown)
+   */
+  flush(): void {
+    this.store.flush();
   }
 
   async get(stateHash: string, contentId: string): Promise<QTableEntry | null> {
@@ -15,6 +37,8 @@ export class QTable {
   async set(entry: QTableEntry): Promise<void> {
     const key = this.buildKey(entry.stateHash, entry.contentId);
     this.table.set(key, entry);
+    // Persist to file store
+    this.store.set(key, entry);
   }
 
   async updateQValue(stateHash: string, contentId: string, newValue: number): Promise<void> {

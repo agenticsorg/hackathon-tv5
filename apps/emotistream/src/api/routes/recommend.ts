@@ -1,7 +1,8 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { recommendRateLimiter } from '../middleware/rate-limiter';
-import { ValidationError, ApiResponse } from '../middleware/error-handler';
-import { EmotionalState, DesiredState, Recommendation } from '../../types';
+import { recommendRateLimiter } from '../middleware/rate-limiter.js';
+import { ValidationError, ApiResponse } from '../middleware/error-handler.js';
+import { EmotionalState, DesiredState, Recommendation } from '../../types/index.js';
+import { getServices } from '../../services/index.js';
 
 const router = Router();
 
@@ -52,62 +53,43 @@ router.post(
         throw new ValidationError('limit must be between 1 and 20');
       }
 
-      // TODO: Integrate with RecommendationEngine
-      // For now, return mock recommendations
-      const mockRecommendations: Recommendation[] = [
+      // Use real RecommendationEngine
+      const services = getServices();
+      const recommendations = await services.recommendationEngine.recommend(
+        userId,
         {
-          contentId: 'content-001',
-          title: 'Calm Nature Documentary',
-          qValue: 0.85,
-          similarityScore: 0.92,
-          combinedScore: 0.88,
-          predictedOutcome: {
-            expectedValence: 0.5,
-            expectedArousal: -0.3,
-            expectedStress: 0.2,
-            confidence: 0.87,
-          },
-          reasoning: 'High Q-value for stress reduction. Nature scenes promote relaxation.',
-          isExploration: false,
+          valence: currentState.valence,
+          arousal: currentState.arousal,
+          stress: currentState.stressLevel ?? currentState.stress ?? 0.5,
         },
-        {
-          contentId: 'content-002',
-          title: 'Comedy Special: Feel-Good Laughs',
-          qValue: 0.72,
-          similarityScore: 0.85,
-          combinedScore: 0.78,
-          predictedOutcome: {
-            expectedValence: 0.7,
-            expectedArousal: 0.2,
-            expectedStress: 0.1,
-            confidence: 0.82,
-          },
-          reasoning: 'Comedy content increases positive valence and reduces stress.',
-          isExploration: false,
+        numLimit
+      );
+
+      // Map to API response format
+      const apiRecommendations = recommendations.map((rec) => ({
+        contentId: rec.contentId,
+        title: rec.title,
+        qValue: rec.qValue,
+        similarityScore: rec.similarityScore,
+        combinedScore: rec.combinedScore,
+        predictedOutcome: {
+          expectedValence: rec.predictedOutcome.expectedValence,
+          expectedArousal: rec.predictedOutcome.expectedArousal,
+          expectedStress: rec.predictedOutcome.expectedStress,
+          confidence: rec.predictedOutcome.confidence,
         },
-        {
-          contentId: 'content-003',
-          title: 'Meditation & Mindfulness Guide',
-          qValue: 0.68,
-          similarityScore: 0.88,
-          combinedScore: 0.76,
-          predictedOutcome: {
-            expectedValence: 0.4,
-            expectedArousal: -0.5,
-            expectedStress: 0.15,
-            confidence: 0.90,
-          },
-          reasoning: 'Direct stress reduction through guided meditation.',
-          isExploration: false,
-        },
-      ].slice(0, numLimit);
+        reasoning: rec.reasoning,
+        isExploration: rec.isExploration,
+      }));
+
+      const explorationRate = services.getExplorationRate();
 
       res.json({
         success: true,
         data: {
           userId,
-          recommendations: mockRecommendations,
-          explorationRate: 0.15,
+          recommendations: apiRecommendations,
+          explorationRate,
           timestamp: Date.now(),
         },
         error: null,

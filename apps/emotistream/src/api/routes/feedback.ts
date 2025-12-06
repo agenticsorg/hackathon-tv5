@@ -1,8 +1,13 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { ValidationError, ApiResponse, InternalError } from '../middleware/error-handler';
-import { FeedbackRequest, FeedbackResponse, EmotionalState } from '../../types';
+import { ValidationError, ApiResponse, InternalError } from '../middleware/error-handler.js';
+import { FeedbackRequest, FeedbackResponse, EmotionalState } from '../../types/index.js';
+import { getServices } from '../../services/index.js';
+import { EmotionalExperience } from '../../rl/types.js';
 
 const router = Router();
+
+// Store for tracking user sessions (stateBeforeViewing for reward calculation)
+const userSessionStore = new Map<string, { stateBefore: any; desiredState: any; contentId: string }>();
 
 /**
  * POST /api/v1/feedback
@@ -64,23 +69,91 @@ router.post(
         }
       }
 
-      // TODO: Integrate with FeedbackProcessor and RLPolicyEngine
-      // For now, return mock response
-      const mockResponse: FeedbackResponse = {
-        reward: 0.75,
+      // Use real FeedbackProcessor and RLPolicyEngine
+      const services = getServices();
+
+      // Build state before viewing (use stored session or construct from actualPostState)
+      const sessionKey = `${feedbackRequest.userId}:${feedbackRequest.contentId}`;
+      const session = userSessionStore.get(sessionKey);
+
+      // Default state before (will be estimated if no session exists)
+      const stateBefore = session?.stateBefore ?? {
+        valence: feedbackRequest.actualPostState.valence * 0.5,
+        arousal: feedbackRequest.actualPostState.arousal * 0.8,
+        stress: feedbackRequest.actualPostState.stressLevel ?? 0.5,
+        confidence: 0.6,
+      };
+
+      const desiredState = session?.desiredState ?? {
+        targetValence: 0.5,
+        targetArousal: -0.2,
+        targetStress: 0.2,
+        intensity: 'moderate' as const,
+        reasoning: 'Default desired state for emotional homeostasis',
+      };
+
+      // Process feedback using FeedbackProcessor
+      const feedbackResult = services.feedbackProcessor.process(
+        feedbackRequest,
+        {
+          valence: stateBefore.valence,
+          arousal: stateBefore.arousal,
+          stressLevel: stateBefore.stress,
+          primaryEmotion: 'neutral',
+          emotionVector: new Float32Array(8),
+          confidence: stateBefore.confidence,
+          timestamp: Date.now() - feedbackRequest.watchDuration * 60000,
+        },
+        desiredState
+      );
+
+      // Update RL policy using RLPolicyEngine
+      // Build experience object matching rl/types.ts EmotionalExperience
+      const experience: EmotionalExperience = {
+        stateBefore: {
+          valence: stateBefore.valence,
+          arousal: stateBefore.arousal,
+          stress: stateBefore.stress,
+          confidence: stateBefore.confidence,
+        },
+        stateAfter: {
+          valence: feedbackRequest.actualPostState.valence,
+          arousal: feedbackRequest.actualPostState.arousal,
+          stress: feedbackRequest.actualPostState.stressLevel ?? 0.3,
+          confidence: 0.8,
+        },
+        contentId: feedbackRequest.contentId,
+        reward: feedbackResult.reward,
+        desiredState: {
+          valence: desiredState.targetValence,
+          arousal: desiredState.targetArousal,
+          confidence: 0.7,
+        },
+      };
+
+      const policyUpdate = await services.policyEngine.updatePolicy(
+        feedbackRequest.userId,
+        experience
+      );
+
+      // Clean up session
+      userSessionStore.delete(sessionKey);
+
+      const response: FeedbackResponse = {
+        reward: feedbackResult.reward,
         policyUpdated: true,
-        newQValue: 0.82,
+        newQValue: policyUpdate.newQValue,
         learningProgress: {
-          totalExperiences: 15,
-          avgReward: 0.68,
-          explorationRate: 0.12,
-          convergenceScore: 0.45,
+          totalExperiences: feedbackResult.learningProgress.totalExperiences,
+          avgReward: feedbackResult.learningProgress.avgReward,
+          explorationRate: services.getExplorationRate(),
+          convergenceScore: feedbackResult.learningProgress.convergenceScore,
         },
       };
 
       res.json({
         success: true,
-        data: mockResponse,
+        data: response,
         error: null,
         timestamp: new Date().toISOString(),
       });

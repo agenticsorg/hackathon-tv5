@@ -1,9 +1,20 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { emotionRateLimiter } from '../middleware/rate-limiter';
-import { ValidationError, ApiResponse } from '../middleware/error-handler';
-import { EmotionalState } from '../../types';
+import { emotionRateLimiter } from '../middleware/rate-limiter.js';
+import { ValidationError, ApiResponse } from '../middleware/error-handler.js';
+import { EmotionalState } from '../../types/index.js';
+import { getServices } from '../../services/index.js';
+import { GeminiClient } from '../../emotion/gemini-client.js';
 
 const router = Router();
+
+// Lazy initialization - create client on first request after env is loaded
+let geminiClient: GeminiClient | null = null;
+function getGeminiClient(): GeminiClient {
+  if (!geminiClient) {
+    geminiClient = new GeminiClient();
+  }
+  return geminiClient;
+}
 
 /**
  * POST /api/v1/emotion/analyze
@@ -48,24 +59,70 @@ router.post(
         throw new ValidationError('text must be less than 1000 characters');
       }
 
-      // TODO: Integrate with EmotionDetector
-      // For now, return mock response
-      const mockState: EmotionalState = {
-        valence: -0.4,
-        arousal: 0.3,
-        stressLevel: 0.6,
-        primaryEmotion: 'stress',
-        emotionVector: new Float32Array([0.1, 0.2, 0.3, 0.1, 0.5, 0.1, 0.4, 0.2]),
-        confidence: 0.85,
-        timestamp: Date.now(),
+      // Use EmotionDetector with Gemini fallback
+      const services = getServices();
+      let emotionResult;
+      let usedGemini = false;
+
+      // Try Gemini first if available
+      const gemini = getGeminiClient();
+      if (gemini.isAvailable()) {
+        try {
+          const geminiResult = await gemini.analyzeEmotion(text);
+          emotionResult = {
+            valence: geminiResult.valence,
+            arousal: geminiResult.arousal,
+            stressLevel: geminiResult.stress,
+            primaryEmotion: geminiResult.dominantEmotion,
+            emotionVector: new Float32Array([
+              geminiResult.plutchikEmotions.joy,
+              geminiResult.plutchikEmotions.trust,
+              geminiResult.plutchikEmotions.fear,
+              geminiResult.plutchikEmotions.surprise,
+              geminiResult.plutchikEmotions.sadness,
+              geminiResult.plutchikEmotions.disgust,
+              geminiResult.plutchikEmotions.anger,
+              geminiResult.plutchikEmotions.anticipation,
+            ]),
+            confidence: geminiResult.confidence,
+            timestamp: Date.now(),
+          };
+          usedGemini = true;
+        } catch (error) {
+          console.warn('Gemini API failed, using local detector:', error);
+        }
+      }
+
+      // Fall back to local detector
+      if (!emotionResult) {
+        const localResult = await services.emotionDetector.analyzeText(text);
+        emotionResult = {
+          valence: localResult.currentState.valence,
+          arousal: localResult.currentState.arousal,
+          stressLevel: localResult.currentState.stressLevel,
+          primaryEmotion: localResult.currentState.primaryEmotion,
+          emotionVector: localResult.currentState.emotionVector,
+          confidence: localResult.currentState.confidence,
+          timestamp: localResult.currentState.timestamp,
+        };
+      }
+
+      const state: EmotionalState = {
+        valence: emotionResult.valence,
+        arousal: emotionResult.arousal,
+        stressLevel: emotionResult.stressLevel,
+        primaryEmotion: emotionResult.primaryEmotion,
+        emotionVector: emotionResult.emotionVector,
+        confidence: emotionResult.confidence,
+        timestamp: emotionResult.timestamp,
       };
 
-      const mockDesired = {
-        targetValence: 0.5,
-        targetArousal: -0.2,
-        targetStress: 0.2,
-        intensity: 'moderate' as const,
-        reasoning: 'Detected high stress. Suggesting calm, positive content.',
+      const desired = {
+        targetValence: state.valence < 0 ? 0.5 : state.valence,
+        targetArousal: state.stressLevel > 0.5 ? -0.2 : state.arousal,
+        targetStress: Math.max(0.1, state.stressLevel - 0.4),
+        intensity: state.stressLevel > 0.7 ? 'high' as const : 'moderate' as const,
+        reasoning: `Analyzed with ${usedGemini ? 'Gemini AI' : 'local detector'}. ${state.stressLevel > 0.5 ? 'High stress detected, suggesting calming content.' : 'Recommending content aligned with current mood.'}`,
       };
 
       res.json({
@@ -73,8 +130,8 @@ router.post(
         data: {
           userId,
           inputText: text,
-          state: mockState,
-          desired: mockDesired,
+          state,
+          desired,
         },
         error: null,
         timestamp: new Date().toISOString(),
