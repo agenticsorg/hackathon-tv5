@@ -17,6 +17,7 @@
   "dependencies": {
     "@ai-sdk/google": "^1.0.0",
     "@ai-sdk/openai": "^1.0.0",
+    "@e2b/code-interpreter": "^2.3.3",
     "@tanstack/react-query": "^5.60.0",
     "ai": "^4.0.0",
     "clsx": "^2.1.0",
