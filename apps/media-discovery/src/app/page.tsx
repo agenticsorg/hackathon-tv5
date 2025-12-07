@@ -117,12 +117,17 @@ export default function HomePage() {
         {/* Hero Section */}
         <section className="relative py-16 md:py-24 px-4 text-center bg-gradient-to-b from-accent-cyan/10 to-transparent">
           <h1 className="headline-hero mb-4 text-text-primary">
-            AI Media Discovery
+            Curated for You
           </h1>
-          <p className="text-lg md:text-xl text-text-secondary mb-10 max-w-2xl mx-auto">
-            Describe what you want to watch in plain English. Our AI understands
-            your mood and finds the perfect match.
+          <p className="text-lg md:text-xl text-text-secondary mb-4 max-w-2xl mx-auto">
+            Based on your unique viewing style. Describe what you want to watch
+            and our AI finds the perfect match.
           </p>
+          {/* Time saved badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-bg-primary border border-border-subtle rounded-full mb-10">
+            <span className="text-accent-cyan font-bold mono">{totalTime.toFixed(0)}s</span>
+            <span className="text-text-secondary text-sm">to profile you, not 45 minutes</span>
+          </div>
 
           {/* Search Bar */}
           <div className="max-w-3xl mx-auto">
@@ -294,11 +299,11 @@ export default function HomePage() {
             })}
           </div>
 
-          {/* Continue Button */}
+          {/* Continue Button - Goes directly to main app */}
           {showContinueButton && (
             <button
               className="btn-primary mx-auto block max-w-[300px] w-full rounded animate-button-reveal"
-              onClick={() => goToScreen('results')}
+              onClick={completeProfile}
             >
               See My Recommendations
             </button>
@@ -306,132 +311,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* SCREEN 3: RESULTS FEED */}
-      <section
-        className={`screen ${currentScreen === 'results' ? 'active' : ''} ${
-          isTransitioning && currentScreen === 'results' ? 'entering' : ''
-        }`}
-      >
-        <ResultsFeed
-          genres={genres}
-          totalTime={totalTime}
-          onRestart={handleRestart}
-          onContinue={completeProfile}
-          getGenreScores={getGenreScores}
-        />
-      </section>
     </main>
-  );
-}
-
-// Results Feed Component
-function ResultsFeed({
-  genres,
-  totalTime,
-  onRestart,
-  onContinue,
-  getGenreScores,
-}: {
-  genres: Record<string, any>;
-  totalTime: number;
-  onRestart: () => void;
-  onContinue: () => void;
-  getGenreScores: () => any[];
-}) {
-  const sorted = getGenreScores();
-  const top2 = sorted.slice(0, 2);
-  const next2 = sorted.slice(2, 4);
-  const rest = sorted.slice(4);
-
-  return (
-    <div className="w-full max-w-[1000px] animate-section-fade-up">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="headline-h1 mb-2">Curated for You</h1>
-        <p className="text-body">Based on your unique viewing style</p>
-      </div>
-
-      {/* Primary Picks */}
-      <div className="mb-8">
-        <h3 className="text-text-secondary font-medium mb-4 animate-header-slide">
-          Perfect for {top2.map(g => g.name).join(' & ')} Fans
-        </h3>
-        <div className="feed-grid primary">
-          {top2.map((genre, i) => (
-            <div
-              key={genre.id}
-              className="card-hover feed-card-primary relative aspect-video overflow-hidden cursor-pointer rounded-lg animate-card-reveal"
-              style={{
-                border: `2px solid ${genre.color}`,
-                animationDelay: `${i * 80}ms`,
-              }}
-            >
-              <img src={genre.src} alt={genre.name} className="w-full h-full object-cover" />
-              <div
-                className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 to-transparent text-sm font-semibold uppercase tracking-wide"
-                style={{ borderLeft: `3px solid ${genre.color}` }}
-              >
-                {genre.name}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Secondary Picks */}
-      <div className="mb-8">
-        <h3 className="text-text-secondary font-medium mb-4">More for You</h3>
-        <div className="feed-grid secondary">
-          {next2.map((genre, i) => (
-            <div
-              key={genre.id}
-              className="card-hover feed-card-secondary relative aspect-video overflow-hidden cursor-pointer rounded-lg animate-card-reveal"
-              style={{ animationDelay: `${(i + 2) * 80}ms` }}
-            >
-              <img src={genre.src} alt={genre.name} className="w-full h-full object-cover" />
-              <div
-                className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 to-transparent text-sm font-semibold uppercase tracking-wide"
-                style={{ borderLeft: `3px solid ${genre.color}` }}
-              >
-                {genre.name}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Explore Section */}
-      <div className="mb-8">
-        <h3 className="text-text-secondary font-medium mb-4">Expand Your Horizons</h3>
-        <div className="feed-grid explore">
-          {rest.map((genre, i) => (
-            <div
-              key={genre.id}
-              className="card-hover feed-card-explore relative aspect-video overflow-hidden cursor-pointer rounded-lg animate-card-reveal"
-              style={{ animationDelay: `${(i + 4) * 80}ms` }}
-            >
-              <img src={genre.src} alt={genre.name} className="w-full h-full object-cover" />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* CTA Banner */}
-      <div className="text-center p-8 bg-bg-primary border border-border-subtle rounded-lg animate-section-fade-up">
-        <div className="text-4xl text-accent-cyan mono mb-2">
-          {totalTime.toFixed(0)} seconds
-        </div>
-        <p className="text-body mb-4">Not 45 minutes.</p>
-        <div className="flex gap-4 justify-center">
-          <button className="btn-secondary rounded" onClick={onRestart}>
-            Try Again
-          </button>
-          <button className="btn-primary rounded" onClick={onContinue}>
-            Continue to Discovery
-          </button>
-        </div>
-      </div>
-    </div>
   );
 }
 
