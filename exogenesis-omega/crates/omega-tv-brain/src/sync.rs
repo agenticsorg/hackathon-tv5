@@ -2,7 +2,7 @@ use crate::types::{GlobalPatternsResponse, SyncResult};
 use omega_agentdb::Skill;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use tracing::{debug, info, warn};
+use tracing::{debug, info};
 
 /// Sync client for constellation communication
 pub struct SyncClient {
@@ -25,7 +25,7 @@ struct SyncDelta {
 struct PatternDelta {
     name: String,
     embedding: Vec<f32>,
-    usage_count: i32,
+    usage_count: u64,
     success_rate: f64,
 }
 
@@ -146,24 +146,23 @@ mod tests {
 
     #[test]
     fn test_prepare_delta() {
-        let client = SyncClient::new("http://localhost:8080", "test-device".to_string()).unwrap();
+        let client =
+            SyncClient::new("http://localhost:8080", "test-device".to_string()).unwrap();
 
-        let skills = vec![
-            Skill {
-                id: None,
-                name: "test-skill".to_string(),
-                description: "test".to_string(),
-                embedding: vec![0.1; 384],
-                usage_count: 10,
-                success_rate: 0.8,
-                created_at: chrono::Utc::now(),
-            },
-        ];
+        let skills = vec![Skill {
+            id: None,
+            name: "test-skill".to_string(),
+            description: "test".to_string(),
+            embedding: vec![0.1; 384],
+            usage_count: 10,
+            success_rate: 0.8,
+            created_at: chrono::Utc::now(),
+        }];
 
         let delta = client.prepare_delta(&skills).unwrap();
 
         // Should be compressed
-        assert!(delta.len() > 0);
+        assert!(!delta.is_empty());
         assert!(delta.len() < skills.len() * 384 * 4); // Less than raw float data
     }
 }

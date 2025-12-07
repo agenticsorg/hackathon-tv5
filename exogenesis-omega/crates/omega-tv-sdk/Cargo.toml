@@ -16,6 +16,7 @@ omega-tv-sync = { path = "../omega-tv-sync" }
 tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+uuid = { workspace = true }
 once_cell = "1.19"
 thiserror = { workspace = true }
 tracing = { workspace = true }

@@ -1,9 +1,9 @@
 [workspace]
 resolver = "2"
 members = [
-    # "crates/omega-tv-brain",  # TODO: Fix sqlite3 conflict with sqlx
+    "crates/omega-tv-brain",  # TV-side integration (re-enabled)
     "crates/omega-tv-sync",   # Delta sync protocol (ready)
-    # "crates/omega-tv-sdk",    # TODO: Fix sqlite3 conflict
+    "crates/omega-tv-sdk",    # C FFI for manufacturers (re-enabled)
     "crates/omega-constellation",
     "services/constellation-server",
     "services/federation-worker",
@@ -49,7 +49,8 @@ bincode = "1.3"
 ort = { version = "2.0.0-rc.10", features = ["load-dynamic"] }
 
 # === DATABASE ===
-sqlx = { version = "0.7", features = ["runtime-tokio", "postgres", "uuid", "chrono", "json"] }
+# NOTE: Using sqlx 0.8 with only postgres features to avoid sqlite conflict with omega-persistence's rusqlite
+sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio", "postgres", "uuid", "chrono", "json"] }
 
 # === NETWORKING - HTTP/REST ===
 axum = { version = "0.7", features = ["macros"] }

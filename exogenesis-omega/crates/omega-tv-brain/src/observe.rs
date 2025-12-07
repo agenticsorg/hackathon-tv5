@@ -1,8 +1,7 @@
 use crate::types::ViewingEvent;
 use omega_agentdb::ReflexionEpisode;
-use omega_memory::{Memory, MemoryTier, MemoryContent};
-use omega_loops::{CycleInput, LoopType};
-use tracing::{debug, info};
+use omega_memory::{Memory, MemoryContent, MemoryTier};
+use tracing::debug;
 
 /// Event observation processor
 pub struct EventObserver;
@@ -13,7 +12,11 @@ impl EventObserver {
     }
 
     /// Convert viewing event to ReflexionEpisode for AgentDB
-    pub fn to_reflexion_episode(&self, event: &ViewingEvent, embedding: Vec<f32>) -> ReflexionEpisode {
+    pub fn to_reflexion_episode(
+        &self,
+        event: &ViewingEvent,
+        embedding: Vec<f32>,
+    ) -> ReflexionEpisode {
         debug!(
             "Converting event {} to reflexion episode (watch: {:.2}%)",
             event.event_id,
@@ -49,7 +52,7 @@ impl EventObserver {
         );
 
         Memory::new(
-            MemoryTier::Episodic,  // Recent viewing history
+            MemoryTier::Episodic, // Recent viewing history
             MemoryContent::MultiModal {
                 text: Some(format!(
                     "Watched {} ({}) for {:.1}% - Genre: {}, Engagement: {:.2}",
@@ -72,26 +75,6 @@ impl EventObserver {
             embedding,
             importance,
         )
-    }
-
-    /// Create CycleInput for reflexive loop processing
-    pub fn to_cycle_input(&self, event: &ViewingEvent) -> CycleInput {
-        debug!("Creating cycle input for reflexive loop");
-
-        CycleInput {
-            data: std::collections::HashMap::from([
-                ("event".to_string(), serde_json::to_value(event).unwrap_or_default()),
-                ("watch_percentage".to_string(), serde_json::json!(event.watch_percentage)),
-                ("engagement_score".to_string(), serde_json::json!(event.engagement_score)),
-                ("genre".to_string(), serde_json::json!(event.genre)),
-            ]),
-            context: format!("Process viewing event: {}", event.content_id),
-            objectives: vec![
-                "Update recommendation model".to_string(),
-                "Learn content preferences".to_string(),
-                "Adapt to viewing patterns".to_string(),
-            ],
-        }
     }
 
     /// Calculate reward signal for reinforcement learning
@@ -118,13 +101,25 @@ impl EventObserver {
     /// Generate critique for learning
     fn generate_critique(&self, event: &ViewingEvent) -> String {
         if event.watch_percentage > 0.9 {
-            format!("Excellent recommendation - user watched {:.0}% of content", event.watch_percentage * 100.0)
+            format!(
+                "Excellent recommendation - user watched {:.0}% of content",
+                event.watch_percentage * 100.0
+            )
         } else if event.watch_percentage > 0.7 {
-            format!("Good recommendation - user watched {:.0}%", event.watch_percentage * 100.0)
+            format!(
+                "Good recommendation - user watched {:.0}%",
+                event.watch_percentage * 100.0
+            )
         } else if event.watch_percentage > 0.3 {
-            format!("Partial interest - user watched {:.0}%, consider similar content", event.watch_percentage * 100.0)
+            format!(
+                "Partial interest - user watched {:.0}%, consider similar content",
+                event.watch_percentage * 100.0
+            )
         } else {
-            format!("Poor match - user watched only {:.0}%, avoid similar recommendations", event.watch_percentage * 100.0)
+            format!(
+                "Poor match - user watched only {:.0}%, avoid similar recommendations",
+                event.watch_percentage * 100.0
+            )
         }
     }
 }

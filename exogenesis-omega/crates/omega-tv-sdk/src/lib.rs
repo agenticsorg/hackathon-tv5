@@ -69,6 +69,9 @@ impl SdkState {
             sync_interval_secs: 600, // 10 minutes
             storage_path: storage_path.into(),
             constellation_url: constellation_url.into(),
+            device_id: uuid::Uuid::new_v4().to_string(),
+            enable_neural_training: true,
+            recommend_timeout_ms: 15, // 15ms target latency
         };
 
         let brain = runtime
