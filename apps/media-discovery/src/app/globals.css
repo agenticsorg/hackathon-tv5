@@ -2,32 +2,91 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ========================================
+   DESIGN SYSTEM - Cool Midnight + Genre Colors
+   ======================================== */
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 250, 250, 250;
-  --background-end-rgb: 255, 255, 255;
-}
+  /* Core Colors */
+  --bg-deep: #0D1117;
+  --bg-primary: #1A2332;
+  --bg-elevated: #242D3D;
+  --text-primary: #F0F6FC;
+  --text-secondary: #8B949E;
+  --accent-cyan: #4ECDC4;
+  --accent-cyan-dim: #2A9D8F;
+  --border-subtle: #30363D;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 10, 10, 15;
-    --background-end-rgb: 20, 20, 30;
-  }
+  /* Genre Colors */
+  --genre-romance: #FF6B6B;
+  --genre-thriller: #4ECDC4;
+  --genre-comedy: #FFE66D;
+  --genre-scifi: #A855F7;
+  --genre-drama: #F97316;
+  --genre-action: #EF4444;
+  --genre-horror: #6B7280;
+  --genre-documentary: #10B981;
+
+  /* Legacy */
+  --foreground: var(--text-primary);
+  --background: var(--bg-deep);
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  font-family: "Funnel Display", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  background: var(--bg-deep);
+  color: var(--text-primary);
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
-/* Custom scrollbar */
+h1, h2, h3, h4, h5, h6, .headline-hero, .headline-h1, .headline-h2 {
+  font-family: "Funnel Display", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 700;
+}
+
+/* ========================================
+   TYPOGRAPHY
+   ======================================== */
+.headline-hero {
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+
+.headline-h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.headline-h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.text-body {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.text-caption {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.mono {
+  font-family: 'Funnel Display', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ========================================
+   CUSTOM SCROLLBAR
+   ======================================== */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -38,44 +97,14 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(128, 128, 128, 0.4);
+  background: rgba(139, 148, 158, 0.4);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(128, 128, 128, 0.6);
+  background: rgba(139, 148, 158, 0.6);
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out;
-}
-
-.animate-slide-up {
-  animation: slideUp 0.4s ease-out;
-}
-
-/* Hide scrollbar but keep functionality */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -84,3 +113,300 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* ========================================
+   SCREEN TRANSITION ANIMATIONS
+   ======================================== */
+.screen {
+  display: none;
+  min-height: 100vh;
+  padding: 2rem;
+  opacity: 0;
+}
+
+.screen.active {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+}
+
+/* Discovery screen needs full height for flex layout */
+.screen.discovery-screen.active {
+  justify-content: flex-start;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile */
+  overflow: hidden;
+  padding: 0;
+}
+
+/* Safe area padding for mobile devices */
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+.screen.entering {
+  animation: screenEnter 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.screen.exiting {
+  animation: screenExit 400ms ease-in forwards;
+}
+
+@keyframes screenEnter {
+  0% { opacity: 0; transform: translateY(40px) scale(0.98); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes screenExit {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-30px) scale(0.97); }
+}
+
+/* ========================================
+   CARD ANIMATIONS
+   ======================================== */
+@keyframes cardFadeIn {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cardReveal {
+  0% { opacity: 0; transform: translateY(40px) scale(0.92); }
+  60% { transform: translateY(-8px) scale(1.02); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes sectionFadeUp {
+  0% { opacity: 0; transform: translateY(30px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes headerSlide {
+  0% { opacity: 0; transform: translateX(-15px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes badgePop {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+@keyframes scaleUp {
+  0% { opacity: 0; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.animate-gradient-shift {
+  animation: gradientShift 2s ease infinite;
+}
+
+@keyframes buttonReveal {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Legacy animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========================================
+   ANIMATION UTILITY CLASSES
+   ======================================== */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease-out;
+}
+
+.animate-card-fade-in {
+  animation: cardFadeIn 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-card-reveal {
+  animation: cardReveal 650ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-section-fade-up {
+  animation: sectionFadeUp 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-header-slide {
+  animation: headerSlide 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-badge-pop {
+  animation: badgePop 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.animate-scale-up {
+  animation: scaleUp 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-button-reveal {
+  animation: buttonReveal 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ========================================
+   NETFLIX-STYLE CARD HOVER EFFECTS
+   ======================================== */
+.card-hover {
+  transition: transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 280ms ease-out,
+              border-color 150ms ease-out;
+  transform-origin: center center;
+}
+
+.card-hover:hover {
+  transform: scale(1.08);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5),
+              0 0 0 1px rgba(78, 205, 196, 0.3);
+  z-index: 10;
+}
+
+.card-hover img {
+  transition: transform 400ms ease-out;
+}
+
+.card-hover:hover img {
+  transform: scale(1.05);
+}
+
+/* ========================================
+   BUTTON STYLES
+   ======================================== */
+.btn-primary {
+  padding: 1rem 2rem;
+  background: var(--accent-cyan);
+  color: var(--bg-deep);
+  border: none;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease-out, transform 0.15s ease-out;
+}
+
+.btn-primary:hover {
+  background: var(--accent-cyan-dim);
+  transform: translateY(-2px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: 1px solid var(--accent-cyan);
+  color: var(--accent-cyan);
+  font-family: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.15s ease-out, transform 0.15s ease-out;
+}
+
+.btn-secondary:hover {
+  background: var(--accent-cyan);
+  color: var(--bg-deep);
+  transform: translateY(-2px);
+}
+
+/* ========================================
+   INPUT STYLES
+   ======================================== */
+.input-field {
+  width: 100%;
+  padding: 1rem;
+  background: var(--bg-deep);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 1rem;
+  transition: border-color 0.15s ease-out;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--accent-cyan);
+}
+
+.input-field::placeholder {
+  color: var(--text-secondary);
+}
+
+/* ========================================
+   FEED GRID STYLES
+   ======================================== */
+.feed-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.feed-grid.primary {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.feed-grid.secondary {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.feed-grid.explore {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 768px) {
+  .feed-grid.primary,
+  .feed-grid.secondary {
+    grid-template-columns: 1fr;
+  }
+  .feed-grid.explore {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Feed card opacity levels */
+.feed-card-primary {
+  box-shadow: 0 0 30px rgba(78, 205, 196, 0.15);
+}
+
+.feed-card-secondary {
+  opacity: 0.9;
+}
+
+.feed-card-explore {
+  opacity: 0.7;
+}
+
+.feed-card-explore:hover {
+  opacity: 1;
+}
+
+/* ========================================
+   STAGGER ANIMATION DELAYS
+   ======================================== */
+.stagger-1 { animation-delay: 50ms; }
+.stagger-2 { animation-delay: 100ms; }
+.stagger-3 { animation-delay: 150ms; }
+.stagger-4 { animation-delay: 200ms; }
+.stagger-5 { animation-delay: 250ms; }
+.stagger-6 { animation-delay: 300ms; }
+.stagger-7 { animation-delay: 350ms; }
+.stagger-8 { animation-delay: 400ms; }
