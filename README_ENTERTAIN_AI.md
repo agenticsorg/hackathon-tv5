@@ -14,6 +14,9 @@ Choosing.
 
 The problem is not content scarcity — it’s decision overload caused by fragmented platforms.
 
+The Vision of the team Ofer, Lanette, Eva, Kara, Danelle, Camila, Juan, Anne
+<img width="623" height="492" alt="Screenshot 2025-12-07 at 3 09 56 PM" src="https://github.com/user-attachments/assets/da45727b-2b8b-4a98-8974-e51f2a098751" />
+
 "We have infinite choice, but zero clarity." — (Discovery Reimagined Deck) 
 [Discovery_Reimagined.pdf](https://github.com/user-attachments/files/24020789/Discovery_Reimagined.pdf)
 
