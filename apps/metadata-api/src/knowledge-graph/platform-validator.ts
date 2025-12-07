@@ -5,7 +5,7 @@
  * and determines distribution readiness for each platform.
  */
 
-import { MovieNode, PlatformValidation, ValidationError, ValidationWarning } from './schema';
+import { MovieNode, PlatformValidation } from './schema';
 import { NetflixIMFConnector } from '../connectors/netflix-imf';
 import { AmazonMECConnector } from '../connectors/amazon-mec';
 import { FASTMRSSConnector } from '../connectors/fast-mrss';
@@ -274,11 +274,12 @@ export function quickValidateMovie(movie: MovieNode): {
   fast: boolean;
 } {
   // Quick checks based on required fields
-  const hasRequiredBase =
+  const hasRequiredBase = Boolean(
     movie.title &&
     movie.title.length >= 1 &&
     movie.overview &&
-    movie.overview.length >= 10;
+    movie.overview.length >= 10
+  );
 
   // Netflix requires: title, synopsis (50+ chars), runtime, release date
   const netflixReady = hasRequiredBase &&
@@ -299,9 +300,9 @@ export function quickValidateMovie(movie: MovieNode): {
     (movie.posterPath !== undefined || movie.backdropPath !== undefined);
 
   return {
-    netflix: netflixReady,
-    amazon: amazonReady,
-    fast: fastReady,
+    netflix: Boolean(netflixReady),
+    amazon: Boolean(amazonReady),
+    fast: Boolean(fastReady),
   };
 }
 
