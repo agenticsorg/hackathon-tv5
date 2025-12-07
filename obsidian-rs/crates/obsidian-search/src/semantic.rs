@@ -1,19 +1,23 @@
-//! Semantic/vector search using embeddings
+//! Semantic/vector search using embeddings powered by ruvector
 
-use crate::error::SearchResult;
+use crate::error::{SearchError, SearchResult};
 use crate::{MatchType, SearchHit};
-use ndarray::{Array1, ArrayView1};
+use ndarray::ArrayView1;
 use obsidian_core::note::Note;
 use parking_lot::RwLock;
+use ruvector_core::types::{DbOptions, DistanceMetric};
+use ruvector_core::{SearchQuery, VectorDB, VectorEntry};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::collections::HashMap;
-use std::path::PathBuf;
-use tracing::debug;
+use std::path::{Path, PathBuf};
+use std::sync::Arc;
+use tracing::{debug, info, warn};
 
 /// Vector dimension for embeddings
-const VECTOR_DIM: usize = 384;
+pub const VECTOR_DIM: usize = 384;
 
-/// A stored vector with metadata
+/// A stored vector with metadata (for compatibility)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StoredVector {
     /// Document path
@@ -26,88 +30,184 @@ pub struct StoredVector {
     pub text: String,
 }
 
-/// In-memory vector store
-/// In production, this would use ruvector or similar
+/// Ruvector-powered vector store with HNSW indexing
 pub struct VectorStore {
-    /// Stored vectors
-    vectors: RwLock<Vec<StoredVector>>,
-    /// Path to vector index
-    index_by_path: RwLock<HashMap<String, Vec<usize>>>,
+    /// Ruvector database
+    db: Arc<RwLock<VectorDB>>,
+    /// Storage path (None for in-memory)
+    storage_path: Option<PathBuf>,
+    /// Track vectors by path for deletion
+    path_to_ids: RwLock<HashMap<String, Vec<String>>>,
+    /// Counter for generating unique IDs
+    id_counter: RwLock<u64>,
 }
 
 impl VectorStore {
-    /// Create a new vector store
+    /// Create a new in-memory vector store
     pub fn new() -> Self {
+        let options = DbOptions {
+            dimensions: VECTOR_DIM,
+            storage_path: String::new(), // Empty for in-memory
+            distance_metric: DistanceMetric::Cosine,
+            ..Default::default()
+        };
+
+        let db = VectorDB::new(options).expect("Failed to create vector database");
+
         Self {
-            vectors: RwLock::new(Vec::new()),
-            index_by_path: RwLock::new(HashMap::new()),
+            db: Arc::new(RwLock::new(db)),
+            storage_path: None,
+            path_to_ids: RwLock::new(HashMap::new()),
+            id_counter: RwLock::new(0),
         }
     }
 
-    /// Add a vector
-    pub fn add(&self, vector: StoredVector) -> usize {
-        let mut vectors = self.vectors.write();
-        let idx = vectors.len();
-        let path = vector.path.clone();
-        vectors.push(vector);
+    /// Create a vector store with persistent storage
+    pub fn with_storage(path: impl AsRef<Path>) -> SearchResult<Self> {
+        let path = path.as_ref();
 
-        let mut index = self.index_by_path.write();
-        index.entry(path).or_insert_with(Vec::new).push(idx);
+        // Ensure parent directory exists
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
 
-        idx
+        let options = DbOptions {
+            dimensions: VECTOR_DIM,
+            storage_path: path.to_string_lossy().to_string(),
+            distance_metric: DistanceMetric::Cosine,
+            ..Default::default()
+        };
+
+        let db = VectorDB::new(options).map_err(|e| SearchError::Index(e.to_string()))?;
+
+        info!("Opened ruvector database at {:?}", path);
+
+        Ok(Self {
+            db: Arc::new(RwLock::new(db)),
+            storage_path: Some(path.to_path_buf()),
+            path_to_ids: RwLock::new(HashMap::new()),
+            id_counter: RwLock::new(0),
+        })
     }
 
-    /// Remove all vectors for a path
-    pub fn remove(&self, path: &str) {
-        let mut index = self.index_by_path.write();
-        index.remove(path);
-        // Note: We don't actually remove from vectors to avoid index invalidation
-        // In production, use proper deletion with compaction
+    /// Generate a unique ID
+    fn generate_id(&self) -> String {
+        let mut counter = self.id_counter.write();
+        *counter += 1;
+        format!("vec_{}", *counter)
     }
 
-    /// Search for similar vectors
-    pub fn search(&self, query_vector: &[f32], limit: usize) -> Vec<(usize, f32)> {
-        let vectors = self.vectors.read();
-        let index = self.index_by_path.read();
+    /// Add a vector with metadata
+    pub fn add(&self, stored: StoredVector) -> SearchResult<String> {
+        let id = self.generate_id();
 
-        // Get all valid indices
-        let valid_indices: std::collections::HashSet<usize> =
-            index.values().flatten().copied().collect();
+        let entry = VectorEntry {
+            id: Some(id.clone()),
+            vector: stored.vector,
+            metadata: Some(HashMap::from([
+                ("path".to_string(), json!(stored.path)),
+                ("title".to_string(), json!(stored.title)),
+                ("text".to_string(), json!(stored.text)),
+            ])),
+        };
 
-        let query = Array1::from_vec(query_vector.to_vec());
+        {
+            let db = self.db.write();
+            db.insert(entry).map_err(|e| SearchError::Index(e.to_string()))?;
+        }
 
-        let mut scores: Vec<(usize, f32)> = vectors
-            .iter()
-            .enumerate()
-            .filter(|(idx, _)| valid_indices.contains(idx))
-            .map(|(idx, stored)| {
-                let doc_vec = Array1::from_vec(stored.vector.clone());
-                let similarity = cosine_similarity(query.view(), doc_vec.view());
-                (idx, similarity)
-            })
-            .collect();
+        // Track the ID for this path
+        {
+            let mut path_to_ids = self.path_to_ids.write();
+            path_to_ids
+                .entry(stored.path)
+                .or_insert_with(Vec::new)
+                .push(id.clone());
+        }
 
-        // Sort by similarity descending
-        scores.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
-        scores.truncate(limit);
-
-        scores
+        Ok(id)
     }
 
-    /// Get vector by index
-    pub fn get(&self, idx: usize) -> Option<StoredVector> {
-        let vectors = self.vectors.read();
-        vectors.get(idx).cloned()
+    /// Remove all vectors for a document path
+    pub fn remove(&self, path: &str) -> SearchResult<()> {
+        let ids_to_remove: Vec<String> = {
+            let mut path_to_ids = self.path_to_ids.write();
+            path_to_ids.remove(path).unwrap_or_default()
+        };
+
+        if !ids_to_remove.is_empty() {
+            let db = self.db.write();
+            for id in &ids_to_remove {
+                if let Err(e) = db.delete(id) {
+                    warn!("Failed to delete vector {}: {}", id, e);
+                }
+            }
+            debug!("Removed {} vectors for path: {}", ids_to_remove.len(), path);
+        }
+
+        Ok(())
     }
 
-    /// Get number of vectors
+    /// Search for similar vectors using HNSW O(log n) search
+    pub fn search(&self, query_vector: &[f32], limit: usize) -> SearchResult<Vec<(String, f32, StoredVector)>> {
+        let query = SearchQuery {
+            vector: query_vector.to_vec(),
+            k: limit,
+            filter: None,
+            ef_search: Some(100), // Higher ef for better recall
+        };
+
+        let results = {
+            let db = self.db.read();
+            db.search(query).map_err(|e| SearchError::Index(e.to_string()))?
+        };
+
+        let mut hits = Vec::new();
+        for result in results {
+            if let Some(metadata) = result.metadata {
+                let path = metadata
+                    .get("path")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("")
+                    .to_string();
+                let title = metadata
+                    .get("title")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("")
+                    .to_string();
+                let text = metadata
+                    .get("text")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("")
+                    .to_string();
+
+                let stored = StoredVector {
+                    path,
+                    title,
+                    vector: result.vector.unwrap_or_default(),
+                    text,
+                };
+
+                hits.push((result.id, result.score, stored));
+            }
+        }
+
+        Ok(hits)
+    }
+
+    /// Get number of vectors in the store
     pub fn len(&self) -> usize {
-        self.index_by_path.read().values().map(|v| v.len()).sum()
+        self.path_to_ids.read().values().map(|v| v.len()).sum()
     }
 
-    /// Check if empty
+    /// Check if store is empty
     pub fn is_empty(&self) -> bool {
         self.len() == 0
+    }
+
+    /// Get the storage path if persistent
+    pub fn storage_path(&self) -> Option<&Path> {
+        self.storage_path.as_deref()
     }
 }
 
@@ -117,8 +217,8 @@ impl Default for VectorStore {
     }
 }
 
-/// Calculate cosine similarity between two vectors
-fn cosine_similarity(a: ArrayView1<f32>, b: ArrayView1<f32>) -> f32 {
+/// Calculate cosine similarity between two vectors (fallback for testing)
+pub fn cosine_similarity(a: ArrayView1<f32>, b: ArrayView1<f32>) -> f32 {
     let dot_product: f32 = a.iter().zip(b.iter()).map(|(x, y)| x * y).sum();
     let norm_a: f32 = a.iter().map(|x| x * x).sum::<f32>().sqrt();
     let norm_b: f32 = b.iter().map(|x| x * x).sum::<f32>().sqrt();
@@ -131,7 +231,7 @@ fn cosine_similarity(a: ArrayView1<f32>, b: ArrayView1<f32>) -> f32 {
 }
 
 /// Simple text embedder
-/// In production, use a proper embedding model
+/// In production, replace with sentence-transformers or similar
 pub struct SimpleEmbedder;
 
 impl SimpleEmbedder {
@@ -141,12 +241,11 @@ impl SimpleEmbedder {
     }
 
     /// Embed text into a vector
-    /// This is a simple bag-of-words approach for demonstration
-    /// In production, use sentence-transformers or similar
+    /// Uses character n-gram + word hashing for fast approximate embeddings
     pub fn embed(&self, text: &str) -> Vec<f32> {
         let mut vector = vec![0.0f32; VECTOR_DIM];
 
-        // Simple character n-gram hashing
+        // Character n-gram hashing
         let text_lower = text.to_lowercase();
         let chars: Vec<char> = text_lower.chars().collect();
 
@@ -157,14 +256,14 @@ impl SimpleEmbedder {
             vector[idx] += 1.0;
         }
 
-        // Also add word-level features
+        // Word-level features (weighted higher)
         for word in text_lower.split_whitespace() {
             let hash = Self::simple_hash(word);
             let idx = (hash as usize) % VECTOR_DIM;
-            vector[idx] += 2.0; // Words weighted more
+            vector[idx] += 2.0;
         }
 
-        // Normalize
+        // L2 normalize
         let norm: f32 = vector.iter().map(|x| x * x).sum::<f32>().sqrt();
         if norm > 0.0 {
             for v in &mut vector {
@@ -175,7 +274,7 @@ impl SimpleEmbedder {
         vector
     }
 
-    /// Simple string hash
+    /// Simple string hash (djb2)
     fn simple_hash(s: &str) -> u64 {
         let mut hash: u64 = 5381;
         for c in s.bytes() {
@@ -191,16 +290,16 @@ impl Default for SimpleEmbedder {
     }
 }
 
-/// Semantic search index
+/// Semantic search index using ruvector HNSW
 pub struct SemanticIndex {
-    /// Vector store
+    /// Ruvector-backed vector store
     store: VectorStore,
-    /// Embedder
+    /// Text embedder
     embedder: SimpleEmbedder,
 }
 
 impl SemanticIndex {
-    /// Create a new semantic index
+    /// Create a new in-memory semantic index
     pub fn new(store: VectorStore) -> Self {
         Self {
             store,
@@ -208,12 +307,21 @@ impl SemanticIndex {
         }
     }
 
+    /// Create a semantic index with persistent storage
+    pub fn with_storage(path: impl AsRef<Path>) -> SearchResult<Self> {
+        let store = VectorStore::with_storage(path)?;
+        Ok(Self {
+            store,
+            embedder: SimpleEmbedder::new(),
+        })
+    }
+
     /// Index a note
     pub fn index_note(&self, note: &Note) -> SearchResult<()> {
         debug!("Indexing note semantically: {}", note.id);
 
-        // Remove existing vectors
-        self.store.remove(&note.id);
+        // Remove existing vectors for this note
+        self.store.remove(&note.id)?;
 
         let title = note
             .frontmatter
@@ -221,7 +329,7 @@ impl SemanticIndex {
             .and_then(|f| f.title.clone())
             .unwrap_or_else(|| note.basename.clone());
 
-        // Chunk the content
+        // Chunk the content for better retrieval
         let chunks = self.chunk_text(&note.content);
 
         for (i, chunk) in chunks.iter().enumerate() {
@@ -232,13 +340,13 @@ impl SemanticIndex {
                 title: if i == 0 {
                     title.clone()
                 } else {
-                    format!("{} ({})", title, i + 1)
+                    format!("{} (chunk {})", title, i + 1)
                 },
                 vector,
                 text: chunk.clone(),
             };
 
-            self.store.add(stored);
+            self.store.add(stored)?;
         }
 
         Ok(())
@@ -247,32 +355,29 @@ impl SemanticIndex {
     /// Remove a note from the index
     pub fn remove_note(&self, path: &str) -> SearchResult<()> {
         debug!("Removing note from semantic index: {}", path);
-        self.store.remove(path);
-        Ok(())
+        self.store.remove(path)
     }
 
-    /// Search for similar notes
+    /// Search for similar notes using HNSW O(log n) search
     pub fn search(&self, query: &str, limit: usize) -> SearchResult<Vec<SearchHit>> {
         debug!("Semantic search for: {}", query);
 
         let query_vector = self.embedder.embed(query);
-        let results = self.store.search(&query_vector, limit);
+        let results = self.store.search(&query_vector, limit)?;
 
         let hits: Vec<SearchHit> = results
             .into_iter()
-            .filter_map(|(idx, score)| {
-                self.store.get(idx).map(|stored| {
-                    SearchHit::new(PathBuf::from(&stored.path), score, stored.title)
-                        .with_snippet(Self::truncate_text(&stored.text, 150))
-                        .with_match_type(MatchType::Semantic)
-                })
+            .map(|(_id, score, stored)| {
+                SearchHit::new(PathBuf::from(&stored.path), score, stored.title)
+                    .with_snippet(Self::truncate_text(&stored.text, 150))
+                    .with_match_type(MatchType::Semantic)
             })
             .collect();
 
         Ok(hits)
     }
 
-    /// Chunk text into smaller pieces
+    /// Chunk text into smaller pieces with overlap
     fn chunk_text(&self, text: &str) -> Vec<String> {
         let mut chunks = Vec::new();
         let mut current_chunk = String::new();
@@ -331,6 +436,11 @@ impl SemanticIndex {
     pub fn num_chunks(&self) -> usize {
         self.store.len()
     }
+
+    /// Get the underlying vector store
+    pub fn store(&self) -> &VectorStore {
+        &self.store
+    }
 }
 
 #[cfg(test)]
@@ -386,13 +496,10 @@ mod tests {
             text: "Test content".to_string(),
         };
 
-        let idx = store.add(vector);
+        let _id = store.add(vector).unwrap();
         assert_eq!(store.len(), 1);
 
-        let retrieved = store.get(idx).unwrap();
-        assert_eq!(retrieved.path, "test.md");
-
-        store.remove("test.md");
+        store.remove("test.md").unwrap();
         assert_eq!(store.len(), 0);
     }
 
@@ -401,8 +508,16 @@ mod tests {
         let store = VectorStore::new();
         let index = SemanticIndex::new(store);
 
-        let note1 = create_test_note("rust.md", "Rust Programming", "Rust is a systems programming language focused on safety and performance.");
-        let note2 = create_test_note("python.md", "Python Programming", "Python is a high-level programming language known for readability.");
+        let note1 = create_test_note(
+            "rust.md",
+            "Rust Programming",
+            "Rust is a systems programming language focused on safety and performance.",
+        );
+        let note2 = create_test_note(
+            "python.md",
+            "Python Programming",
+            "Python is a high-level programming language known for readability.",
+        );
 
         index.index_note(&note1).unwrap();
         index.index_note(&note2).unwrap();
