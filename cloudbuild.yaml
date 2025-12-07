@@ -51,6 +51,12 @@ steps:
           --role="roles/storage.objectViewer" \
           --condition=None 2>/dev/null || echo "Storage permission may already exist"
 
+        # Grant Vertex AI access for embeddings
+        gcloud projects add-iam-policy-binding ${_GCP_PROJECT} \
+          --member="serviceAccount:$${PROJECT_NUM}-compute@developer.gserviceaccount.com" \
+          --role="roles/aiplatform.user" \
+          --condition=None 2>/dev/null || echo "Vertex AI permission may already exist"
+
   # Build and deploy metadata-api
   - name: 'gcr.io/cloud-builders/docker'
     id: 'build-api'

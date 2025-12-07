@@ -608,9 +608,11 @@ router.get('/diagnostics', async (_req: Request, res: Response): Promise<void> =
   const results: {
     firestore: { connected: boolean; error?: string };
     gcs: { connected: boolean; error?: string; fileSize?: number };
+    vertexAI: { connected: boolean; error?: string };
   } = {
     firestore: { connected: false },
     gcs: { connected: false },
+    vertexAI: { connected: false },
   };
 
   // Test Firestore
@@ -635,6 +637,15 @@ router.get('/diagnostics', async (_req: Request, res: Response): Promise<void> =
     results.gcs.fileSize = parseInt(metadata.size as string, 10);
   } catch (error) {
     results.gcs.error = error instanceof Error ? error.message : 'Unknown error';
+  }
+
+  // Test Vertex AI Embeddings
+  try {
+    const embeddings = getEmbeddingsInstance();
+    const testEmbedding = await embeddings.generateEmbedding('test connectivity');
+    results.vertexAI.connected = testEmbedding.length > 0;
+  } catch (error) {
+    results.vertexAI.error = error instanceof Error ? error.message : 'Unknown error';
   }
 
   res.json({
