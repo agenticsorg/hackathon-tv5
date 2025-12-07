@@ -1,0 +1,3 @@
+# Netlify redirects
+# Redirect root to Knowledge Graph Explorer
+/   /knowledge-graph.html   200
