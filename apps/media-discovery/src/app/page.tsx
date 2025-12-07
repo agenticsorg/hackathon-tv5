@@ -127,11 +127,25 @@ export default function HomePage() {
             Based on your unique viewing style. Describe what you want to watch
             and our AI finds the perfect match.
           </p>
-          {/* Time saved badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-bg-primary border border-border-subtle rounded-full mb-10">
-            <span className="text-accent-cyan font-bold mono">{totalTime.toFixed(0)}s</span>
-            <span className="text-text-secondary text-sm">to profile you, not 45 minutes</span>
-          </div>
+          {/* Time saved badge - only show if user completed profiling */}
+          {!(clickSequence.length === 0 || (totalTime <= 8 && clickSequence.length < 3)) && (
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-bg-primary border border-border-subtle rounded-full mb-10">
+              <span className="text-accent-cyan font-bold mono">{totalTime.toFixed(0)}s</span>
+              <span className="text-text-secondary text-sm">to profile you, not 45 minutes</span>
+            </div>
+          )}
+
+          {/* Disclosure if user skipped or didn't select */}
+          {(clickSequence.length === 0 || (totalTime <= 8 && clickSequence.length < 3)) && (
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-genre-comedy/10 border border-genre-comedy/30 rounded-full mb-10">
+              <span className="text-genre-comedy text-sm">
+                {clickSequence.length === 0
+                  ? "You didn't select any genres — showing general recommendations"
+                  : "You skipped profiling — recommendations may be less personalized"
+                }
+              </span>
+            </div>
+          )}
 
           {/* Search Bar */}
           <div className="max-w-3xl mx-auto">
