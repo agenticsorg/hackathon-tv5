@@ -692,6 +692,42 @@ router.get('/diagnostics', async (_req: Request, res: Response): Promise<void> =
   });
 });
 
+/**
+ * GET /api/v1/knowledge-graph/diagnostics/collections
+ * Check actual documents in Firestore collections
+ */
+router.get('/diagnostics/collections', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const { getFirestore } = await import('../db/firestore');
+    const db = getFirestore();
+
+    const collections = ['kg_movies', 'kg_genres', 'kg_keywords', 'kg_edges'];
+    const results: Record<string, { count: number; sampleIds: string[]; sampleDoc: unknown }> = {};
+
+    for (const collName of collections) {
+      try {
+        // Get count
+        const countSnap = await db.collection(collName).count().get();
+        const count = countSnap.data().count;
+
+        // Get sample documents
+        const sampleSnap = await db.collection(collName).limit(3).get();
+        const sampleIds = sampleSnap.docs.map(d => d.id);
+        const sampleDoc = sampleSnap.docs[0]?.data() || null;
+
+        results[collName] = { count, sampleIds, sampleDoc };
+      } catch (error) {
+        results[collName] = { count: -1, sampleIds: [], sampleDoc: `Error: ${error instanceof Error ? error.message : 'Unknown'}` };
+      }
+    }
+
+    res.json({ collections: results });
+  } catch (error) {
+    logger.error('Collections diagnostic failed', { error });
+    res.status(500).json({ error: 'Failed to check collections' });
+  }
+});
+
 // ============================================
 // Ingestion Endpoints
 // ============================================
