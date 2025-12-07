@@ -7,9 +7,18 @@ import { generateObject, generateText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { google } from '@ai-sdk/google';
 import { z } from 'zod';
-import type { SemanticSearchQuery, SearchIntent, SearchFilters, MediaContent, SearchResult } from '@/types/media';
+import type { SemanticSearchQuery, SearchIntent, SearchFilters, MediaContent, SearchResult, StreamingInfo } from '@/types/media';
 import { searchMulti, getSimilarMovies, getSimilarTVShows, discoverMovies, discoverTVShows } from './tmdb';
 import { searchByEmbedding, getContentEmbedding, calculateSimilarity } from './vector-search';
+import {
+  getBatchStreamingAvailability,
+  parseStreamingPreference,
+  filterByStreamingService,
+  formatStreamingProviders,
+  getStreamingBadge,
+  isStreamingNow,
+  type StreamingAvailability,
+} from './streaming-availability';
 
 // Schema for parsed search intent
 const SearchIntentSchema = z.object({
@@ -131,13 +140,23 @@ Be specific and extract as much relevant information as possible.`,
 
 /**
  * Perform semantic search combining TMDB and vector search
+ * Now includes streaming availability data
  */
 export async function semanticSearch(
   query: string,
-  userPreferences?: number[]
+  userPreferences?: number[],
+  options?: {
+    includeStreaming?: boolean;
+    region?: string;
+    filterByService?: number[];
+  }
 ): Promise<SearchResult[]> {
   // Parse the natural language query
   const semanticQuery = await parseSearchQuery(query);
+
+  // Check if user mentioned a specific streaming service
+  const streamingPref = parseStreamingPreference(query);
+  const filterServices = options?.filterByService || streamingPref.serviceIds;
 
   // Parallel search strategies
   const [tmdbResults, vectorResults] = await Promise.all([
@@ -146,7 +165,74 @@ export async function semanticSearch(
   ]);
 
   // Merge and rank results
-  const mergedResults = mergeAndRankResults(tmdbResults, vectorResults, semanticQuery, userPreferences);
+  let mergedResults = mergeAndRankResults(tmdbResults, vectorResults, semanticQuery, userPreferences);
+
+  // Enrich with streaming availability if requested (default: true for top results)
+  const includeStreaming = options?.includeStreaming ?? true;
+  if (includeStreaming && mergedResults.length > 0) {
+    // Get streaming data for top 20 results
+    const topResults = mergedResults.slice(0, 20);
+    const streamingData = await getBatchStreamingAvailability(
+      topResults.map(r => ({ id: r.content.id, mediaType: r.content.mediaType })),
+      options?.region || 'US'
+    );
+
+    // Enrich results with streaming info
+    mergedResults = mergedResults.map(result => {
+      const key = `${result.content.mediaType}-${result.content.id}`;
+      const availability = streamingData.get(key);
+
+      if (availability) {
+        const providers: StreamingInfo[] = [
+          ...availability.providers.flatrate.map(p => ({
+            provider: p.provider.name,
+            providerLogo: p.provider.logoPath,
+            availabilityType: 'flatrate' as const,
+          })),
+          ...availability.providers.free.map(p => ({
+            provider: p.provider.name,
+            providerLogo: p.provider.logoPath,
+            availabilityType: 'free' as const,
+          })),
+        ];
+
+        return {
+          ...result,
+          streaming: {
+            isAvailable: isStreamingNow(availability) || availability.providers.free.length > 0,
+            providers,
+            formattedText: formatStreamingProviders(availability),
+            badge: getStreamingBadge(availability),
+          },
+        };
+      }
+      return result;
+    });
+
+    // If user specified a streaming service, filter and boost those results
+    if (filterServices.length > 0) {
+      mergedResults = mergedResults.map(result => {
+        const key = `${result.content.mediaType}-${result.content.id}`;
+        const availability = streamingData.get(key);
+
+        if (availability && filterByStreamingService(availability, filterServices)) {
+          // Boost score for matching streaming service
+          return {
+            ...result,
+            relevanceScore: Math.min(1, result.relevanceScore + 0.15),
+            matchReasons: [
+              ...result.matchReasons,
+              `Available on ${streamingPref.serviceName || 'your streaming service'}`
+            ],
+          };
+        }
+        return result;
+      });
+
+      // Re-sort by updated relevance
+      mergedResults.sort((a, b) => b.relevanceScore - a.relevanceScore);
+    }
+  }
 
   return mergedResults;
 }
