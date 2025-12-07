@@ -99,6 +99,12 @@ impl From<redb::StorageError> for StorageError {
     }
 }
 
+impl From<redb::CompactionError> for StorageError {
+    fn from(err: redb::CompactionError) -> Self {
+        StorageError::Database(err.to_string())
+    }
+}
+
 impl From<notify::Error> for StorageError {
     fn from(err: notify::Error) -> Self {
         StorageError::Watcher(err.to_string())

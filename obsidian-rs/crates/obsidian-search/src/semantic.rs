@@ -1,6 +1,6 @@
 //! Semantic/vector search using embeddings
 
-use crate::error::{SearchError, SearchResult};
+use crate::error::SearchResult;
 use crate::{MatchType, SearchHit};
 use ndarray::{Array1, ArrayView1};
 use obsidian_core::note::Note;
@@ -210,15 +210,15 @@ impl SemanticIndex {
 
     /// Index a note
     pub fn index_note(&self, note: &Note) -> SearchResult<()> {
-        debug!("Indexing note semantically: {}", note.path);
+        debug!("Indexing note semantically: {}", note.id);
 
         // Remove existing vectors
-        self.store.remove(&note.path);
+        self.store.remove(&note.id);
 
         let title = note
             .frontmatter
-            .title
-            .clone()
+            .as_ref()
+            .and_then(|f| f.title.clone())
             .unwrap_or_else(|| note.basename.clone());
 
         // Chunk the content
@@ -228,7 +228,7 @@ impl SemanticIndex {
             let vector = self.embedder.embed(chunk);
 
             let stored = StoredVector {
-                path: note.path.clone(),
+                path: note.id.clone(),
                 title: if i == 0 {
                     title.clone()
                 } else {
@@ -338,10 +338,11 @@ mod tests {
     use super::*;
 
     fn create_test_note(path: &str, title: &str, content: &str) -> Note {
-        let mut note = Note::new(title);
-        note.path = path.to_string();
-        note.content = content.to_string();
-        note.frontmatter.title = Some(title.to_string());
+        use obsidian_core::note::Frontmatter;
+        let mut note = Note::new(path, path, content);
+        let mut fm = Frontmatter::new();
+        fm.title = Some(title.to_string());
+        note.frontmatter = Some(fm);
         note
     }
 

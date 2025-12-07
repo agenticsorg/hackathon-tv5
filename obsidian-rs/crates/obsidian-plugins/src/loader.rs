@@ -1,6 +1,6 @@
 //! Plugin loading and discovery
 
-use crate::error::{PluginError, PluginResult};
+use crate::error::PluginResult;
 use crate::manifest::PluginManifest;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};

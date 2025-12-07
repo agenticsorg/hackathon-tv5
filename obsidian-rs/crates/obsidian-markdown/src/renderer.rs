@@ -1,7 +1,7 @@
 //! Markdown renderer for converting to HTML
 
 use crate::parser::MarkdownParser;
-use pulldown_cmark::{html, Event, Options, Parser, Tag as CmarkTag};
+use pulldown_cmark::{html, Event, Options, Parser};
 use regex::Regex;
 use std::sync::LazyLock;
 
@@ -14,7 +14,6 @@ static COMMENT_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"%%[^%]*%%").expect("Invalid comment regex"));
 
 /// Options for rendering
-#[derive(Debug, Clone)]
 pub struct RenderOptions {
     /// Base path for resolving links
     pub base_path: String,
@@ -26,6 +25,18 @@ pub struct RenderOptions {
     pub strip_comments: bool,
     /// Link resolver function
     pub link_resolver: Option<LinkResolver>,
+}
+
+impl std::fmt::Debug for RenderOptions {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("RenderOptions")
+            .field("base_path", &self.base_path)
+            .field("resolve_links", &self.resolve_links)
+            .field("highlights", &self.highlights)
+            .field("strip_comments", &self.strip_comments)
+            .field("link_resolver", &self.link_resolver.is_some())
+            .finish()
+    }
 }
 
 impl Default for RenderOptions {

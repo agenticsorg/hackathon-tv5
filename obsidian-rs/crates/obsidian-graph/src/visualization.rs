@@ -187,8 +187,9 @@ impl GraphData {
         }
 
         // Initialize positions randomly
+        let node_count = self.nodes.len();
         for (i, node) in self.nodes.iter_mut().enumerate() {
-            let angle = (i as f64) * 2.0 * std::f64::consts::PI / (self.nodes.len() as f64);
+            let angle = (i as f64) * 2.0 * std::f64::consts::PI / (node_count as f64);
             node.x = Some(angle.cos() * 100.0);
             node.y = Some(angle.sin() * 100.0);
         }

@@ -1,6 +1,6 @@
 //! Full-text search using Tantivy
 
-use crate::error::{SearchError, SearchResult};
+use crate::error::SearchResult;
 use crate::{MatchType, SearchHit, SearchOptions};
 use obsidian_core::note::Note;
 use parking_lot::RwLock;
@@ -9,7 +9,7 @@ use std::sync::Arc;
 use tantivy::collector::TopDocs;
 use tantivy::query::QueryParser;
 use tantivy::schema::{Field, Schema, STORED, STRING, TEXT};
-use tantivy::{doc, Index, IndexReader, IndexWriter, ReloadPolicy, TantivyDocument};
+use tantivy::{doc, Index, IndexReader, IndexWriter, ReloadPolicy};
 use tracing::{debug, info};
 
 /// Schema fields for the index
@@ -117,18 +117,22 @@ impl FullTextIndex {
 
     /// Index a note
     pub fn index_note(&self, note: &Note) -> SearchResult<()> {
-        debug!("Indexing note: {}", note.path);
+        debug!("Indexing note: {}", note.id);
 
         // Remove existing document first
-        self.remove_note(&note.path)?;
+        self.remove_note(&note.id)?;
 
         // Get metadata
-        let title = note.frontmatter.title.clone().unwrap_or_else(|| note.basename.clone());
+        let title = note
+            .frontmatter
+            .as_ref()
+            .and_then(|f| f.title.clone())
+            .unwrap_or_else(|| note.basename.clone());
 
         let headings = note
             .frontmatter
-            .extra
-            .get("headings")
+            .as_ref()
+            .and_then(|f| f.extra.get("headings"))
             .and_then(|v| v.as_array())
             .map(|arr| {
                 arr.iter()
@@ -138,12 +142,16 @@ impl FullTextIndex {
             })
             .unwrap_or_default();
 
-        let tags = note.frontmatter.tags.join(" ");
+        let tags = note
+            .frontmatter
+            .as_ref()
+            .map(|f| f.tags.join(" "))
+            .unwrap_or_default();
 
         // Add document
-        let mut writer = self.writer.write();
+        let writer = self.writer.write();
         writer.add_document(doc!(
-            self.fields.path => note.path.clone(),
+            self.fields.path => note.id.clone(),
             self.fields.title => title,
             self.fields.content => note.content.clone(),
             self.fields.headings => headings,
@@ -158,7 +166,7 @@ impl FullTextIndex {
         debug!("Removing note from index: {}", path);
 
         let term = tantivy::Term::from_field_text(self.fields.path, path);
-        let mut writer = self.writer.write();
+        let writer = self.writer.write();
         writer.delete_term(term);
 
         Ok(())
@@ -177,6 +185,7 @@ impl FullTextIndex {
         let searcher = self.reader.searcher();
         Ok(FullTextSearcher {
             searcher,
+            index: self.index.clone(),
             fields: IndexFields {
                 path: self.fields.path,
                 title: self.fields.title,
@@ -197,6 +206,7 @@ impl FullTextIndex {
 /// Full-text searcher
 pub struct FullTextSearcher {
     searcher: tantivy::Searcher,
+    index: Index,
     fields: IndexFields,
     schema: Schema,
 }
@@ -224,37 +234,24 @@ impl FullTextSearcher {
         }
 
         // Create query parser
-        let query_parser = QueryParser::for_index(&self.searcher.index(), search_fields);
-        let query = query_parser.parse_query(query)?;
+        let query_parser = QueryParser::for_index(&self.index, search_fields);
+        let parsed_query = query_parser.parse_query(query)?;
 
         // Search
         let limit = options.limit.unwrap_or(100);
-        let top_docs = self.searcher.search(&query, &TopDocs::with_limit(limit))?;
+        let top_docs = self.searcher.search(&parsed_query, &TopDocs::with_limit(limit))?;
 
         // Convert to search hits
         let mut results = Vec::new();
         for (score, doc_address) in top_docs {
-            let doc: TantivyDocument = self.searcher.doc(doc_address)?;
+            let retrieved_doc: tantivy::TantivyDocument = self.searcher.doc(doc_address)?;
 
-            let path = doc
-                .get_first(self.fields.path)
-                .and_then(|v| v.as_str())
-                .unwrap_or("")
-                .to_string();
-
-            let title = doc
-                .get_first(self.fields.title)
-                .and_then(|v| v.as_str())
-                .unwrap_or("")
-                .to_string();
-
-            let content = doc
-                .get_first(self.fields.content)
-                .and_then(|v| v.as_str())
-                .unwrap_or("");
+            let path = Self::extract_text(&retrieved_doc, self.fields.path);
+            let title = Self::extract_text(&retrieved_doc, self.fields.title);
+            let content = Self::extract_text(&retrieved_doc, self.fields.content);
 
             // Generate snippet
-            let snippet = Self::generate_snippet(content, query.to_string().as_str());
+            let snippet = Self::generate_snippet(&content, query);
 
             let hit = SearchHit::new(path, score, title)
                 .with_snippet(snippet)
@@ -264,6 +261,21 @@ impl FullTextSearcher {
         }
 
         Ok(results)
+    }
+
+    /// Extract text from a document field
+    fn extract_text(doc: &tantivy::TantivyDocument, field: Field) -> String {
+        doc.get_first(field)
+            .map(|v| format!("{:?}", v))
+            .map(|s| {
+                // Remove the quotes from the debug format if present
+                if s.starts_with('"') && s.ends_with('"') && s.len() >= 2 {
+                    s[1..s.len()-1].to_string()
+                } else {
+                    s
+                }
+            })
+            .unwrap_or_default()
     }
 
     /// Generate a snippet from content
@@ -304,10 +316,11 @@ mod tests {
     use super::*;
 
     fn create_test_note(path: &str, title: &str, content: &str) -> Note {
-        let mut note = Note::new(title);
-        note.path = path.to_string();
-        note.content = content.to_string();
-        note.frontmatter.title = Some(title.to_string());
+        use obsidian_core::note::Frontmatter;
+        let mut note = Note::new(path, path, content);
+        let mut fm = Frontmatter::new();
+        fm.title = Some(title.to_string());
+        note.frontmatter = Some(fm);
         note
     }
 

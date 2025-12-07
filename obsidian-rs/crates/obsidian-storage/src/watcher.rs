@@ -1,17 +1,17 @@
 //! File system watcher for real-time updates
 
 use crate::config::VaultConfig;
-use crate::error::{StorageError, StorageResult};
+use crate::error::StorageResult;
 use notify::{
     event::{CreateKind, ModifyKind, RemoveKind, RenameMode},
     Config, Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher,
 };
 use std::path::{Path, PathBuf};
-use std::sync::mpsc::{channel, Receiver, Sender};
+use std::sync::mpsc::{channel, Receiver};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::broadcast;
-use tracing::{debug, error, info, warn};
+use tracing::{debug, error, info};
 
 /// Kind of file event
 #[derive(Debug, Clone, PartialEq, Eq)]

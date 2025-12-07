@@ -144,17 +144,7 @@ impl MetadataCache {
         let content = std::fs::read_to_string(path)?;
         let file_meta = std::fs::metadata(path)?;
 
-        let stat = FileStat {
-            ctime: file_meta
-                .created()
-                .map(|t| t.duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as i64)
-                .unwrap_or(0),
-            mtime: file_meta
-                .modified()
-                .map(|t| t.duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as i64)
-                .unwrap_or(0),
-            size: file_meta.len(),
-        };
+        let stat = FileStat::from_metadata(&file_meta);
 
         // Parse markdown
         let parsed = self.parser.parse(&content);
@@ -170,7 +160,7 @@ impl MetadataCache {
         let db_entry = MetadataEntry {
             path: rel_path.clone(),
             metadata,
-            mtime: stat.mtime,
+            mtime: stat.mtime.timestamp(),
             content_hash: cache_entry.hash,
         };
         self.db.store_metadata(&rel_path, &db_entry)?;
@@ -277,16 +267,12 @@ impl MetadataCache {
     /// Convert cached entry to Note
     pub fn to_note(&self, path: &Path, cache: &NoteCache) -> StorageResult<Note> {
         let rel_path = self.relative_path(path)?;
-        let basename = path
-            .file_stem()
-            .map(|s| s.to_string_lossy().to_string())
-            .unwrap_or_default();
 
-        Ok(Note::new(basename)
-            .with_path(rel_path)
-            .with_content(cache.content.clone())
-            .with_frontmatter(cache.metadata.frontmatter.clone().unwrap_or_default())
-            .with_stat(cache.stat.clone()))
+        let mut note = Note::new(&rel_path, path, &cache.content);
+        note.frontmatter = cache.metadata.frontmatter.clone();
+        note.stat = cache.stat.clone();
+
+        Ok(note)
     }
 }
 

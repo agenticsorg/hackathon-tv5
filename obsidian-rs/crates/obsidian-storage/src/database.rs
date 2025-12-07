@@ -1,6 +1,6 @@
 //! Persistent database for metadata caching
 
-use crate::error::{StorageError, StorageResult};
+use crate::error::StorageResult;
 use obsidian_core::metadata::CachedMetadata;
 use obsidian_core::note::FileStat;
 use redb::{Database as RedbDatabase, ReadableTable, TableDefinition};
@@ -174,10 +174,13 @@ impl Database {
 
             // For each target, add source to its backlinks
             for target in targets {
-                let existing = table.get(target.as_str())?;
-                let mut sources: Vec<String> = match existing {
-                    Some(data) => bincode::deserialize(data.value())?,
-                    None => Vec::new(),
+                // Get existing sources, clone data before dropping guard
+                let mut sources: Vec<String> = {
+                    let existing = table.get(target.as_str())?;
+                    match existing {
+                        Some(data) => bincode::deserialize(data.value())?,
+                        None => Vec::new(),
+                    }
                 };
 
                 if !sources.contains(&source_path.to_string()) {
@@ -247,10 +250,13 @@ impl Database {
             let mut table = write_txn.open_table(TAGS_TABLE)?;
 
             for tag in tags {
-                let existing = table.get(tag.as_str())?;
-                let mut files: Vec<String> = match existing {
-                    Some(data) => bincode::deserialize(data.value())?,
-                    None => Vec::new(),
+                // Get existing files, clone data before dropping guard
+                let mut files: Vec<String> = {
+                    let existing = table.get(tag.as_str())?;
+                    match existing {
+                        Some(data) => bincode::deserialize(data.value())?,
+                        None => Vec::new(),
+                    }
                 };
 
                 if !files.contains(&path.to_string()) {
@@ -327,7 +333,7 @@ impl Database {
     }
 
     /// Compact the database
-    pub fn compact(&self) -> StorageResult<()> {
+    pub fn compact(&mut self) -> StorageResult<()> {
         info!("Compacting database");
         self.db.compact()?;
         Ok(())
@@ -337,28 +343,48 @@ impl Database {
     pub fn clear(&self) -> StorageResult<()> {
         let write_txn = self.db.begin_write()?;
         {
+            // Clear metadata table
             let mut metadata_table = write_txn.open_table(METADATA_TABLE)?;
-            while let Some(entry) = metadata_table.iter()?.next() {
-                let (key, _) = entry?;
-                metadata_table.remove(key.value())?;
+            let metadata_keys: Vec<String> = metadata_table
+                .iter()?
+                .filter_map(|e| e.ok())
+                .map(|(k, _)| k.value().to_string())
+                .collect();
+            for key in metadata_keys {
+                metadata_table.remove(key.as_str())?;
             }
 
+            // Clear file stats table
             let mut stats_table = write_txn.open_table(FILE_STATS_TABLE)?;
-            while let Some(entry) = stats_table.iter()?.next() {
-                let (key, _) = entry?;
-                stats_table.remove(key.value())?;
+            let stats_keys: Vec<String> = stats_table
+                .iter()?
+                .filter_map(|e| e.ok())
+                .map(|(k, _)| k.value().to_string())
+                .collect();
+            for key in stats_keys {
+                stats_table.remove(key.as_str())?;
             }
 
+            // Clear links table
             let mut links_table = write_txn.open_table(LINKS_TABLE)?;
-            while let Some(entry) = links_table.iter()?.next() {
-                let (key, _) = entry?;
-                links_table.remove(key.value())?;
+            let links_keys: Vec<String> = links_table
+                .iter()?
+                .filter_map(|e| e.ok())
+                .map(|(k, _)| k.value().to_string())
+                .collect();
+            for key in links_keys {
+                links_table.remove(key.as_str())?;
             }
 
+            // Clear tags table
             let mut tags_table = write_txn.open_table(TAGS_TABLE)?;
-            while let Some(entry) = tags_table.iter()?.next() {
-                let (key, _) = entry?;
-                tags_table.remove(key.value())?;
+            let tags_keys: Vec<String> = tags_table
+                .iter()?
+                .filter_map(|e| e.ok())
+                .map(|(k, _)| k.value().to_string())
+                .collect();
+            for key in tags_keys {
+                tags_table.remove(key.as_str())?;
             }
         }
         write_txn.commit()?;

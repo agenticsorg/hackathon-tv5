@@ -54,10 +54,11 @@ notify = "6.1"
 walkdir = "2.4"
 
 # Search
-tantivy = "0.22"
+tantivy = "0.21"
 
 # Graph
 petgraph = "0.6"
+indexmap = "2.2"
 
 # Text editing
 ropey = "1.6"
@@ -66,7 +67,7 @@ ropey = "1.6"
 tree-sitter = "0.20"
 
 # Database
-redb = "2.1"
+redb = "1.5"
 
 # Date/time
 chrono = { version = "0.4", features = ["serde"] }

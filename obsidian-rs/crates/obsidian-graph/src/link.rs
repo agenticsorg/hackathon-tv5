@@ -212,7 +212,7 @@ impl LinkResolver {
     }
 
     /// Get all unresolved links from a set of links
-    pub fn find_unresolved(&self, links: &[Link]) -> Vec<&Link> {
+    pub fn find_unresolved<'a>(&self, links: &'a [Link]) -> Vec<&'a Link> {
         links
             .iter()
             .filter(|link| !self.is_resolved(&link.target))

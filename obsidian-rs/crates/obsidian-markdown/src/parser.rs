@@ -200,11 +200,11 @@ impl MarkdownParser {
 
         for (event, range) in parser.into_offset_iter() {
             match event {
-                Event::Start(CmarkTag::Heading { level, .. }) => {
+                Event::Start(CmarkTag::Heading(level, ..)) => {
                     current_heading = Some((level, range.start));
                     heading_text.clear();
                 }
-                Event::End(CmarkTag::Heading { .. }) => {
+                Event::End(CmarkTag::Heading(..)) => {
                     if let Some((level, start)) = current_heading.take() {
                         let heading_level = match level {
                             HeadingLevel::H1 => 1,

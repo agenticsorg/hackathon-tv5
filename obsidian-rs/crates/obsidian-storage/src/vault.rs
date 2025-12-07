@@ -1,17 +1,17 @@
 //! Vault management and file operations
 
-use crate::cache::{MetadataCache, NoteCache};
+use crate::cache::MetadataCache;
 use crate::config::VaultConfig;
 use crate::database::Database;
 use crate::error::{StorageError, StorageResult};
 use crate::watcher::{FileEvent, FileEventKind, VaultWatcher};
-use obsidian_core::note::{FileStat, Note};
+use obsidian_core::note::Note;
 use obsidian_core::vault::{TAbstractFile, TFile, TFolder};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use tokio::sync::broadcast;
-use tracing::{debug, error, info, warn};
+use tracing::{debug, info, warn};
 use walkdir::WalkDir;
 
 /// A vault containing notes and attachments
@@ -70,11 +70,7 @@ impl Vault {
         };
 
         // Create root folder
-        let root = TFolder::new(
-            config.name.clone(),
-            path.to_string_lossy().to_string(),
-            None,
-        );
+        let root = TFolder::root();
 
         let mut vault = Self {
             config,
@@ -200,16 +196,8 @@ impl Vault {
             let rel_path = self.relative_path(path)?;
 
             if entry.file_type().is_file() {
-                let file = TFile::new(
-                    path.file_name()
-                        .map(|s| s.to_string_lossy().to_string())
-                        .unwrap_or_default(),
-                    rel_path.to_string_lossy().to_string(),
-                    path.extension()
-                        .map(|s| s.to_string_lossy().to_string())
-                        .unwrap_or_default(),
-                    None,
-                );
+                let rel_path_str = rel_path.to_string_lossy().to_string();
+                let file = TFile::new(&rel_path_str);
 
                 self.files.insert(path.to_path_buf(), TAbstractFile::File(file));
 
@@ -222,13 +210,8 @@ impl Vault {
 
                 count += 1;
             } else if entry.file_type().is_dir() {
-                let folder = TFolder::new(
-                    path.file_name()
-                        .map(|s| s.to_string_lossy().to_string())
-                        .unwrap_or_default(),
-                    rel_path.to_string_lossy().to_string(),
-                    None,
-                );
+                let rel_path_str = rel_path.to_string_lossy().to_string();
+                let folder = TFolder::new(&rel_path_str);
 
                 self.files
                     .insert(path.to_path_buf(), TAbstractFile::Folder(folder));
@@ -506,20 +489,10 @@ impl Vault {
 
                 // Add to files map
                 if event.path.is_file() {
-                    let file = TFile::new(
-                        event.path
-                            .file_name()
-                            .map(|s| s.to_string_lossy().to_string())
-                            .unwrap_or_default(),
-                        self.relative_path(&event.path)?
-                            .to_string_lossy()
-                            .to_string(),
-                        event.path
-                            .extension()
-                            .map(|s| s.to_string_lossy().to_string())
-                            .unwrap_or_default(),
-                        None,
-                    );
+                    let rel_path = self.relative_path(&event.path)?
+                        .to_string_lossy()
+                        .to_string();
+                    let file = TFile::new(&rel_path);
                     self.files
                         .insert(event.path.clone(), TAbstractFile::File(file));
                 }

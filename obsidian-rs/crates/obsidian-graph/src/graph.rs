@@ -11,7 +11,6 @@ use petgraph::Direction;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
-use tracing::debug;
 
 /// Node data in the graph
 #[derive(Debug, Clone, Serialize, Deserialize)]

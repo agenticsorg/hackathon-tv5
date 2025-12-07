@@ -2,7 +2,6 @@
 
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
-use std::any::Any;
 use std::collections::HashMap;
 use std::sync::Arc;
 

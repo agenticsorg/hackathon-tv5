@@ -1,6 +1,6 @@
 //! Plugin registry and lifecycle management
 
-use crate::api::{PluginApi, PluginContext};
+use crate::api::PluginContext;
 use crate::error::{PluginError, PluginResult};
 use crate::events::{Event, EventEmitter};
 use crate::loader::{DiscoveredPlugin, PluginLoader};
@@ -8,9 +8,9 @@ use crate::manifest::PluginManifest;
 use crate::settings::PluginSettings;
 use parking_lot::RwLock;
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::Arc;
-use tracing::{debug, error, info, warn};
+use tracing::{error, info, warn};
 
 /// Plugin state
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

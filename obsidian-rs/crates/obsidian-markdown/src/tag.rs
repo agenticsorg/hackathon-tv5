@@ -71,7 +71,7 @@ impl Tag {
 
     /// Get the leaf tag name (last segment)
     pub fn leaf(&self) -> &str {
-        self.segments().last().unwrap_or(&self.name)
+        self.name.rsplit('/').next().unwrap_or(&self.name)
     }
 
     /// Convert to a TagCache

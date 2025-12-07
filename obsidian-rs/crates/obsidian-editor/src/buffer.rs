@@ -4,7 +4,6 @@ use crate::cursor::CursorPosition;
 use crate::error::{EditorError, EditorResult};
 use crate::history::{EditHistory, EditOperation};
 use ropey::Rope;
-use serde::{Deserialize, Serialize};
 use tracing::debug;
 
 /// Text buffer with rope-based storage

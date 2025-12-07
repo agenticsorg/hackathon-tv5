@@ -192,7 +192,7 @@ impl SearchEngine {
             semantic.index_note(note)?;
         }
 
-        self.fuzzy.add_file(&note.path, &note.basename);
+        self.fuzzy.add_file(&note.id, &note.basename);
 
         Ok(())
     }
