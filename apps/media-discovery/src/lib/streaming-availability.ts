@@ -90,7 +90,7 @@ export async function getMovieStreamingAvailability(
 
   try {
     const response = await tmdb.movies.watchProviders(movieId);
-    const regionData = response.results?.[region];
+    const regionData = (response.results as Record<string, any>)?.[region];
 
     if (!regionData) {
       return null;
@@ -114,7 +114,7 @@ export async function getTVStreamingAvailability(
 
   try {
     const response = await tmdb.tvShows.watchProviders(tvId);
-    const regionData = response.results?.[region];
+    const regionData = (response.results as Record<string, any>)?.[region];
 
     if (!regionData) {
       return null;
