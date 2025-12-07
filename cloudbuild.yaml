@@ -12,9 +12,26 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 steps:
+  # Create Artifact Registry repository if it doesn't exist
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'create-repo'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud artifacts repositories describe metadata-api \
+          --location=us-central1 \
+          --project=${_GCP_PROJECT} 2>/dev/null || \
+        gcloud artifacts repositories create metadata-api \
+          --repository-format=docker \
+          --location=us-central1 \
+          --project=${_GCP_PROJECT} \
+          --description="Nexus-UMMID Metadata API container images"
+
   # Build and deploy metadata-api
   - name: 'gcr.io/cloud-builders/docker'
     id: 'build-api'
+    waitFor: ['create-repo']
     dir: 'apps/metadata-api'
     args:
       - 'build'
