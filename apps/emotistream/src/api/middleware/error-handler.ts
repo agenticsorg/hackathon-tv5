@@ -10,6 +10,7 @@ export interface ApiResponse<T = unknown> {
     code: string;
     message: string;
     details?: unknown;
+    redirect?: string; // Optional redirect URL for deprecated endpoints
   } | null;
   timestamp: string;
 }

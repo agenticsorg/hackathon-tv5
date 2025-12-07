@@ -15,6 +15,9 @@ import {
   DesiredState
 } from './types.js';
 import { EmotionalContentProfile } from '../content/types.js';
+import { createLogger } from '../utils/logger.js';
+
+const logger = createLogger('RecommendationEngine');
 
 export class RecommendationEngine {
   private profiler: ContentProfiler;
@@ -40,10 +43,10 @@ export class RecommendationEngine {
   async initialize(contentCount: number = 100): Promise<void> {
     if (this.initialized) return;
 
-    console.log('Initializing RecommendationEngine...');
+    logger.info('Initializing RecommendationEngine...');
     await this.profiler.initialize(contentCount);
     this.initialized = true;
-    console.log('RecommendationEngine ready');
+    logger.info('RecommendationEngine ready');
   }
 
   /**

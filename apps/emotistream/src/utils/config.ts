@@ -104,7 +104,7 @@ export const CONFIG = {
    * Logging Configuration
    */
   logging: {
-    level: process.env.LOG_LEVEL || 'info',  // Log level: debug, info, warn, error
+    level: process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'warn' : 'info'),  // Log level: debug, info, warn, error
     pretty: process.env.NODE_ENV !== 'production',  // Pretty print logs in dev
   },
 

@@ -1,5 +1,8 @@
 import { QTableEntry } from './types.js';
 import { FileStore } from '../persistence/file-store.js';
+import { createLogger } from '../utils/logger.js';
+
+const logger = createLogger('QTable');
 
 export class QTable {
   private table: Map<string, QTableEntry>;
@@ -19,7 +22,7 @@ export class QTable {
     for (const [key, entry] of this.store.entries()) {
       this.table.set(key, entry);
     }
-    console.log(`📊 Loaded ${this.table.size} Q-table entries from storage`);
+    logger.info(`Loaded ${this.table.size} Q-table entries from storage`);
   }
 
   /**

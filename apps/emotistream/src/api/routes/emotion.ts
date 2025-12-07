@@ -1,11 +1,43 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { emotionRateLimiter } from '../middleware/rate-limiter.js';
 import { ValidationError, ApiResponse } from '../middleware/error-handler.js';
-import { EmotionalState } from '../../types/index.js';
+import { EmotionalState, DesiredState } from '../../types/index.js';
 import { getServices } from '../../services/index.js';
 import { GeminiClient } from '../../emotion/gemini-client.js';
+import { isUsingPostgres, getEmotionHistoryStore } from '../../persistence/index.js';
+import { createLogger } from '../../utils/logger.js';
+
+const logger = createLogger('EmotionRoute');
 
 const router = Router();
+
+// Type definitions for API responses
+interface EmotionAnalysisResponse {
+  userId: string;
+  inputText: string;
+  state: EmotionalState;
+  desired: DesiredState;
+}
+
+interface EmotionHistoryItem {
+  id: string;
+  inputText: string;
+  state: {
+    valence: number;
+    arousal: number;
+    stressLevel: number;
+    primaryEmotion: string;
+    confidence: number;
+  };
+  timestamp: string;
+}
+
+interface EmotionHistoryResponse {
+  userId: string;
+  history: EmotionHistoryItem[];
+  count: number;
+  usingPostgres: boolean;
+}
 
 // Lazy initialization - create client on first request after env is loaded
 let geminiClient: GeminiClient | null = null;
@@ -38,7 +70,7 @@ function getGeminiClient(): GeminiClient {
 router.post(
   '/analyze',
   emotionRateLimiter,
-  async (req: Request, res: Response<ApiResponse<any>>, next: NextFunction) => {
+  async (req: Request, res: Response<ApiResponse<EmotionAnalysisResponse>>, next: NextFunction) => {
     try {
       const { userId, text } = req.body;
 
@@ -117,13 +149,29 @@ router.post(
         timestamp: emotionResult.timestamp,
       };
 
-      const desired = {
+      const desired: DesiredState = {
         targetValence: state.valence < 0 ? 0.5 : state.valence,
         targetArousal: state.stressLevel > 0.5 ? -0.2 : state.arousal,
         targetStress: Math.max(0.1, state.stressLevel - 0.4),
-        intensity: state.stressLevel > 0.7 ? 'high' as const : 'moderate' as const,
+        intensity: state.stressLevel > 0.7 ? 'significant' as const : 'moderate' as const,
         reasoning: `Analyzed with ${usedGemini ? 'Gemini AI' : 'local detector'}. ${state.stressLevel > 0.5 ? 'High stress detected, suggesting calming content.' : 'Recommending content aligned with current mood.'}`,
       };
+
+      // Persist emotion analysis to history if using PostgreSQL
+      if (isUsingPostgres()) {
+        const historyStore = getEmotionHistoryStore();
+        try {
+          await historyStore.saveAnalysis(userId, text, {
+            valence: state.valence,
+            arousal: state.arousal,
+            stressLevel: state.stressLevel,
+            primaryEmotion: state.primaryEmotion,
+            confidence: state.confidence,
+          });
+        } catch (error) {
+          logger.warn('Failed to save emotion analysis to history', { error, userId });
+        }
+      }
 
       res.json({
         success: true,
@@ -148,22 +196,47 @@ router.post(
  */
 router.get(
   '/history/:userId',
-  async (req: Request, res: Response<ApiResponse<any>>, next: NextFunction) => {
+  async (req: Request, res: Response<ApiResponse<EmotionHistoryResponse>>, next: NextFunction) => {
     try {
       const { userId } = req.params;
-      const limit = parseInt(req.query.limit as string) || 10;
+      const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 50, 1), 100);
 
       if (!userId) {
         throw new ValidationError('userId is required');
       }
 
-      // TODO: Implement history retrieval
+      let history: EmotionHistoryItem[] = [];
+      let count = 0;
+      const usingPostgres = isUsingPostgres();
+
+      if (usingPostgres) {
+        const historyStore = getEmotionHistoryStore();
+        const dbHistory = await historyStore.getUserHistory(userId, limit);
+        count = await historyStore.getUserAnalysisCount(userId);
+
+        history = dbHistory.map((item) => ({
+          id: item.id,
+          inputText: item.inputText,
+          state: {
+            valence: item.valence,
+            arousal: item.arousal,
+            stressLevel: item.stressLevel,
+            primaryEmotion: item.primaryEmotion,
+            confidence: item.confidence,
+          },
+          timestamp: item.createdAt.toISOString(),
+        }));
+      } else {
+        logger.debug('Emotion history requires PostgreSQL persistence');
+      }
+
       res.json({
         success: true,
         data: {
           userId,
-          history: [],
-          count: 0,
+          history,
+          count,
+          usingPostgres,
         },
         error: null,
         timestamp: new Date().toISOString(),

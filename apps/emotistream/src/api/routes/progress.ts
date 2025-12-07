@@ -18,7 +18,7 @@ const progressAnalytics = new ProgressAnalytics();
 const feedbackStore = getFeedbackStore();
 
 // Helper functions
-function classifyQuadrant(emotion: any): string {
+function classifyQuadrant(emotion: { valence: number; arousal: number }): string {
   if (emotion.valence > 0 && emotion.arousal > 0) return 'Excited';
   if (emotion.valence > 0 && emotion.arousal < 0) return 'Calm';
   if (emotion.valence < 0 && emotion.arousal < 0) return 'Sad';

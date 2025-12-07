@@ -8,6 +8,9 @@ import { VectorStore, SearchResult as StoreSearchResult } from './vector-store.j
 import { BatchProcessor } from './batch-processor.js';
 import { tmdbCatalog, TMDBCatalog } from './tmdb-catalog.js';
 import { MockCatalogGenerator } from './mock-catalog.js';
+import { createLogger } from '../utils/logger.js';
+
+const logger = createLogger('ContentProfiler');
 
 export class ContentProfiler {
   private embeddingGenerator: EmbeddingGenerator;
@@ -18,6 +21,34 @@ export class ContentProfiler {
   private tmdbCatalog: TMDBCatalog;
   private mockCatalog: MockCatalogGenerator;
   private initialized: boolean = false;
+
+  // Genre-based emotional profiles for deterministic content profiling
+  private GENRE_EMOTIONAL_PROFILES: Record<string, {
+    valenceDelta: number;
+    arousalDelta: number;
+    intensity: number;
+  }> = {
+    'comedy': { valenceDelta: 0.5, arousalDelta: 0.2, intensity: 0.6 },
+    'horror': { valenceDelta: -0.3, arousalDelta: 0.7, intensity: 0.9 },
+    'romance': { valenceDelta: 0.4, arousalDelta: -0.1, intensity: 0.5 },
+    'action': { valenceDelta: 0.3, arousalDelta: 0.6, intensity: 0.8 },
+    'drama': { valenceDelta: 0.1, arousalDelta: 0.1, intensity: 0.7 },
+    'documentary': { valenceDelta: 0.2, arousalDelta: -0.2, intensity: 0.4 },
+    'thriller': { valenceDelta: -0.1, arousalDelta: 0.5, intensity: 0.8 },
+    'animation': { valenceDelta: 0.4, arousalDelta: 0.3, intensity: 0.5 },
+    'family': { valenceDelta: 0.5, arousalDelta: 0.1, intensity: 0.4 },
+    'sci-fi': { valenceDelta: 0.2, arousalDelta: 0.4, intensity: 0.7 },
+    'science fiction': { valenceDelta: 0.2, arousalDelta: 0.4, intensity: 0.7 },
+    'mystery': { valenceDelta: 0.0, arousalDelta: 0.3, intensity: 0.6 },
+    'fantasy': { valenceDelta: 0.3, arousalDelta: 0.4, intensity: 0.7 },
+    'adventure': { valenceDelta: 0.4, arousalDelta: 0.5, intensity: 0.7 },
+    'crime': { valenceDelta: -0.1, arousalDelta: 0.4, intensity: 0.7 },
+    'war': { valenceDelta: -0.2, arousalDelta: 0.6, intensity: 0.9 },
+    'history': { valenceDelta: 0.1, arousalDelta: 0.2, intensity: 0.5 },
+    'music': { valenceDelta: 0.4, arousalDelta: 0.3, intensity: 0.6 },
+    'western': { valenceDelta: 0.1, arousalDelta: 0.4, intensity: 0.6 },
+    'tv movie': { valenceDelta: 0.2, arousalDelta: 0.1, intensity: 0.5 },
+  };
 
   constructor() {
     this.embeddingGenerator = new EmbeddingGenerator();
@@ -34,25 +65,25 @@ export class ContentProfiler {
   async initialize(contentCount: number = 100): Promise<void> {
     if (this.initialized) return;
 
-    console.log('Initializing ContentProfiler...');
+    logger.info('Initializing ContentProfiler...');
 
     let catalog: ContentMetadata[];
 
     // Try TMDB first, fall back to mock
     if (this.tmdbCatalog.isAvailable()) {
-      console.log('TMDB configured - fetching real content...');
+      logger.info('TMDB configured - fetching real content...');
       catalog = await this.tmdbCatalog.fetchCatalog(contentCount);
 
       if (catalog.length === 0) {
-        console.warn('TMDB fetch failed, falling back to mock data');
+        logger.warn('TMDB fetch failed, falling back to mock data');
         catalog = this.mockCatalog.generate(contentCount);
       }
     } else {
-      console.log('TMDB not configured - using mock data');
+      logger.info('TMDB not configured - using mock data');
       catalog = this.mockCatalog.generate(contentCount);
     }
 
-    console.log(`Processing ${catalog.length} content items...`);
+    logger.debug(`Processing ${catalog.length} content items...`);
 
     // Profile all content
     for (const content of catalog) {
@@ -61,7 +92,7 @@ export class ContentProfiler {
     }
 
     this.initialized = true;
-    console.log(`ContentProfiler initialized with ${catalog.length} items`);
+    logger.info(`ContentProfiler initialized with ${catalog.length} items`);
   }
 
   /**
@@ -87,26 +118,28 @@ export class ContentProfiler {
 
   /**
    * Profile a single content item
+   * Uses deterministic genre-based emotional profiles
    */
   async profile(content: ContentMetadata): Promise<EmotionalContentProfile> {
-    // Generate mock emotional profile
-    // In real implementation, this would call Gemini API
+    // Calculate emotional profile deterministically from genres
+    const emotionalProfile = this.calculateEmotionalProfile(content.genres);
+
     const profile: EmotionalContentProfile = {
       contentId: content.contentId,
       primaryTone: this.inferTone(content),
-      valenceDelta: this.randomInRange(-0.5, 0.7),
-      arousalDelta: this.randomInRange(-0.6, 0.6),
-      intensity: this.randomInRange(0.3, 0.9),
-      complexity: this.randomInRange(0.3, 0.8),
+      valenceDelta: emotionalProfile.valenceDelta,
+      arousalDelta: emotionalProfile.arousalDelta,
+      intensity: emotionalProfile.intensity,
+      complexity: this.calculateComplexity(content.genres),
       targetStates: [
         {
-          currentValence: this.randomInRange(-0.5, 0.5),
-          currentArousal: this.randomInRange(-0.5, 0.5),
+          currentValence: emotionalProfile.valenceDelta * 0.5,
+          currentArousal: emotionalProfile.arousalDelta * 0.5,
           description: 'Recommended for users seeking emotional balance'
         },
         {
-          currentValence: this.randomInRange(-0.3, 0.3),
-          currentArousal: this.randomInRange(-0.3, 0.3),
+          currentValence: emotionalProfile.valenceDelta * 0.3,
+          currentArousal: emotionalProfile.arousalDelta * 0.3,
           description: 'Good for relaxation and stress relief'
         }
       ],
@@ -119,6 +152,7 @@ export class ContentProfiler {
 
     // Store embedding
     await this.vectorStore.upsert(content.contentId, embedding, {
+      contentId: content.contentId,
       title: content.title,
       category: content.category,
       genres: content.genres
@@ -157,20 +191,114 @@ export class ContentProfiler {
     }
   }
 
-  private inferTone(content: ContentMetadata): string {
-    const tones = ['uplifting', 'calming', 'thrilling', 'dramatic', 'serene', 'melancholic'];
+  /**
+   * Calculate emotional profile deterministically from genres
+   * Averages the emotional characteristics of all genres
+   */
+  private calculateEmotionalProfile(genres: string[]): {
+    valenceDelta: number;
+    arousalDelta: number;
+    intensity: number;
+  } {
+    if (!genres || genres.length === 0) {
+      // Default neutral profile for content without genres
+      return { valenceDelta: 0.2, arousalDelta: 0.1, intensity: 0.5 };
+    }
 
-    if (content.category === 'meditation') return 'calming';
-    if (content.category === 'documentary') return 'serene';
-    if (content.genres.includes('thriller')) return 'thrilling';
-    if (content.genres.includes('comedy')) return 'uplifting';
-    if (content.genres.includes('drama')) return 'dramatic';
+    const valenceDeltaValues: number[] = [];
+    const arousalDeltaValues: number[] = [];
+    const intensityValues: number[] = [];
 
-    return tones[Math.floor(Math.random() * tones.length)];
+    for (const genre of genres) {
+      const normalizedGenre = genre.toLowerCase();
+      const genreProfile = this.GENRE_EMOTIONAL_PROFILES[normalizedGenre];
+
+      if (genreProfile) {
+        valenceDeltaValues.push(genreProfile.valenceDelta);
+        arousalDeltaValues.push(genreProfile.arousalDelta);
+        intensityValues.push(genreProfile.intensity);
+      }
+    }
+
+    // If no matching genres found, use neutral defaults
+    if (valenceDeltaValues.length === 0) {
+      return { valenceDelta: 0.2, arousalDelta: 0.1, intensity: 0.5 };
+    }
+
+    return {
+      valenceDelta: this.average(valenceDeltaValues),
+      arousalDelta: this.average(arousalDeltaValues),
+      intensity: this.average(intensityValues),
+    };
   }
 
-  private randomInRange(min: number, max: number): number {
-    return Math.random() * (max - min) + min;
+  /**
+   * Calculate complexity based on genre count and diversity
+   */
+  private calculateComplexity(genres: string[]): number {
+    if (!genres || genres.length === 0) return 0.3;
+
+    // More genres = more complexity, capped at 0.9
+    const baseComplexity = Math.min(0.3 + (genres.length * 0.15), 0.9);
+
+    return baseComplexity;
+  }
+
+  /**
+   * Calculate average of an array of numbers
+   */
+  private average(numbers: number[]): number {
+    if (numbers.length === 0) return 0;
+    return numbers.reduce((sum, num) => sum + num, 0) / numbers.length;
+  }
+
+  /**
+   * Infer primary tone deterministically from content metadata
+   * Maps genres and categories to emotional tones
+   */
+  private inferTone(content: ContentMetadata): string {
+    // Category-based tones (highest priority)
+    if (content.category === 'meditation') return 'calming';
+    if (content.category === 'documentary') return 'serene';
+    if (content.category === 'music') return 'uplifting';
+
+    // Genre-based tones (deterministic mapping)
+    const genreToneMap: Record<string, string> = {
+      'thriller': 'thrilling',
+      'horror': 'thrilling',
+      'action': 'thrilling',
+      'comedy': 'uplifting',
+      'animation': 'uplifting',
+      'family': 'uplifting',
+      'music': 'uplifting',
+      'drama': 'dramatic',
+      'romance': 'dramatic',
+      'war': 'dramatic',
+      'history': 'dramatic',
+      'crime': 'dramatic',
+      'documentary': 'serene',
+      'nature': 'serene',
+      'sci-fi': 'serene',
+      'science fiction': 'serene',
+      'mystery': 'melancholic',
+      'western': 'melancholic',
+      'fantasy': 'uplifting',
+      'adventure': 'uplifting',
+    };
+
+    // Check genres in order and return first match
+    for (const genre of content.genres) {
+      const normalizedGenre = genre.toLowerCase();
+      if (genreToneMap[normalizedGenre]) {
+        return genreToneMap[normalizedGenre];
+      }
+    }
+
+    // Default tone based on first letter of contentId for determinism
+    // This ensures same content always gets same tone
+    const charCode = content.contentId.charCodeAt(0) || 0;
+    const defaultTones = ['uplifting', 'calming', 'serene', 'dramatic'];
+    return defaultTones[charCode % defaultTones.length];
   }
 
   private createDummyProfile(contentId: string): EmotionalContentProfile {
@@ -193,13 +321,14 @@ export class ContentProfiler {
     if (cached) return cached;
 
     // Fallback to basic metadata from store
+    const category = result.metadata.category as 'movie' | 'series' | 'documentary' | 'music' | 'meditation' | 'short' | undefined;
     return {
       contentId: result.id,
       title: result.metadata.title || result.id,
       description: 'Generated content',
       platform: 'mock',
       genres: result.metadata.genres || [],
-      category: result.metadata.category || 'movie',
+      category: category || 'movie',
       tags: [],
       duration: 120
     };

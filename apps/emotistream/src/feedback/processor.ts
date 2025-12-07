@@ -71,16 +71,12 @@ export class FeedbackProcessor {
     // Step 5: Get learning progress
     const learningProgress = this.profileManager.getStats(request.userId);
 
-    // Step 6: Calculate new Q-value (simplified for MVP)
-    const oldQValue = 0; // Would come from Q-table in full implementation
-    const learningRate = 0.1;
-    const newQValue = oldQValue + learningRate * (finalReward - oldQValue);
-
-    // Step 7: Return response
+    // Note: This processor only calculates the reward. The actual Q-value update
+    // happens in RLPolicyEngine.updatePolicy() which is called by the feedback route.
     return {
       reward: finalReward,
-      policyUpdated: true,
-      newQValue,
+      policyUpdated: false, // Actual update happens in route handler via PolicyEngine
+      newQValue: 0, // Placeholder - real value comes from PolicyEngine.updatePolicy()
       learningProgress,
     };
   }

@@ -361,11 +361,231 @@ export class PostgresContentStore {
   }
 }
 
+/**
+ * PostgreSQL-based Recommendation History Store
+ */
+export class PostgresRecommendationHistoryStore {
+  /**
+   * Save recommendation to history
+   */
+  async saveRecommendation(
+    userId: string,
+    recommendation: {
+      contentId: string;
+      title: string;
+      qValue: number;
+      similarityScore: number;
+      combinedScore: number;
+      isExploration: boolean;
+      reasoning: string;
+    },
+    state: {
+      valence: number;
+      arousal: number;
+      stress: number;
+    }
+  ): Promise<void> {
+    await query(
+      `INSERT INTO recommendation_history (
+        user_id, content_id, content_title, q_value, similarity_score,
+        combined_score, is_exploration, reasoning,
+        state_valence, state_arousal, state_stress
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+      [
+        userId,
+        recommendation.contentId,
+        recommendation.title,
+        recommendation.qValue,
+        recommendation.similarityScore,
+        recommendation.combinedScore,
+        recommendation.isExploration,
+        recommendation.reasoning,
+        state.valence,
+        state.arousal,
+        state.stress,
+      ]
+    );
+  }
+
+  /**
+   * Get recommendation history for user
+   */
+  async getUserHistory(
+    userId: string,
+    limit = 50
+  ): Promise<
+    Array<{
+      id: string;
+      contentId: string;
+      contentTitle: string;
+      qValue: number;
+      similarityScore: number;
+      combinedScore: number;
+      isExploration: boolean;
+      reasoning: string;
+      stateValence: number;
+      stateArousal: number;
+      stateStress: number;
+      createdAt: Date;
+    }>
+  > {
+    const rows = await queryAll<{
+      id: string;
+      content_id: string;
+      content_title: string;
+      q_value: number;
+      similarity_score: number;
+      combined_score: number;
+      is_exploration: boolean;
+      reasoning: string;
+      state_valence: number;
+      state_arousal: number;
+      state_stress: number;
+      created_at: Date;
+    }>(
+      `SELECT id, content_id, content_title, q_value, similarity_score,
+              combined_score, is_exploration, reasoning,
+              state_valence, state_arousal, state_stress, created_at
+       FROM recommendation_history
+       WHERE user_id = $1
+       ORDER BY created_at DESC
+       LIMIT $2`,
+      [userId, limit]
+    );
+
+    return rows.map((row) => ({
+      id: row.id,
+      contentId: row.content_id,
+      contentTitle: row.content_title,
+      qValue: row.q_value,
+      similarityScore: row.similarity_score,
+      combinedScore: row.combined_score,
+      isExploration: row.is_exploration,
+      reasoning: row.reasoning,
+      stateValence: row.state_valence,
+      stateArousal: row.state_arousal,
+      stateStress: row.state_stress,
+      createdAt: new Date(row.created_at),
+    }));
+  }
+
+  /**
+   * Get recommendation count for user
+   */
+  async getUserRecommendationCount(userId: string): Promise<number> {
+    const result = await queryOne<{ count: string }>(
+      'SELECT COUNT(*) as count FROM recommendation_history WHERE user_id = $1',
+      [userId]
+    );
+    return parseInt(result?.count || '0');
+  }
+}
+
+/**
+ * PostgreSQL-based Emotion History Store
+ */
+export class PostgresEmotionHistoryStore {
+  /**
+   * Save emotion analysis to history
+   */
+  async saveAnalysis(
+    userId: string,
+    inputText: string,
+    state: {
+      valence: number;
+      arousal: number;
+      stressLevel: number;
+      primaryEmotion: string;
+      confidence: number;
+    }
+  ): Promise<string> {
+    const result = await queryOne<{ id: string }>(
+      `INSERT INTO emotion_analyses (
+        user_id, input_text, valence, arousal, stress_level,
+        primary_emotion, confidence
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING id`,
+      [
+        userId,
+        inputText,
+        state.valence,
+        state.arousal,
+        state.stressLevel,
+        state.primaryEmotion,
+        state.confidence,
+      ]
+    );
+    return result?.id || '';
+  }
+
+  /**
+   * Get emotion history for user
+   */
+  async getUserHistory(
+    userId: string,
+    limit = 50
+  ): Promise<
+    Array<{
+      id: string;
+      inputText: string;
+      valence: number;
+      arousal: number;
+      stressLevel: number;
+      primaryEmotion: string;
+      confidence: number;
+      createdAt: Date;
+    }>
+  > {
+    const rows = await queryAll<{
+      id: string;
+      input_text: string;
+      valence: number;
+      arousal: number;
+      stress_level: number;
+      primary_emotion: string;
+      confidence: number;
+      created_at: Date;
+    }>(
+      `SELECT id, input_text, valence, arousal, stress_level,
+              primary_emotion, confidence, created_at
+       FROM emotion_analyses
+       WHERE user_id = $1
+       ORDER BY created_at DESC
+       LIMIT $2`,
+      [userId, limit]
+    );
+
+    return rows.map((row) => ({
+      id: row.id,
+      inputText: row.input_text,
+      valence: row.valence,
+      arousal: row.arousal,
+      stressLevel: row.stress_level,
+      primaryEmotion: row.primary_emotion,
+      confidence: row.confidence,
+      createdAt: new Date(row.created_at),
+    }));
+  }
+
+  /**
+   * Get emotion analysis count for user
+   */
+  async getUserAnalysisCount(userId: string): Promise<number> {
+    const result = await queryOne<{ count: string }>(
+      'SELECT COUNT(*) as count FROM emotion_analyses WHERE user_id = $1',
+      [userId]
+    );
+    return parseInt(result?.count || '0');
+  }
+}
+
 // Singleton instances
 let feedbackStore: PostgresFeedbackStore | null = null;
 let qValueStore: PostgresQValueStore | null = null;
 let userStore: PostgresUserStore | null = null;
 let contentStore: PostgresContentStore | null = null;
+let recommendationHistoryStore: PostgresRecommendationHistoryStore | null = null;
+let emotionHistoryStore: PostgresEmotionHistoryStore | null = null;
 
 export function getPostgresFeedbackStore(): PostgresFeedbackStore {
   if (!feedbackStore) {
@@ -393,4 +613,18 @@ export function getPostgresContentStore(): PostgresContentStore {
     contentStore = new PostgresContentStore();
   }
   return contentStore;
+}
+
+export function getPostgresRecommendationHistoryStore(): PostgresRecommendationHistoryStore {
+  if (!recommendationHistoryStore) {
+    recommendationHistoryStore = new PostgresRecommendationHistoryStore();
+  }
+  return recommendationHistoryStore;
+}
+
+export function getPostgresEmotionHistoryStore(): PostgresEmotionHistoryStore {
+  if (!emotionHistoryStore) {
+    emotionHistoryStore = new PostgresEmotionHistoryStore();
+  }
+  return emotionHistoryStore;
 }

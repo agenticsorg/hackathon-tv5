@@ -15,6 +15,9 @@ import { JWTService } from '../auth/jwt-service.js';
 import { PasswordService } from '../auth/password-service.js';
 import { UserStore } from '../persistence/user-store.js';
 import { initializeDatabase, checkConnection } from '../persistence/postgres-client.js';
+import { createLogger } from '../utils/logger.js';
+
+const logger = createLogger('ServiceContainer');
 
 export class ServiceContainer {
   private static instance: ServiceContainer;
@@ -76,37 +79,37 @@ export class ServiceContainer {
   public async initialize(): Promise<void> {
     if (this.initialized) return;
 
-    console.log('🚀 Initializing EmotiStream services...');
+    logger.info('Initializing EmotiStream services...');
 
     // Initialize PostgreSQL database if enabled
     const usePostgres = process.env.USE_POSTGRES === 'true';
     if (usePostgres) {
-      console.log('🗄️  PostgreSQL mode enabled');
+      logger.info('PostgreSQL mode enabled');
       try {
         const connected = await checkConnection();
         if (connected) {
-          console.log('✅ Database connection established');
+          logger.info('Database connection established');
           await initializeDatabase();
-          console.log('✅ Database schema initialized');
+          logger.info('Database schema initialized');
         } else {
-          console.warn('⚠️  Database connection failed, falling back to in-memory storage');
+          logger.warn('Database connection failed, falling back to in-memory storage');
         }
       } catch (error) {
-        console.error('❌ Database initialization error:', error);
-        console.warn('⚠️  Falling back to in-memory storage');
+        logger.error('Database initialization error', error);
+        logger.warn('Falling back to in-memory storage');
       }
     } else {
-      console.log('📦 Using in-memory storage (set USE_POSTGRES=true for persistence)');
+      logger.info('Using in-memory storage (set USE_POSTGRES=true for persistence)');
     }
 
     // Initialize recommendation engine with TMDB content (or mock fallback)
     await this.recommendationEngine.initialize(100);
 
     const source = this.recommendationEngine.isUsingTMDB() ? 'TMDB (real movies/TV)' : 'Mock data';
-    console.log(`🎬 Content source: ${source}`);
+    logger.info(`Content source: ${source}`);
 
     this.initialized = true;
-    console.log('✅ EmotiStream services ready');
+    logger.info('EmotiStream services ready');
   }
 
   /**

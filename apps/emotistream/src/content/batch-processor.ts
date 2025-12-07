@@ -69,8 +69,8 @@ export class BatchProcessor {
     // Generate and store embedding
     const embedding = this.embeddingGenerator.generate(profile, content);
     await this.vectorStore.upsert(content.contentId, embedding, {
-      title: content.title,
-      category: content.category
+      contentId: content.contentId,
+      title: content.title
     });
 
     return profile;

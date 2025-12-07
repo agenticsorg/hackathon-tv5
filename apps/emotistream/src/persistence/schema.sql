@@ -21,9 +21,10 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 
 -- Emotion analyses table
+-- Note: user_id is VARCHAR to support anonymous/guest users like other tables
 CREATE TABLE IF NOT EXISTS emotion_analyses (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+    user_id VARCHAR(255) NOT NULL,
     input_text TEXT NOT NULL,
     valence REAL NOT NULL CHECK (valence >= -1 AND valence <= 1),
     arousal REAL NOT NULL CHECK (arousal >= -1 AND arousal <= 1),
@@ -188,3 +189,24 @@ CREATE TRIGGER users_updated_at
     BEFORE UPDATE ON users
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at();
+
+-- Recommendation history table
+CREATE TABLE IF NOT EXISTS recommendation_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id VARCHAR(255) NOT NULL,
+    content_id VARCHAR(255) NOT NULL,
+    content_title VARCHAR(500),
+    q_value REAL,
+    similarity_score REAL,
+    combined_score REAL,
+    is_exploration BOOLEAN DEFAULT FALSE,
+    reasoning TEXT,
+    state_valence REAL,
+    state_arousal REAL,
+    state_stress REAL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_rec_history_user ON recommendation_history(user_id);
+CREATE INDEX IF NOT EXISTS idx_rec_history_created ON recommendation_history(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_rec_history_user_created ON recommendation_history(user_id, created_at DESC);

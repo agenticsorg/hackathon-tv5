@@ -1,7 +1,29 @@
 /**
  * EmotiStream Structured Logger
  *
- * Provides consistent logging across the application with different log levels.
+ * Provides consistent logging across the application with environment-based log levels.
+ *
+ * Environment-based defaults:
+ * - Production: 'warn' (only warnings and errors)
+ * - Development: 'info' (info, warnings, and errors)
+ * - Debug: 'debug' (all logs)
+ *
+ * Can be overridden with LOG_LEVEL environment variable.
+ *
+ * Usage:
+ * ```typescript
+ * import { logger, createLogger } from './utils/logger';
+ *
+ * // Use default logger
+ * logger.debug('Debug message', { data: 'value' });
+ * logger.info('Info message');
+ * logger.warn('Warning message');
+ * logger.error('Error message', error);
+ *
+ * // Create module-specific logger
+ * const moduleLogger = createLogger('MyModule');
+ * moduleLogger.info('Module initialized');
+ * ```
  */
 
 import { CONFIG } from './config';
@@ -24,6 +46,18 @@ const LOG_LEVEL_MAP: Record<string, LogLevel> = {
   info: LogLevel.INFO,
   warn: LogLevel.WARN,
   error: LogLevel.ERROR,
+};
+
+/**
+ * Validate and normalize log level string
+ */
+const normalizeLogLevel = (level: string): LogLevel => {
+  const normalized = level.toLowerCase().trim();
+  if (normalized in LOG_LEVEL_MAP) {
+    return LOG_LEVEL_MAP[normalized];
+  }
+  console.warn(`Invalid log level "${level}", defaulting to INFO`);
+  return LogLevel.INFO;
 };
 
 /**
@@ -51,7 +85,7 @@ export class Logger {
   private context?: string;
 
   constructor(context?: string) {
-    this.currentLevel = LOG_LEVEL_MAP[CONFIG.logging.level] || LogLevel.INFO;
+    this.currentLevel = normalizeLogLevel(CONFIG.logging.level);
     this.pretty = CONFIG.logging.pretty;
     this.context = context;
   }

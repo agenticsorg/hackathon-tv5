@@ -11,16 +11,23 @@ import {
   PostgresQValueStore,
   PostgresUserStore,
   PostgresContentStore,
+  PostgresRecommendationHistoryStore,
+  PostgresEmotionHistoryStore,
   getPostgresFeedbackStore,
   getPostgresQValueStore,
   getPostgresUserStore,
   getPostgresContentStore,
+  getPostgresRecommendationHistoryStore,
+  getPostgresEmotionHistoryStore,
 } from './postgres-store.js';
 import {
   initializeDatabase,
   checkConnection,
   closePool,
 } from './postgres-client.js';
+import { createLogger } from '../utils/logger.js';
+
+const logger = createLogger('Persistence');
 
 // Check if PostgreSQL is configured
 const USE_POSTGRES = !!process.env.DB_HOST || process.env.USE_POSTGRES === 'true';
@@ -33,20 +40,20 @@ let feedbackStoreInstance: FeedbackStore | null = null;
  */
 export async function initializePersistence(): Promise<boolean> {
   if (USE_POSTGRES) {
-    console.log('Initializing PostgreSQL persistence...');
+    logger.info('Initializing PostgreSQL persistence...');
     try {
       const connected = await checkConnection();
       if (connected) {
         await initializeDatabase();
-        console.log('PostgreSQL persistence initialized successfully');
+        logger.info('PostgreSQL persistence initialized successfully');
         return true;
       }
     } catch (error) {
-      console.error('PostgreSQL initialization failed:', error);
-      console.log('Falling back to in-memory storage');
+      logger.error('PostgreSQL initialization failed', error);
+      logger.warn('Falling back to in-memory storage');
     }
   } else {
-    console.log('Using in-memory storage (set DB_HOST or USE_POSTGRES=true for PostgreSQL)');
+    logger.info('Using in-memory storage (set DB_HOST or USE_POSTGRES=true for PostgreSQL)');
   }
   return false;
 }
@@ -96,6 +103,20 @@ export function getContentStore(): PostgresContentStore {
 }
 
 /**
+ * Get Recommendation History store (PostgreSQL only)
+ */
+export function getRecommendationHistoryStore(): PostgresRecommendationHistoryStore {
+  return getPostgresRecommendationHistoryStore();
+}
+
+/**
+ * Get Emotion History store (PostgreSQL only)
+ */
+export function getEmotionHistoryStore(): PostgresEmotionHistoryStore {
+  return getPostgresEmotionHistoryStore();
+}
+
+/**
  * Close all database connections
  */
 export async function closePersistence(): Promise<void> {
@@ -111,6 +132,8 @@ export {
   PostgresQValueStore,
   PostgresUserStore,
   PostgresContentStore,
+  PostgresRecommendationHistoryStore,
+  PostgresEmotionHistoryStore,
 } from './postgres-store.js';
 export {
   query,

@@ -3,19 +3,35 @@
  * MVP implementation - can be swapped to RuVector HNSW later
  */
 
+/**
+ * Metadata stored with each vector
+ */
+export interface VectorMetadata {
+  contentId: string;
+  title?: string;
+  genres?: string[];
+  category?: 'movie' | 'series' | 'documentary' | 'music' | 'meditation' | 'short';
+  emotionalProfile?: {
+    valenceDelta: number;
+    arousalDelta: number;
+    intensity: number;
+  };
+  [key: string]: unknown; // Allow additional properties
+}
+
 export interface SearchResult {
   id: string;
   score: number;
-  metadata: any;
+  metadata: VectorMetadata;
 }
 
 export class VectorStore {
-  private vectors: Map<string, { vector: Float32Array; metadata: any }> = new Map();
+  private vectors: Map<string, { vector: Float32Array; metadata: VectorMetadata }> = new Map();
 
   /**
    * Upsert (insert or update) a vector with metadata
    */
-  async upsert(id: string, vector: Float32Array, metadata: any): Promise<void> {
+  async upsert(id: string, vector: Float32Array, metadata: VectorMetadata): Promise<void> {
     if (vector.length !== 1536) {
       throw new Error(`Invalid vector dimension: ${vector.length} (expected 1536)`);
     }

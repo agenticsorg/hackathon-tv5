@@ -6,14 +6,13 @@ import { getServices } from '../../services/index.js';
 import { EmotionalExperience } from '../../rl/types.js';
 import { getFeedbackStore } from '../../persistence/index.js';
 import { FeedbackSubmission } from '../../types/feedback.js';
+import { DesiredState } from '../../types/index.js';
+import { sessionStore } from './session-store.js';
 
 const router = Router();
 
 // Get shared feedback store instance
 const feedbackStore = getFeedbackStore();
-
-// Store for tracking user sessions (stateBeforeViewing for reward calculation)
-const userSessionStore = new Map<string, { stateBefore: any; desiredState: any; contentId: string }>();
 
 /**
  * POST /api/v1/feedback
@@ -80,7 +79,7 @@ router.post(
 
       // Build state before viewing (use stored session or construct from actualPostState)
       const sessionKey = `${feedbackRequest.userId}:${feedbackRequest.contentId}`;
-      const session = userSessionStore.get(sessionKey);
+      const session = sessionStore.get(sessionKey);
 
       // Default state before (will be estimated if no session exists)
       const stateBefore = session?.stateBefore ?? {
@@ -94,7 +93,7 @@ router.post(
         targetValence: 0.5,
         targetArousal: -0.2,
         targetStress: 0.2,
-        intensity: 'moderate' as const,
+        intensity: 'moderate',
         reasoning: 'Default desired state for emotional homeostasis',
       };
 
@@ -181,7 +180,7 @@ router.post(
       );
 
       // Clean up session
-      userSessionStore.delete(sessionKey);
+      sessionStore.delete(sessionKey);
 
       const response: FeedbackResponse = {
         reward: feedbackResult.reward,
@@ -207,13 +206,21 @@ router.post(
   }
 );
 
+// Type for deprecation response
+interface DeprecationResponse {
+  code: string;
+  message: string;
+  redirect: string;
+}
+
 /**
+ * @deprecated Use GET /api/v1/progress/:userId instead
  * GET /api/v1/feedback/progress/:userId
- * Get learning progress for a user
+ * Legacy endpoint - redirects to /api/v1/progress/:userId
  */
 router.get(
   '/progress/:userId',
-  async (req: Request, res: Response<ApiResponse<any>>, next: NextFunction) => {
+  async (req: Request, res: Response<ApiResponse<DeprecationResponse>>, next: NextFunction) => {
     try {
       const { userId } = req.params;
 
@@ -221,21 +228,15 @@ router.get(
         throw new ValidationError('userId is required');
       }
 
-      // TODO: Implement progress retrieval from RLPolicyEngine
-      const mockProgress = {
-        userId,
-        totalExperiences: 15,
-        avgReward: 0.68,
-        explorationRate: 0.12,
-        convergenceScore: 0.45,
-        recentRewards: [0.75, 0.82, 0.65, 0.71, 0.88],
-      };
-
-      res.json({
-        success: true,
-        data: mockProgress,
-        error: null,
-        timestamp: new Date().toISOString(),
+      res.status(301).json({
+        success: false,
+        data: null,
+        error: {
+          code: 'DEPRECATED',
+          message: 'This endpoint is deprecated. Use GET /api/v1/progress/:userId instead',
+          redirect: `/api/v1/progress/${userId}`
+        },
+        timestamp: new Date().toISOString()
       });
     } catch (error) {
       next(error);
@@ -244,12 +245,13 @@ router.get(
 );
 
 /**
+ * @deprecated Use GET /api/v1/progress/:userId/experiences instead
  * GET /api/v1/feedback/experiences/:userId
- * Get feedback experiences for a user
+ * Legacy endpoint - redirects to /api/v1/progress/:userId/experiences
  */
 router.get(
   '/experiences/:userId',
-  async (req: Request, res: Response<ApiResponse<any>>, next: NextFunction) => {
+  async (req: Request, res: Response<ApiResponse<DeprecationResponse>>, next: NextFunction) => {
     try {
       const { userId } = req.params;
       const limit = parseInt(req.query.limit as string) || 10;
@@ -262,16 +264,15 @@ router.get(
         throw new ValidationError('limit must be between 1 and 100');
       }
 
-      // TODO: Implement experience retrieval
-      res.json({
-        success: true,
-        data: {
-          userId,
-          experiences: [],
-          count: 0,
+      res.status(301).json({
+        success: false,
+        data: null,
+        error: {
+          code: 'DEPRECATED',
+          message: 'This endpoint is deprecated. Use GET /api/v1/progress/:userId/experiences instead',
+          redirect: `/api/v1/progress/${userId}/experiences`
         },
-        error: null,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toISOString()
       });
     } catch (error) {
       next(error);
