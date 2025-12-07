@@ -1,6 +1,6 @@
 use crate::types::{Recommendation, ViewContext};
 use omega_agentdb::VectorResult;
-use omega_memory::{Memory, MemoryTier, Query};
+use omega_memory::{Memory, MemoryContent};
 use tracing::{debug, warn};
 
 /// Recommendation engine using AgentDB vector search
@@ -37,39 +37,49 @@ impl RecommendationEngine {
         let mut recommendations = Vec::new();
 
         for result in vector_results.iter().take(50) {
-            // Parse vector result metadata
-            let metadata = match &result.metadata {
-                Some(m) => m,
-                None => {
-                    warn!("Vector result missing metadata, skipping");
-                    continue;
-                }
-            };
+            // Get metadata from vector result (it's always a Value, not Option)
+            let metadata = &result.metadata;
+
+            // Skip if metadata is null
+            if metadata.is_null() {
+                warn!("Vector result has null metadata, skipping");
+                continue;
+            }
 
             // Extract content info
-            let content_id = metadata.get("content_id")
+            let content_id = metadata
+                .get("content_id")
                 .and_then(|v| v.as_str())
                 .unwrap_or("unknown");
 
-            let title = metadata.get("title")
+            let title = metadata
+                .get("title")
                 .and_then(|v| v.as_str())
                 .unwrap_or("Unknown Title");
 
-            let content_type = metadata.get("content_type")
+            let content_type = metadata
+                .get("content_type")
                 .and_then(|v| v.as_str())
                 .unwrap_or("video");
 
-            let genre = metadata.get("genre")
+            let genre = metadata
+                .get("genre")
                 .and_then(|v| v.as_str())
                 .unwrap_or("unknown");
 
             // Calculate confidence from similarity and memory boost
-            let mut confidence = result.similarity;
+            let mut confidence: f32 = result.similarity as f32;
 
             // Boost confidence based on memory preferences
             for memory in &memories {
-                if let Some(mem_metadata) = memory.metadata.as_ref() {
-                    if let Some(mem_genre) = mem_metadata.get("genre").and_then(|v| v.as_str()) {
+                // Extract metadata from MemoryContent
+                let mem_metadata = match &memory.content {
+                    MemoryContent::MultiModal { metadata, .. } => Some(metadata),
+                    _ => None,
+                };
+
+                if let Some(meta) = mem_metadata {
+                    if let Some(mem_genre) = meta.get("genre").and_then(|v| v.as_str()) {
                         if mem_genre == genre {
                             confidence *= 1.2; // Boost for preferred genre
                         }
@@ -83,7 +93,7 @@ impl RecommendationEngine {
             }
 
             // Generate recommendation reason
-            let reason = self.generate_reason(result.similarity, genre, memories.len());
+            let reason = self.generate_reason(result.similarity as f32, genre, memories.len());
 
             recommendations.push(Recommendation {
                 content_id: content_id.to_string(),
@@ -98,7 +108,9 @@ impl RecommendationEngine {
 
         // Sort by confidence descending
         recommendations.sort_by(|a, b| {
-            b.confidence.partial_cmp(&a.confidence).unwrap_or(std::cmp::Ordering::Equal)
+            b.confidence
+                .partial_cmp(&a.confidence)
+                .unwrap_or(std::cmp::Ordering::Equal)
         });
 
         // Return top 20
@@ -111,13 +123,13 @@ impl RecommendationEngine {
     /// Generate human-readable recommendation reason
     fn generate_reason(&self, similarity: f32, genre: &str, memory_count: usize) -> String {
         if similarity > 0.9 {
-            format!("Highly similar to your viewing history")
+            "Highly similar to your viewing history".to_string()
         } else if similarity > 0.8 {
             format!("Based on your interest in {}", genre)
         } else if memory_count > 0 {
             format!("Popular in {} category", genre)
         } else {
-            format!("Recommended for you")
+            "Recommended for you".to_string()
         }
     }
 }
@@ -131,24 +143,21 @@ impl Default for RecommendationEngine {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use omega_memory::MemoryContent;
 
     #[test]
     fn test_rank_results() {
         let engine = RecommendationEngine::new();
 
-        let vector_results = vec![
-            VectorResult {
-                id: "1".to_string(),
-                similarity: 0.95,
-                metadata: Some(serde_json::json!({
-                    "content_id": "movie-123",
-                    "title": "Test Movie",
-                    "content_type": "movie",
-                    "genre": "action"
-                })),
-            },
-        ];
+        let vector_results = vec![VectorResult {
+            id: "1".to_string(),
+            similarity: 0.95,
+            metadata: serde_json::json!({
+                "content_id": "movie-123",
+                "title": "Test Movie",
+                "content_type": "movie",
+                "genre": "action"
+            }),
+        }];
 
         let memories = vec![];
         let context = ViewContext {

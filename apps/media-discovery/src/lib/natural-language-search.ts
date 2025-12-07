@@ -7,9 +7,27 @@ import { generateObject, generateText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { google } from '@ai-sdk/google';
 import { z } from 'zod';
-import type { SemanticSearchQuery, SearchIntent, SearchFilters, MediaContent, SearchResult } from '@/types/media';
+import type { SemanticSearchQuery, SearchIntent, SearchFilters, MediaContent, SearchResult, StreamingInfo } from '@/types/media';
 import { searchMulti, getSimilarMovies, getSimilarTVShows, discoverMovies, discoverTVShows } from './tmdb';
 import { searchByEmbedding, getContentEmbedding, calculateSimilarity } from './vector-search';
+import {
+  getBatchStreamingAvailability,
+  parseStreamingPreference,
+  filterByStreamingService,
+  formatStreamingProviders,
+  getStreamingBadge,
+  isStreamingNow,
+  type StreamingAvailability,
+} from './streaming-availability';
+import {
+  getIntentCache,
+  getSearchResultCache,
+  createSearchCacheKey,
+} from './cache';
+import {
+  trackSearchInitiated,
+  trackSearchCompleted,
+} from './analytics';
 
 // Schema for parsed search intent
 const SearchIntentSchema = z.object({
@@ -35,9 +53,9 @@ const SearchFiltersSchema = z.object({
   ratingMin: z.number().optional(),
 });
 
-// Server-side intent cache (survives across requests in same process)
-const intentCache = new Map<string, { result: SemanticSearchQuery; timestamp: number }>();
-const INTENT_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minute TTL
+// Multi-tier cache for intent parsing (L1: in-memory, L2: Redis if available)
+const intentCacheInstance = getIntentCache();
+const searchResultCacheInstance = getSearchResultCache();
 
 // Genre mapping for common genre names to TMDB IDs
 const GENRE_MAP: Record<string, { movie: number; tv: number }> = {
@@ -67,11 +85,11 @@ export async function parseSearchQuery(query: string): Promise<SemanticSearchQue
   // Normalize for cache key
   const cacheKey = query.toLowerCase().trim();
 
-  // Check cache first
-  const cached = intentCache.get(cacheKey);
-  if (cached && Date.now() - cached.timestamp < INTENT_CACHE_TTL_MS) {
+  // Check multi-tier cache first (L1 in-memory, L2 Redis)
+  const cached = await intentCacheInstance.get(cacheKey);
+  if (cached) {
     console.log(`📦 Intent cache hit for: "${query.slice(0, 30)}..."`);
-    return cached.result;
+    return cached;
   }
 
   try {
@@ -118,8 +136,8 @@ Be specific and extract as much relevant information as possible.`,
       },
     };
 
-    // Cache the result
-    intentCache.set(cacheKey, { result, timestamp: Date.now() });
+    // Cache the result in multi-tier cache
+    await intentCacheInstance.set(cacheKey, result);
 
     return result;
   } catch (error) {
@@ -131,13 +149,46 @@ Be specific and extract as much relevant information as possible.`,
 
 /**
  * Perform semantic search combining TMDB and vector search
+ * Now includes streaming availability data
  */
 export async function semanticSearch(
   query: string,
-  userPreferences?: number[]
+  userPreferences?: number[],
+  options?: {
+    includeStreaming?: boolean;
+    region?: string;
+    filterByService?: number[];
+    sessionId?: string;
+  }
 ): Promise<SearchResult[]> {
+  const startTime = Date.now();
+  const sessionId = options?.sessionId || 'anonymous';
+
+  // Check search result cache
+  const cacheKey = createSearchCacheKey(query, userPreferences, options);
+  const cachedResults = await searchResultCacheInstance.get(cacheKey);
+  if (cachedResults) {
+    console.log(`📦 Search result cache hit for: "${query.slice(0, 30)}..."`);
+    trackSearchCompleted(sessionId, query, {
+      count: cachedResults.length,
+      latencyMs: Date.now() - startTime,
+      cacheHit: true,
+      topIds: cachedResults.slice(0, 5).map(r => r.content.id),
+    });
+    return cachedResults;
+  }
+
+  // Track search initiation
+  trackSearchInitiated(sessionId, query, {
+    streamingService: options?.filterByService?.length ? 'specified' : undefined,
+  });
+
   // Parse the natural language query
   const semanticQuery = await parseSearchQuery(query);
+
+  // Check if user mentioned a specific streaming service
+  const streamingPref = parseStreamingPreference(query);
+  const filterServices = options?.filterByService || streamingPref.serviceIds;
 
   // Parallel search strategies
   const [tmdbResults, vectorResults] = await Promise.all([
@@ -146,7 +197,87 @@ export async function semanticSearch(
   ]);
 
   // Merge and rank results
-  const mergedResults = mergeAndRankResults(tmdbResults, vectorResults, semanticQuery, userPreferences);
+  let mergedResults = mergeAndRankResults(tmdbResults, vectorResults, semanticQuery, userPreferences);
+
+  // Enrich with streaming availability if requested (default: true for top results)
+  const includeStreaming = options?.includeStreaming ?? true;
+  if (includeStreaming && mergedResults.length > 0) {
+    // Get streaming data for top 20 results
+    const topResults = mergedResults.slice(0, 20);
+    const streamingData = await getBatchStreamingAvailability(
+      topResults.map(r => ({ id: r.content.id, mediaType: r.content.mediaType })),
+      options?.region || 'US'
+    );
+
+    // Enrich results with streaming info
+    mergedResults = mergedResults.map(result => {
+      const key = `${result.content.mediaType}-${result.content.id}`;
+      const availability = streamingData.get(key);
+
+      if (availability) {
+        const providers: StreamingInfo[] = [
+          ...availability.providers.flatrate.map(p => ({
+            provider: p.provider.name,
+            providerLogo: p.provider.logoPath,
+            availabilityType: 'flatrate' as const,
+          })),
+          ...availability.providers.free.map(p => ({
+            provider: p.provider.name,
+            providerLogo: p.provider.logoPath,
+            availabilityType: 'free' as const,
+          })),
+        ];
+
+        return {
+          ...result,
+          streaming: {
+            isAvailable: isStreamingNow(availability) || availability.providers.free.length > 0,
+            providers,
+            formattedText: formatStreamingProviders(availability),
+            badge: getStreamingBadge(availability),
+          },
+        };
+      }
+      return result;
+    });
+
+    // If user specified a streaming service, filter and boost those results
+    if (filterServices.length > 0) {
+      mergedResults = mergedResults.map(result => {
+        const key = `${result.content.mediaType}-${result.content.id}`;
+        const availability = streamingData.get(key);
+
+        if (availability && filterByStreamingService(availability, filterServices)) {
+          // Boost score for matching streaming service
+          return {
+            ...result,
+            relevanceScore: Math.min(1, result.relevanceScore + 0.15),
+            matchReasons: [
+              ...result.matchReasons,
+              `Available on ${streamingPref.serviceName || 'your streaming service'}`
+            ],
+          };
+        }
+        return result;
+      });
+
+      // Re-sort by updated relevance
+      mergedResults.sort((a, b) => b.relevanceScore - a.relevanceScore);
+    }
+  }
+
+  // Cache the results
+  await searchResultCacheInstance.set(cacheKey, mergedResults);
+
+  // Track search completion
+  trackSearchCompleted(sessionId, query, {
+    count: mergedResults.length,
+    latencyMs: Date.now() - startTime,
+    cacheHit: false,
+    topIds: mergedResults.slice(0, 5).map(r => r.content.id),
+  }, {
+    intents: semanticQuery.intent?.themes || [],
+  });
 
   return mergedResults;
 }
@@ -351,6 +482,52 @@ function mergeAndRankResults(
       };
     });
   }
+
+  // Apply content freshness scoring
+  // Boost newer content based on release date
+  const wantsNew = /\b(new|recent|latest|2024|2023|just released|came out)\b/i.test(query.query);
+  results = results.map(result => {
+    const releaseDate = new Date(result.content.releaseDate);
+    const now = new Date();
+    const daysSinceRelease = Math.floor((now.getTime() - releaseDate.getTime()) / (1000 * 60 * 60 * 24));
+
+    // Calculate recency boost using exponential decay
+    // More aggressive boost if user explicitly wants new content
+    let recencyBoost = 0;
+
+    if (daysSinceRelease < 0) {
+      // Future release - slight boost for anticipation
+      recencyBoost = 0.02;
+    } else if (daysSinceRelease <= 30) {
+      // Less than 1 month - very fresh
+      recencyBoost = wantsNew ? 0.15 : 0.08;
+      result.matchReasons.push('New release');
+    } else if (daysSinceRelease <= 90) {
+      // 1-3 months - still fresh
+      recencyBoost = wantsNew ? 0.10 : 0.05;
+      result.matchReasons.push('Recent release');
+    } else if (daysSinceRelease <= 365) {
+      // Within a year
+      recencyBoost = wantsNew ? 0.05 : 0.02;
+    } else {
+      // Classic content - no penalty, just no boost
+      // (some users specifically want classic content)
+      recencyBoost = 0;
+    }
+
+    // Additional boost for trending recent content
+    if (daysSinceRelease <= 90 && result.content.popularity > 100) {
+      recencyBoost += 0.03;
+      if (!result.matchReasons.includes('Trending')) {
+        result.matchReasons.push('Trending');
+      }
+    }
+
+    return {
+      ...result,
+      relevanceScore: Math.min(1, result.relevanceScore + recencyBoost),
+    };
+  });
 
   // Apply user preference boost
   if (userPreferences?.length) {

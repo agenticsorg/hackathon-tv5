@@ -75,12 +75,30 @@ export interface SearchFilters {
   region?: string;
 }
 
+// Streaming provider info
+export interface StreamingInfo {
+  provider: string;
+  providerLogo: string | null;
+  availabilityType: 'flatrate' | 'rent' | 'buy' | 'free' | 'ads';
+  link?: string;
+}
+
 // Search results with relevance scoring
 export interface SearchResult {
   content: MediaContent;
   relevanceScore: number;
   matchReasons: string[];
   similarityScore?: number;
+  streaming?: {
+    isAvailable: boolean;
+    providers: StreamingInfo[];
+    formattedText: string;
+    badge: {
+      text: string;
+      type: 'subscription' | 'free' | 'rental' | 'purchase' | 'unavailable';
+      color: string;
+    };
+  };
 }
 
 // User preference profile
