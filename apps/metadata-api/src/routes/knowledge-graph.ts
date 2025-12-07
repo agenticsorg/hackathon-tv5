@@ -98,7 +98,7 @@ function cosineSimilarity(a: number[], b: number[]): number {
 router.get(
   '/movies',
   [
-    query('limit').optional().isInt({ min: 1, max: 100 }).toInt(),
+    query('limit').optional().isInt({ min: 1, max: 1000 }).toInt(),
     query('offset').optional().isInt({ min: 0 }).toInt(),
     query('genre').optional().isString(),
     query('yearMin').optional().isInt({ min: 1900 }).toInt(),
@@ -255,7 +255,7 @@ router.get(
   '/genres/:id',
   [
     param('id').isString().notEmpty(),
-    query('limit').optional().isInt({ min: 1, max: 100 }).toInt(),
+    query('limit').optional().isInt({ min: 1, max: 1000 }).toInt(),
   ],
   async (req: Request, res: Response): Promise<void> => {
     if (handleValidationErrors(req, res)) return;
