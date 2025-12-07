@@ -45,9 +45,13 @@ pub struct VectorStore {
 impl VectorStore {
     /// Create a new in-memory vector store
     pub fn new() -> Self {
+        // Use a temporary directory for in-memory simulation
+        let temp_path = std::env::temp_dir()
+            .join(format!("ruvector_temp_{}", uuid::Uuid::new_v4()));
+
         let options = DbOptions {
             dimensions: VECTOR_DIM,
-            storage_path: String::new(), // Empty for in-memory
+            storage_path: temp_path.to_string_lossy().to_string(),
             distance_metric: DistanceMetric::Cosine,
             ..Default::default()
         };
@@ -56,7 +60,7 @@ impl VectorStore {
 
         Self {
             db: Arc::new(RwLock::new(db)),
-            storage_path: None,
+            storage_path: None, // Mark as in-memory (temp)
             path_to_ids: RwLock::new(HashMap::new()),
             id_counter: RwLock::new(0),
         }
@@ -446,6 +450,7 @@ impl SemanticIndex {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ndarray::Array1;
 
     fn create_test_note(path: &str, title: &str, content: &str) -> Note {
         use obsidian_core::note::Frontmatter;
