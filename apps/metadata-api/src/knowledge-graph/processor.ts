@@ -84,6 +84,57 @@ export interface ProcessingStats {
 }
 
 /**
+ * Generate a stable ID from a string (simple hash)
+ */
+function generateStableId(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash).toString();
+}
+
+/**
+ * Parse comma-separated genres into TMDBGenre format
+ * Handles format like: "Action, Science Fiction, Adventure"
+ */
+function parseCommaSeparatedGenres(genreString: string): TMDBGenre[] {
+  if (!genreString || genreString.trim() === '') {
+    return [];
+  }
+
+  return genreString
+    .split(',')
+    .map(g => g.trim())
+    .filter(g => g.length > 0)
+    .map(name => ({
+      id: parseInt(generateStableId(name.toLowerCase()), 10),
+      name,
+    }));
+}
+
+/**
+ * Parse comma-separated keywords into TMDBKeyword format
+ * Handles format like: "time travel, hero, villain"
+ */
+function parseCommaSeparatedKeywords(keywordString: string): TMDBKeyword[] {
+  if (!keywordString || keywordString.trim() === '') {
+    return [];
+  }
+
+  return keywordString
+    .split(',')
+    .map(k => k.trim())
+    .filter(k => k.length > 0)
+    .map(name => ({
+      id: parseInt(generateStableId(name.toLowerCase()), 10),
+      name,
+    }));
+}
+
+/**
  * Safe JSON parse with fallback
  */
 function safeJsonParse<T>(jsonString: string | undefined, fallback: T[] = []): T[] {
@@ -123,6 +174,48 @@ function safeJsonParse<T>(jsonString: string | undefined, fallback: T[] = []): T
       return fallback;
     }
   }
+}
+
+/**
+ * Parse genres field - handles both JSON and comma-separated formats
+ */
+function parseGenres(genreField: string | undefined): TMDBGenre[] {
+  if (!genreField || genreField.trim() === '' || genreField === '[]') {
+    return [];
+  }
+
+  // Check if it looks like JSON (starts with [ or {)
+  const trimmed = genreField.trim();
+  if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+    const parsed = safeJsonParse<TMDBGenre>(genreField);
+    if (parsed.length > 0) {
+      return parsed;
+    }
+  }
+
+  // Fall back to comma-separated parsing
+  return parseCommaSeparatedGenres(genreField);
+}
+
+/**
+ * Parse keywords field - handles both JSON and comma-separated formats
+ */
+function parseKeywords(keywordField: string | undefined): TMDBKeyword[] {
+  if (!keywordField || keywordField.trim() === '' || keywordField === '[]') {
+    return [];
+  }
+
+  // Check if it looks like JSON (starts with [ or {)
+  const trimmed = keywordField.trim();
+  if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+    const parsed = safeJsonParse<TMDBKeyword>(keywordField);
+    if (parsed.length > 0) {
+      return parsed;
+    }
+  }
+
+  // Fall back to comma-separated parsing
+  return parseCommaSeparatedKeywords(keywordField);
 }
 
 /**
@@ -191,12 +284,12 @@ export class KnowledgeGraphProcessor {
         return null;
       }
 
-      // Parse JSON fields
-      const genres = safeJsonParse<TMDBGenre>(row.genres);
+      // Parse JSON fields (genres and keywords also support comma-separated format)
+      const genres = parseGenres(row.genres);
       const companies = safeJsonParse<TMDBCompany>(row.production_companies);
       const countries = safeJsonParse<TMDBCountry>(row.production_countries);
       const languages = safeJsonParse<TMDBLanguage>(row.spoken_languages);
-      const keywords = safeJsonParse<TMDBKeyword>(row.keywords);
+      const keywords = parseKeywords(row.keywords);
 
       // Create movie node
       const movieNode: MovieNode = {
