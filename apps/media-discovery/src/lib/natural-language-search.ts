@@ -19,6 +19,15 @@ import {
   isStreamingNow,
   type StreamingAvailability,
 } from './streaming-availability';
+import {
+  getIntentCache,
+  getSearchResultCache,
+  createSearchCacheKey,
+} from './cache';
+import {
+  trackSearchInitiated,
+  trackSearchCompleted,
+} from './analytics';
 
 // Schema for parsed search intent
 const SearchIntentSchema = z.object({
@@ -44,9 +53,9 @@ const SearchFiltersSchema = z.object({
   ratingMin: z.number().optional(),
 });
 
-// Server-side intent cache (survives across requests in same process)
-const intentCache = new Map<string, { result: SemanticSearchQuery; timestamp: number }>();
-const INTENT_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minute TTL
+// Multi-tier cache for intent parsing (L1: in-memory, L2: Redis if available)
+const intentCacheInstance = getIntentCache();
+const searchResultCacheInstance = getSearchResultCache();
 
 // Genre mapping for common genre names to TMDB IDs
 const GENRE_MAP: Record<string, { movie: number; tv: number }> = {
@@ -76,11 +85,11 @@ export async function parseSearchQuery(query: string): Promise<SemanticSearchQue
   // Normalize for cache key
   const cacheKey = query.toLowerCase().trim();
 
-  // Check cache first
-  const cached = intentCache.get(cacheKey);
-  if (cached && Date.now() - cached.timestamp < INTENT_CACHE_TTL_MS) {
+  // Check multi-tier cache first (L1 in-memory, L2 Redis)
+  const cached = await intentCacheInstance.get(cacheKey);
+  if (cached) {
     console.log(`📦 Intent cache hit for: "${query.slice(0, 30)}..."`);
-    return cached.result;
+    return cached;
   }
 
   try {
@@ -127,8 +136,8 @@ Be specific and extract as much relevant information as possible.`,
       },
     };
 
-    // Cache the result
-    intentCache.set(cacheKey, { result, timestamp: Date.now() });
+    // Cache the result in multi-tier cache
+    await intentCacheInstance.set(cacheKey, result);
 
     return result;
   } catch (error) {
@@ -149,8 +158,31 @@ export async function semanticSearch(
     includeStreaming?: boolean;
     region?: string;
     filterByService?: number[];
+    sessionId?: string;
   }
 ): Promise<SearchResult[]> {
+  const startTime = Date.now();
+  const sessionId = options?.sessionId || 'anonymous';
+
+  // Check search result cache
+  const cacheKey = createSearchCacheKey(query, userPreferences, options);
+  const cachedResults = await searchResultCacheInstance.get(cacheKey);
+  if (cachedResults) {
+    console.log(`📦 Search result cache hit for: "${query.slice(0, 30)}..."`);
+    trackSearchCompleted(sessionId, query, {
+      count: cachedResults.length,
+      latencyMs: Date.now() - startTime,
+      cacheHit: true,
+      topIds: cachedResults.slice(0, 5).map(r => r.content.id),
+    });
+    return cachedResults;
+  }
+
+  // Track search initiation
+  trackSearchInitiated(sessionId, query, {
+    streamingService: options?.filterByService?.length ? 'specified' : undefined,
+  });
+
   // Parse the natural language query
   const semanticQuery = await parseSearchQuery(query);
 
@@ -233,6 +265,19 @@ export async function semanticSearch(
       mergedResults.sort((a, b) => b.relevanceScore - a.relevanceScore);
     }
   }
+
+  // Cache the results
+  await searchResultCacheInstance.set(cacheKey, mergedResults);
+
+  // Track search completion
+  trackSearchCompleted(sessionId, query, {
+    count: mergedResults.length,
+    latencyMs: Date.now() - startTime,
+    cacheHit: false,
+    topIds: mergedResults.slice(0, 5).map(r => r.content.id),
+  }, {
+    intents: semanticQuery.intent?.themes || [],
+  });
 
   return mergedResults;
 }
