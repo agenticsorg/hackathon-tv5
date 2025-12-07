@@ -597,12 +597,45 @@ router.post('/feeds/batch', async (req: Request, res: Response): Promise<void> =
 });
 
 // ============================================
-// Diagnostic Endpoint
+// Diagnostic Endpoints
 // ============================================
 
 /**
+ * GET /api/v1/knowledge-graph/diagnostics/csv-sample
+ * Get a raw CSV row to debug column names and data format
+ */
+router.get('/diagnostics/csv-sample', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const gcsReader = getGCSReader();
+    let sampleRow: Record<string, unknown> | null = null;
+
+    for await (const row of gcsReader.streamRows(undefined, 1)) {
+      sampleRow = row as Record<string, unknown>;
+      break;
+    }
+
+    if (!sampleRow) {
+      res.status(404).json({ error: 'No rows found in CSV' });
+      return;
+    }
+
+    // Return column names and sample values
+    res.json({
+      columns: Object.keys(sampleRow),
+      columnCount: Object.keys(sampleRow).length,
+      sampleRow,
+      genresField: sampleRow.genres,
+      genresType: typeof sampleRow.genres,
+    });
+  } catch (error) {
+    logger.error('CSV sample failed', { error: error instanceof Error ? error.message : 'Unknown' });
+    res.status(500).json({ error: 'Failed to read CSV sample' });
+  }
+});
+
+/**
  * GET /api/v1/knowledge-graph/diagnostics
- * Check connectivity to Firestore and GCS
+ * Check connectivity to Firestore, GCS, and Vertex AI
  */
 router.get('/diagnostics', async (_req: Request, res: Response): Promise<void> => {
   const results: {
