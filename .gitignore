@@ -168,3 +168,7 @@ claude-flow
 hive-mind-prompt-*.txt
 .claude/
 .agentic-qe/
+# Large datasets (stored in GCP bucket)
+data/
+*.csv
+*.zip
