@@ -1,0 +1,50 @@
+[package]
+name = "obsidian-rs"
+version = "0.1.0"
+description = "A Rust-based Obsidian-compatible note-taking application"
+authors = ["Obsidian-RS Contributors"]
+license = "MIT"
+repository = "https://github.com/obsidian-rs/obsidian-rs"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2.0", features = [] }
+
+[dependencies]
+# Internal crates
+obsidian-core = { path = "../crates/obsidian-core" }
+obsidian-markdown = { path = "../crates/obsidian-markdown" }
+obsidian-storage = { path = "../crates/obsidian-storage" }
+obsidian-search = { path = "../crates/obsidian-search" }
+obsidian-graph = { path = "../crates/obsidian-graph" }
+obsidian-editor = { path = "../crates/obsidian-editor" }
+obsidian-plugins = { path = "../crates/obsidian-plugins" }
+
+# Tauri
+tauri = { version = "2.0", features = ["protocol-asset"] }
+tauri-plugin-shell = "2.0"
+tauri-plugin-dialog = "2.0"
+tauri-plugin-fs = "2.0"
+tauri-plugin-clipboard-manager = "2.0"
+tauri-plugin-os = "2.0"
+tauri-plugin-process = "2.0"
+tauri-plugin-window-state = "2.0"
+
+# Async
+tokio = { version = "1.35", features = ["full"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Utilities
+thiserror = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+parking_lot = "0.12"
+uuid = { version = "1.6", features = ["v4"] }
+chrono = { version = "0.4", features = ["serde"] }
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]

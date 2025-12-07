@@ -1,0 +1,31 @@
+[package]
+name = "obsidian-plugins"
+version = "0.1.0"
+edition = "2021"
+description = "Plugin system for Obsidian-rs"
+license = "MIT"
+
+[dependencies]
+obsidian-core = { path = "../obsidian-core" }
+
+# Async runtime
+tokio = { version = "1.35", features = ["full"] }
+async-trait = "0.1"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# File system
+walkdir = "2.4"
+
+# Utilities
+thiserror = "1.0"
+tracing = "0.1"
+parking_lot = "0.12"
+uuid = { version = "1.6", features = ["v4"] }
+semver = { version = "1.0", features = ["serde"] }
+
+[dev-dependencies]
+tempfile = "3.10"
+tokio-test = "0.4"

@@ -1,0 +1,112 @@
+/* Graph view */
+.graph-view {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--background-primary);
+  overflow: hidden;
+}
+
+.graph-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* Graph controls */
+.graph-controls {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 10;
+}
+
+.graph-mode {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  background: var(--background-secondary);
+  padding: 6px 12px;
+  border-radius: 4px;
+}
+
+.graph-reset {
+  font-size: 0.85rem;
+  padding: 6px 12px;
+}
+
+/* Graph empty state */
+.graph-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  gap: 8px;
+}
+
+.graph-empty .hint {
+  font-size: 0.9rem;
+  color: var(--text-faint);
+}
+
+/* Node styling */
+.graph-view .node {
+  cursor: pointer;
+}
+
+.graph-view .node.exists circle {
+  fill: var(--graph-node);
+}
+
+.graph-view .node.missing circle {
+  fill: var(--graph-node-unresolved);
+  opacity: 0.6;
+}
+
+.graph-view .node.selected circle {
+  stroke: var(--text-accent-hover);
+  stroke-width: 3px;
+}
+
+.graph-view .node:hover circle {
+  filter: brightness(1.2);
+}
+
+.graph-view .node-label {
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.graph-view .node:hover .node-label {
+  opacity: 1;
+  font-weight: 500;
+}
+
+/* Link styling */
+.graph-view .link {
+  stroke: var(--graph-line);
+  stroke-opacity: 0.4;
+  fill: none;
+}
+
+.graph-view .link-wikilink {
+  stroke: var(--interactive-accent);
+}
+
+.graph-view .link-embed {
+  stroke: var(--text-accent);
+  stroke-dasharray: 4, 2;
+}
+
+/* Zoom controls */
+.graph-view svg {
+  cursor: grab;
+}
+
+.graph-view svg:active {
+  cursor: grabbing;
+}

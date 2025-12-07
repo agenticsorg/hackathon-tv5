@@ -1,0 +1,87 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/obsidian-core",
+    "crates/obsidian-markdown",
+    "crates/obsidian-search",
+    "crates/obsidian-graph",
+    "crates/obsidian-storage",
+    "crates/obsidian-editor",
+    "crates/obsidian-plugins",
+    "src-tauri",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/obsidian-rs/obsidian-rs"
+authors = ["ObsidianRS Contributors"]
+
+[workspace.dependencies]
+# Core crates
+obsidian-core = { path = "crates/obsidian-core" }
+obsidian-markdown = { path = "crates/obsidian-markdown" }
+obsidian-search = { path = "crates/obsidian-search" }
+obsidian-graph = { path = "crates/obsidian-graph" }
+obsidian-storage = { path = "crates/obsidian-storage" }
+obsidian-editor = { path = "crates/obsidian-editor" }
+obsidian-plugins = { path = "crates/obsidian-plugins" }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+
+# Async runtime
+tokio = { version = "1.35", features = ["full"] }
+futures = "0.3"
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# Markdown processing
+pulldown-cmark = "0.9"
+regex = "1.10"
+
+# File system
+notify = "6.1"
+walkdir = "2.4"
+
+# Search
+tantivy = "0.22"
+
+# Graph
+petgraph = "0.6"
+
+# Text editing
+ropey = "1.6"
+
+# Syntax highlighting
+tree-sitter = "0.20"
+
+# Database
+redb = "2.1"
+
+# Date/time
+chrono = { version = "0.4", features = ["serde"] }
+
+# Utilities
+uuid = { version = "1.6", features = ["v4", "serde"] }
+parking_lot = "0.12"
+dashmap = "5.5"
+rayon = "1.8"
+
+# Tauri
+tauri = { version = "2.0", features = [] }
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

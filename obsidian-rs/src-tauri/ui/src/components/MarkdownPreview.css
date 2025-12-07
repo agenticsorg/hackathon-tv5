@@ -1,0 +1,222 @@
+/* Markdown preview */
+.markdown-preview {
+  padding: 24px;
+  font-family: var(--font-text);
+  font-size: var(--preview-font-size, 16px);
+  line-height: 1.6;
+  color: var(--text-normal);
+  max-width: var(--preview-line-width, 700px);
+  margin: 0 auto;
+}
+
+/* Headings */
+.markdown-preview h1,
+.markdown-preview h2,
+.markdown-preview h3,
+.markdown-preview h4,
+.markdown-preview h5,
+.markdown-preview h6 {
+  color: var(--text-normal);
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.markdown-preview h1 {
+  font-size: 2em;
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding-bottom: 0.3em;
+}
+
+.markdown-preview h2 {
+  font-size: 1.5em;
+}
+
+.markdown-preview h3 {
+  font-size: 1.25em;
+}
+
+.markdown-preview h4 {
+  font-size: 1.1em;
+}
+
+.markdown-preview h5,
+.markdown-preview h6 {
+  font-size: 1em;
+}
+
+/* Paragraphs */
+.markdown-preview p {
+  margin-bottom: 1em;
+}
+
+/* Links */
+.markdown-preview a {
+  color: var(--text-accent);
+  text-decoration: none;
+}
+
+.markdown-preview a:hover {
+  text-decoration: underline;
+}
+
+/* Internal links (wiki-style) */
+.markdown-preview a.internal-link {
+  color: var(--text-accent);
+}
+
+.markdown-preview a.internal-link.unresolved {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* Bold and italic */
+.markdown-preview strong {
+  font-weight: 700;
+}
+
+.markdown-preview em {
+  font-style: italic;
+}
+
+/* Code */
+.markdown-preview code {
+  font-family: var(--font-monospace);
+  font-size: 0.9em;
+  background: var(--background-secondary);
+  border-radius: 3px;
+  padding: 2px 6px;
+}
+
+.markdown-preview pre {
+  background: var(--background-secondary);
+  border-radius: 6px;
+  padding: 16px;
+  overflow-x: auto;
+  margin-bottom: 1em;
+}
+
+.markdown-preview pre code {
+  background: transparent;
+  padding: 0;
+  font-size: 0.85em;
+  line-height: 1.5;
+}
+
+/* Blockquotes */
+.markdown-preview blockquote {
+  margin: 0 0 1em 0;
+  padding: 12px 16px;
+  border-left: 4px solid var(--interactive-accent);
+  background: var(--background-secondary-alt);
+  color: var(--text-muted);
+}
+
+.markdown-preview blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* Lists */
+.markdown-preview ul,
+.markdown-preview ol {
+  margin-bottom: 1em;
+  padding-left: 2em;
+}
+
+.markdown-preview li {
+  margin-bottom: 0.25em;
+}
+
+.markdown-preview li > ul,
+.markdown-preview li > ol {
+  margin-bottom: 0;
+}
+
+/* Task lists */
+.markdown-preview .task-list-item {
+  list-style: none;
+  margin-left: -1.5em;
+}
+
+.markdown-preview .task-list-item input[type="checkbox"] {
+  margin-right: 8px;
+  accent-color: var(--interactive-accent);
+}
+
+/* Tables */
+.markdown-preview table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1em;
+}
+
+.markdown-preview th,
+.markdown-preview td {
+  padding: 8px 12px;
+  border: 1px solid var(--background-modifier-border);
+  text-align: left;
+}
+
+.markdown-preview th {
+  background: var(--background-secondary);
+  font-weight: 600;
+}
+
+.markdown-preview tr:nth-child(even) {
+  background: var(--background-secondary-alt);
+}
+
+/* Horizontal rule */
+.markdown-preview hr {
+  border: none;
+  border-top: 1px solid var(--background-modifier-border);
+  margin: 2em 0;
+}
+
+/* Images */
+.markdown-preview img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+/* Embeds */
+.markdown-preview .embed {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 1em;
+  background: var(--background-secondary-alt);
+}
+
+/* Tags */
+.markdown-preview .tag {
+  display: inline-block;
+  color: var(--text-accent);
+  background: rgba(127, 109, 242, 0.1);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.9em;
+  cursor: pointer;
+}
+
+.markdown-preview .tag:hover {
+  background: rgba(127, 109, 242, 0.2);
+}
+
+/* Highlights */
+.markdown-preview mark {
+  background: rgba(255, 200, 0, 0.3);
+  padding: 1px 3px;
+  border-radius: 2px;
+}
+
+/* Math blocks (placeholder styling) */
+.markdown-preview .math {
+  font-family: var(--font-monospace);
+  background: var(--background-secondary);
+  padding: 8px 12px;
+  border-radius: 4px;
+  overflow-x: auto;
+}

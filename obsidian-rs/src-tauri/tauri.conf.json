@@ -1,0 +1,46 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Obsidian RS",
+  "version": "0.1.0",
+  "identifier": "com.obsidian-rs.app",
+  "build": {
+    "beforeDevCommand": "cd ui && npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "cd ui && npm run build",
+    "frontendDist": "dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Obsidian RS",
+        "width": 1200,
+        "height": 800,
+        "resizable": true,
+        "fullscreen": false,
+        "minWidth": 800,
+        "minHeight": 600,
+        "decorations": true,
+        "transparent": false,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": [],
+    "category": "Productivity",
+    "shortDescription": "A Rust-based note-taking application",
+    "longDescription": "Obsidian RS is a high-performance, Obsidian-compatible note-taking application built with Rust and Tauri."
+  }
+}

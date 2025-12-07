@@ -1,0 +1,51 @@
+/* Status bar */
+.status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--status-bar-height);
+  background: var(--background-secondary);
+  border-top: 1px solid var(--background-modifier-border);
+  padding: 0 12px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.status-left,
+.status-center,
+.status-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-left {
+  flex: 1;
+}
+
+.status-center {
+  flex: 0 0 auto;
+}
+
+.status-right {
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.vault-status {
+  cursor: default;
+}
+
+.vault-status svg {
+  opacity: 0.7;
+}
+
+.modified-indicator {
+  color: var(--interactive-accent);
+}

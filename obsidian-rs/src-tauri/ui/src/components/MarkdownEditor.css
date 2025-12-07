@@ -1,0 +1,116 @@
+/* CodeMirror container */
+.markdown-editor {
+  height: 100%;
+  overflow: hidden;
+}
+
+.markdown-editor .cm-editor {
+  height: 100%;
+  background: var(--background-primary);
+}
+
+.markdown-editor .cm-scroller {
+  overflow: auto;
+  font-family: var(--font-monospace);
+}
+
+/* Custom Obsidian-style highlighting */
+.markdown-editor .cm-header {
+  color: var(--text-accent);
+}
+
+.markdown-editor .cm-header-1 {
+  font-size: 1.6em;
+  font-weight: 700;
+}
+
+.markdown-editor .cm-header-2 {
+  font-size: 1.4em;
+  font-weight: 600;
+}
+
+.markdown-editor .cm-header-3 {
+  font-size: 1.2em;
+  font-weight: 600;
+}
+
+.markdown-editor .cm-header-4,
+.markdown-editor .cm-header-5,
+.markdown-editor .cm-header-6 {
+  font-size: 1.1em;
+  font-weight: 600;
+}
+
+/* Links */
+.markdown-editor .cm-link,
+.markdown-editor .cm-url {
+  color: var(--text-accent);
+}
+
+/* Bold and italic */
+.markdown-editor .cm-strong {
+  font-weight: 700;
+}
+
+.markdown-editor .cm-em {
+  font-style: italic;
+}
+
+/* Code */
+.markdown-editor .cm-inline-code {
+  font-family: var(--font-monospace);
+  background: var(--background-secondary);
+  border-radius: 3px;
+  padding: 1px 4px;
+}
+
+/* Blockquote */
+.markdown-editor .cm-quote {
+  color: var(--text-muted);
+  font-style: italic;
+  border-left: 3px solid var(--interactive-accent);
+  padding-left: 12px;
+}
+
+/* Lists */
+.markdown-editor .cm-list-1 .cm-formatting-list,
+.markdown-editor .cm-list-2 .cm-formatting-list,
+.markdown-editor .cm-list-3 .cm-formatting-list {
+  color: var(--text-accent);
+}
+
+/* Tasks */
+.markdown-editor .cm-task-marker {
+  color: var(--interactive-accent);
+}
+
+/* Horizontal rule */
+.markdown-editor .cm-hr {
+  color: var(--text-muted);
+  border: none;
+}
+
+/* Formatting characters (less prominent) */
+.markdown-editor .cm-formatting {
+  color: var(--text-faint);
+}
+
+/* Cursor */
+.markdown-editor .cm-cursor {
+  border-left-width: 2px;
+}
+
+/* Selection */
+.markdown-editor .cm-selectionBackground {
+  background: var(--text-selection) !important;
+}
+
+/* Search highlight */
+.markdown-editor .cm-searchMatch {
+  background: rgba(255, 200, 0, 0.3);
+  border-radius: 2px;
+}
+
+.markdown-editor .cm-searchMatch-selected {
+  background: rgba(255, 200, 0, 0.5);
+}
