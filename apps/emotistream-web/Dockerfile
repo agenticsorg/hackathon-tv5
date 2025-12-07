@@ -13,7 +13,8 @@ RUN npm ci
 COPY . .
 
 # Build argument for API URL (set at build time)
-ARG NEXT_PUBLIC_API_URL
+# Default to production API URL for Cloud Run deployment
+ARG NEXT_PUBLIC_API_URL=https://emotistream-api-727540765498.europe-west1.run.app/api/v1
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 # Build Next.js app
