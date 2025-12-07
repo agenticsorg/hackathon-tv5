@@ -48,18 +48,51 @@
     .text-caption { font-size: 0.875rem; color: var(--text-secondary); }
     .mono { font-family: 'JetBrains Mono', monospace; }
 
-    /* Screens */
-    .screen { display: none; min-height: 100vh; padding: 2rem; }
-    .screen.active {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      animation: fadeIn 0.3s ease-out;
+    /* ========================================
+       SCREEN TRANSITION ANIMATIONS
+       ======================================== */
+    .screen {
+      display: none;
+      min-height: 100vh;
+      padding: 2rem;
+      opacity: 0;
     }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .screen.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 1;
+    }
+    .screen.entering {
+      animation: screenEnter 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .screen.exiting {
+      animation: screenExit 400ms ease-in forwards;
+    }
 
-    /* Sign-In */
+    @keyframes screenEnter {
+      0% { opacity: 0; transform: translateY(40px) scale(0.98); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes screenExit {
+      0% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-30px) scale(0.97); }
+    }
+
+    /* Sign-In with initial fade */
     .signin-card {
-      background: var(--bg-primary); border: 1px solid var(--border-subtle);
-      padding: 3rem; width: 100%; max-width: 420px; text-align: center;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-subtle);
+      padding: 3rem;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      animation: cardFadeIn 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes cardFadeIn {
+      0% { opacity: 0; transform: translateY(20px); }
+      100% { opacity: 1; transform: translateY(0); }
     }
     .signin-card h1 { margin-bottom: 0.5rem; }
     .signin-card .subtitle { margin-bottom: 2rem; }
@@ -67,7 +100,7 @@
       width: 100%; padding: 1rem; background: var(--bg-deep);
       border: 1px solid var(--border-subtle); color: var(--text-primary);
       font-family: inherit; font-size: 1rem; margin-bottom: 1rem;
-      transition: border-color 0.1s ease-out;
+      transition: border-color 0.15s ease-out;
     }
     .input-field:focus { outline: none; border-color: var(--accent-cyan); }
     .input-field::placeholder { color: var(--text-secondary); }
@@ -75,11 +108,17 @@
       width: 100%; padding: 1rem 2rem; background: var(--accent-cyan);
       color: var(--bg-deep); border: none; font-family: inherit;
       font-size: 1rem; font-weight: 700; cursor: pointer;
-      transition: background 0.1s ease-out;
+      transition: background 0.15s ease-out, transform 0.15s ease-out;
     }
-    .btn-primary:hover { background: var(--accent-cyan-dim); }
+    .btn-primary:hover {
+      background: var(--accent-cyan-dim);
+      transform: translateY(-2px);
+    }
+    .btn-primary:active { transform: translateY(0); }
 
-    /* Discovery Grid - 4x2 */
+    /* ========================================
+       DISCOVERY GRID
+       ======================================== */
     .discovery-container { width: 100%; max-width: 1000px; }
     .discovery-header { text-align: center; margin-bottom: 2rem; }
     .discovery-header .instruction { margin-top: 0.5rem; }
@@ -88,91 +127,223 @@
       color: var(--accent-cyan); margin-top: 1rem;
     }
     .thumbnail-grid {
-      display: grid; grid-template-columns: repeat(4, 1fr);
-      gap: 1rem; margin-bottom: 2rem;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
     }
+
+    /* Enhanced thumbnail hover - Netflix style */
     .thumbnail-item {
-      position: relative; aspect-ratio: 16/9; overflow: hidden; cursor: pointer;
-      border: 2px solid transparent; transition: border-color 0.1s ease-out, transform 0.15s ease-out;
+      position: relative;
+      aspect-ratio: 16/9;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
+                  box-shadow 280ms ease-out,
+                  border-color 150ms ease-out;
+      transform-origin: center center;
     }
-    .thumbnail-item:hover { transform: scale(1.02); }
-    .thumbnail-item img { width: 100%; height: 100%; object-fit: cover; }
+    .thumbnail-item:hover {
+      transform: scale(1.08);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(78, 205, 196, 0.3);
+      z-index: 10;
+    }
+    .thumbnail-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 400ms ease-out;
+    }
+    .thumbnail-item:hover img {
+      transform: scale(1.05);
+    }
     .thumbnail-item .genre-label {
       position: absolute; bottom: 0; left: 0; right: 0;
-      padding: 0.5rem; background: rgba(0,0,0,0.7);
+      padding: 0.5rem; background: rgba(0,0,0,0.8);
       font-size: 0.75rem; font-weight: 500; text-transform: uppercase;
-      letter-spacing: 0.05em; opacity: 0; transition: opacity 0.15s ease-out;
+      letter-spacing: 0.05em;
+      opacity: 0;
+      transform: translateY(100%);
+      transition: opacity 200ms ease-out, transform 200ms ease-out;
     }
-    .thumbnail-item:hover .genre-label { opacity: 1; }
+    .thumbnail-item:hover .genre-label {
+      opacity: 1;
+      transform: translateY(0);
+    }
     .click-badge {
       position: absolute; top: 8px; right: 8px; width: 28px; height: 28px;
       font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700;
       display: none; align-items: center; justify-content: center;
+      border-radius: 4px;
+      animation: badgePop 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes badgePop {
+      0% { transform: scale(0); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
     }
     .thumbnail-item.clicked .click-badge { display: flex; }
-    .btn-continue { display: none; margin: 0 auto; max-width: 300px; }
-    .btn-continue.visible { display: block; }
-
-    /* Reveal Screen */
-    .reveal-container { text-align: center; max-width: 700px; width: 100%; }
-    .reveal-container h1 { margin-bottom: 2rem; }
-    .top-genres { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem; }
-    .genre-badge {
-      padding: 0.75rem 1.5rem; font-size: 1rem; font-weight: 700;
-      letter-spacing: 0.05em; animation: pulseIn 0.5s ease-out;
+    .btn-continue {
+      display: none;
+      margin: 0 auto;
+      max-width: 300px;
+      opacity: 0;
+      transform: translateY(10px);
     }
-    .genre-badge.rank-1 { font-size: 1.25rem; padding: 1rem 2rem; }
-    .genre-badge.rank-2 { opacity: 0.85; }
-    .genre-badge.rank-3 { opacity: 0.7; }
-    @keyframes pulseIn { 0% { opacity: 0; transform: scale(0.8); } 50% { transform: scale(1.05); } 100% { opacity: 1; transform: scale(1); } }
-
-    .genre-chart { margin: 2rem 0; }
-    .chart-bar {
-      display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;
+    .btn-continue.visible {
+      display: block;
+      animation: buttonReveal 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
-    .chart-label { width: 100px; text-align: right; font-size: 0.875rem; color: var(--text-secondary); }
-    .chart-track { flex: 1; height: 24px; background: var(--bg-elevated); position: relative; }
-    .chart-fill { height: 100%; transition: width 0.8s ease-out; display: flex; align-items: center; justify-content: flex-end; padding-right: 0.5rem; }
-    .chart-value { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--bg-deep); font-weight: 700; }
-
-    .insights-list { text-align: left; margin-bottom: 2rem; }
-    .insight-item {
-      padding: 1rem; background: var(--bg-primary);
-      border-left: 3px solid var(--accent-cyan); margin-bottom: 0.5rem;
+    @keyframes buttonReveal {
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Feed Screen */
-    .feed-container { width: 100%; max-width: 1000px; }
-    .feed-header { text-align: center; margin-bottom: 2rem; }
-    .feed-section { margin-bottom: 2rem; }
-    .feed-section h3 { margin-bottom: 1rem; color: var(--text-secondary); font-weight: 500; }
+    /* ========================================
+       RESULTS FEED - Premium Animations
+       ======================================== */
+    .feed-container {
+      width: 100%;
+      max-width: 1000px;
+      opacity: 0;
+    }
+    .feed-container.animated { opacity: 1; }
+
+    .feed-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    .feed-header.animated {
+      animation: sectionFadeUp 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .feed-section {
+      margin-bottom: 2rem;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    .feed-section.animated {
+      animation: sectionFadeUp 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .feed-section h3 {
+      margin-bottom: 1rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      opacity: 0;
+      transform: translateX(-15px);
+    }
+    .feed-section.animated h3 {
+      animation: headerSlide 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation-delay: 100ms;
+    }
+
+    @keyframes sectionFadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes headerSlide {
+      to { opacity: 1; transform: translateX(0); }
+    }
+
     .feed-grid { display: grid; gap: 1rem; }
     .feed-grid.primary { grid-template-columns: repeat(2, 1fr); }
-    .feed-grid.primary .thumbnail-item { aspect-ratio: 16/10; }
-    .feed-grid.secondary { grid-template-columns: repeat(2, 1fr); opacity: 0.85; }
-    .feed-grid.explore { grid-template-columns: repeat(4, 1fr); opacity: 0.6; }
-    .feed-grid.explore .thumbnail-item { aspect-ratio: 16/9; }
+    .feed-grid.secondary { grid-template-columns: repeat(2, 1fr); }
+    .feed-grid.explore { grid-template-columns: repeat(4, 1fr); }
+
+    /* Staggered card animation */
+    .feed-card {
+      position: relative;
+      aspect-ratio: 16/9;
+      overflow: hidden;
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(40px) scale(0.92);
+      transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
+                  box-shadow 300ms ease-out;
+    }
+    .feed-card.animated {
+      animation: cardReveal 650ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes cardReveal {
+      0% { opacity: 0; transform: translateY(40px) scale(0.92); }
+      60% { transform: translateY(-8px) scale(1.02); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .feed-card:hover {
+      transform: scale(1.05);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+      z-index: 5;
+    }
+    .feed-card img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 400ms ease-out;
+    }
+    .feed-card:hover img { transform: scale(1.08); }
+    .feed-card .genre-label {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 0.75rem; background: linear-gradient(transparent, rgba(0,0,0,0.9));
+      font-size: 0.8rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Primary cards - larger with glow */
+    .feed-grid.primary .feed-card {
+      aspect-ratio: 16/10;
+    }
+    .feed-grid.primary .feed-card.animated {
+      box-shadow: 0 0 30px rgba(78, 205, 196, 0.15);
+    }
+
+    /* Secondary cards - slightly dimmed */
+    .feed-grid.secondary .feed-card { opacity: 0; }
+    .feed-grid.secondary .feed-card.animated { opacity: 0.9; }
+
+    /* Explore cards - more dimmed */
+    .feed-grid.explore .feed-card { opacity: 0; }
+    .feed-grid.explore .feed-card.animated { opacity: 0.7; }
+    .feed-grid.explore .feed-card:hover { opacity: 1; }
+
     .cta-banner {
-      text-align: center; padding: 2rem; background: var(--bg-primary);
-      border: 1px solid var(--border-subtle); margin-top: 2rem;
+      text-align: center;
+      padding: 2rem;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-subtle);
+      margin-top: 2rem;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    .cta-banner.animated {
+      animation: sectionFadeUp 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     .cta-banner .time-saved {
-      font-family: 'JetBrains Mono', monospace; font-size: 2.5rem;
-      color: var(--accent-cyan); margin-bottom: 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2.5rem;
+      color: var(--accent-cyan);
+      margin-bottom: 0.5rem;
     }
     .btn-restart {
       margin-top: 1rem; padding: 0.75rem 1.5rem; background: transparent;
       border: 1px solid var(--accent-cyan); color: var(--accent-cyan);
       font-family: inherit; font-size: 0.875rem; cursor: pointer;
-      transition: background 0.1s ease-out;
+      transition: background 0.15s ease-out, transform 0.15s ease-out;
     }
-    .btn-restart:hover { background: var(--accent-cyan); color: var(--bg-deep); }
+    .btn-restart:hover {
+      background: var(--accent-cyan);
+      color: var(--bg-deep);
+      transform: translateY(-2px);
+    }
 
-    /* Admin Widget */
+    /* ========================================
+       ADMIN WIDGET
+       ======================================== */
     .admin-widget {
       position: fixed; bottom: 1rem; right: 1rem; width: 340px;
       background: rgba(26, 35, 50, 0.95); border: 1px solid var(--border-subtle);
       font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; z-index: 1000;
+      backdrop-filter: blur(10px);
     }
     .widget-header {
       display: flex; justify-content: space-between; align-items: center;
@@ -219,41 +390,30 @@
         <div class="timer-display" id="discovery-timer">0.000s</div>
       </div>
       <div class="thumbnail-grid" id="thumbnail-grid"></div>
-      <button class="btn-primary btn-continue" id="btn-continue" onclick="goToScreen('reveal')">See My Profile</button>
+      <button class="btn-primary btn-continue" id="btn-continue" onclick="goToScreen('results')">See My Recommendations</button>
     </div>
   </section>
 
-  <!-- SCREEN 3: PROFILE REVEAL -->
-  <section id="screen-reveal" class="screen">
-    <div class="reveal-container">
-      <h1 class="headline-h1">Your Viewing Profile</h1>
-      <div class="top-genres" id="top-genres"></div>
-      <div class="genre-chart" id="genre-chart"></div>
-      <div class="insights-list" id="insights-list"></div>
-      <button class="btn-primary" style="max-width: 300px;" onclick="goToScreen('results')">Show My Recommendations</button>
-    </div>
-  </section>
-
-  <!-- SCREEN 4: PERSONALIZED FEED -->
+  <!-- SCREEN 3: PERSONALIZED FEED (Direct from Discovery) -->
   <section id="screen-results" class="screen">
-    <div class="feed-container">
-      <div class="feed-header">
+    <div class="feed-container" id="feed-container">
+      <div class="feed-header" id="feed-header">
         <h1 class="headline-h1">Curated for You</h1>
         <p class="text-body">Based on your unique viewing style</p>
       </div>
-      <div class="feed-section">
+      <div class="feed-section" id="section-primary">
         <h3 id="primary-title">Your Top Picks</h3>
         <div class="feed-grid primary" id="primary-feed"></div>
       </div>
-      <div class="feed-section">
+      <div class="feed-section" id="section-secondary">
         <h3>More for You</h3>
         <div class="feed-grid secondary" id="secondary-feed"></div>
       </div>
-      <div class="feed-section">
+      <div class="feed-section" id="section-explore">
         <h3>Expand Your Horizons</h3>
         <div class="feed-grid explore" id="explore-feed"></div>
       </div>
-      <div class="cta-banner">
+      <div class="cta-banner" id="cta-banner">
         <div class="time-saved" id="time-saved">--</div>
         <p class="text-body">Not 45 minutes.</p>
         <button class="btn-restart" onclick="restartDemo()">Try Again</button>
@@ -338,17 +498,36 @@
     let currentHover = null;
     let hoverStartTime = null;
     let lastMousePos = { x: 0, y: 0, time: 0 };
+    let isTransitioning = false;
 
     // ========================================
-    // NAVIGATION
+    // NAVIGATION WITH TRANSITIONS
     // ========================================
     function goToScreen(screenId) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById('screen-' + screenId).classList.add('active');
+      if (isTransitioning) return;
+      isTransitioning = true;
 
-      if (screenId === 'discovery') startDiscovery();
-      else if (screenId === 'reveal') showReveal();
-      else if (screenId === 'results') showResults();
+      const current = document.querySelector('.screen.active');
+      const next = document.getElementById('screen-' + screenId);
+
+      // Exit animation
+      current.classList.add('exiting');
+
+      setTimeout(() => {
+        current.classList.remove('active', 'exiting');
+
+        // Enter animation
+        next.classList.add('active', 'entering');
+
+        setTimeout(() => {
+          next.classList.remove('entering');
+          isTransitioning = false;
+
+          // Trigger screen-specific logic
+          if (screenId === 'discovery') startDiscovery();
+          else if (screenId === 'results') showResults();
+        }, 500);
+      }, 400);
     }
 
     // ========================================
@@ -362,10 +541,11 @@
       const grid = document.getElementById('thumbnail-grid');
       grid.innerHTML = '';
 
-      shuffled.forEach(g => {
+      shuffled.forEach((g, index) => {
         const item = document.createElement('div');
         item.className = 'thumbnail-item';
         item.dataset.id = g.id;
+        item.style.animationDelay = `${index * 50}ms`;
         item.innerHTML = `
           <img src="${g.src}" alt="${g.name}">
           <div class="genre-label" style="border-left: 3px solid ${g.color}">${g.name}</div>
@@ -375,7 +555,6 @@
         item.addEventListener('mouseenter', () => onHoverEnter(g.id));
         item.addEventListener('mouseleave', () => onHoverLeave(g.id));
         item.addEventListener('click', () => onThumbnailClick(g.id, item));
-        item.style.setProperty('--genre-color', g.color);
 
         grid.appendChild(item);
       });
@@ -406,7 +585,6 @@
       metrics.genres[id].hoverCount++;
       metrics.totalHovers++;
 
-      // Visual feedback
       const item = document.querySelector(`[data-id="${id}"]`);
       if (item) item.style.borderColor = metrics.genres[id].color;
     }
@@ -463,7 +641,6 @@
 
     function updateLeaderboard() {
       const sorted = getGenreScores();
-      const maxScore = Math.max(...sorted.map(g => g.score), 1);
 
       document.getElementById('genre-leaderboard').innerHTML = sorted.map((g, i) => `
         <div class="leaderboard-item">
@@ -474,13 +651,11 @@
         </div>
       `).join('');
 
-      // Click sequence
       document.getElementById('click-sequence').textContent =
         metrics.clickSequence.length > 0
           ? metrics.clickSequence.map(id => metrics.genres[id].name).join(' → ')
           : 'No clicks yet';
 
-      // Velocity
       const avgVel = metrics.mouseVelocity.length > 0
         ? metrics.mouseVelocity.reduce((a,b) => a+b, 0) / metrics.mouseVelocity.length : 0;
       document.getElementById('avg-velocity').textContent = avgVel.toFixed(0) + ' px/s';
@@ -489,85 +664,72 @@
     }
 
     // ========================================
-    // REVEAL
+    // RESULTS WITH STAGGERED ANIMATIONS
     // ========================================
-    function showReveal() {
+    function showResults() {
       cancelAnimationFrame(discoveryTimer);
       document.removeEventListener('mousemove', trackVelocity);
 
-      const sorted = getGenreScores();
-      const top3 = sorted.slice(0, 3);
-      const maxScore = Math.max(...sorted.map(g => g.score), 1);
-
-      // Top 3 badges
-      document.getElementById('top-genres').innerHTML = top3.map((g, i) => `
-        <div class="genre-badge rank-${i+1}" style="background: ${g.color}; color: #0D1117">
-          #${i+1} ${g.name.toUpperCase()}
-        </div>
-      `).join('');
-
-      // Bar chart
-      document.getElementById('genre-chart').innerHTML = sorted.map(g => `
-        <div class="chart-bar">
-          <span class="chart-label">${g.name}</span>
-          <div class="chart-track">
-            <div class="chart-fill" style="background: ${g.color}; width: ${(g.score / maxScore * 100)}%">
-              <span class="chart-value">${g.score > 0 ? (g.score / 1000).toFixed(1) + 's' : ''}</span>
-            </div>
-          </div>
-        </div>
-      `).join('');
-
-      // Insights
-      const insights = [];
-      if (top3[0]) insights.push(`You gravitated toward <strong>${top3[0].name}</strong> content`);
-      if (metrics.clickSequence[0]) {
-        const first = metrics.genres[metrics.clickSequence[0]];
-        insights.push(`Your first click was <strong>${first.name}</strong>`);
-      }
-      const avgVel = metrics.mouseVelocity.length > 0
-        ? metrics.mouseVelocity.reduce((a,b) => a+b, 0) / metrics.mouseVelocity.length : 0;
-      if (avgVel < 500) insights.push('Your pattern: <strong>deliberate and focused</strong>');
-      else if (avgVel < 1000) insights.push('Your pattern: <strong>exploratory and curious</strong>');
-      else insights.push('Your pattern: <strong>quick scanner, decisive</strong>');
-
-      document.getElementById('insights-list').innerHTML =
-        insights.map(i => `<div class="insight-item">${i}</div>`).join('');
-    }
-
-    // ========================================
-    // RESULTS
-    // ========================================
-    function showResults() {
       const sorted = getGenreScores();
       const top2 = sorted.slice(0, 2);
       const next2 = sorted.slice(2, 4);
       const rest = sorted.slice(4);
 
+      // Update title
       document.getElementById('primary-title').textContent =
         `Perfect for ${top2.map(g => g.name).join(' & ')} Fans`;
 
-      document.getElementById('primary-feed').innerHTML = top2.map(g => `
-        <div class="thumbnail-item" style="border: 2px solid ${g.color}">
+      // Build cards with stagger classes
+      document.getElementById('primary-feed').innerHTML = top2.map((g, i) => `
+        <div class="feed-card" data-index="${i}" style="border: 2px solid ${g.color}">
           <img src="${g.src}" alt="${g.name}">
-          <div class="genre-label" style="opacity: 1; border-left: 3px solid ${g.color}">${g.name}</div>
+          <div class="genre-label" style="border-left: 3px solid ${g.color}">${g.name}</div>
         </div>
       `).join('');
 
-      document.getElementById('secondary-feed').innerHTML = next2.map(g => `
-        <div class="thumbnail-item">
+      document.getElementById('secondary-feed').innerHTML = next2.map((g, i) => `
+        <div class="feed-card" data-index="${i + 2}">
           <img src="${g.src}" alt="${g.name}">
-          <div class="genre-label" style="opacity: 1; border-left: 3px solid ${g.color}">${g.name}</div>
+          <div class="genre-label" style="border-left: 3px solid ${g.color}">${g.name}</div>
         </div>
       `).join('');
 
-      document.getElementById('explore-feed').innerHTML = rest.map(g => `
-        <div class="thumbnail-item">
+      document.getElementById('explore-feed').innerHTML = rest.map((g, i) => `
+        <div class="feed-card" data-index="${i + 4}">
           <img src="${g.src}" alt="${g.name}">
         </div>
       `).join('');
 
       document.getElementById('time-saved').textContent = metrics.totalTime.toFixed(0) + ' seconds';
+
+      // Trigger staggered animations
+      triggerResultsAnimations();
+    }
+
+    function triggerResultsAnimations() {
+      const container = document.getElementById('feed-container');
+      const header = document.getElementById('feed-header');
+      const sectionPrimary = document.getElementById('section-primary');
+      const sectionSecondary = document.getElementById('section-secondary');
+      const sectionExplore = document.getElementById('section-explore');
+      const ctaBanner = document.getElementById('cta-banner');
+
+      container.classList.add('animated');
+
+      // Stagger sections
+      setTimeout(() => header.classList.add('animated'), 100);
+      setTimeout(() => sectionPrimary.classList.add('animated'), 300);
+      setTimeout(() => sectionSecondary.classList.add('animated'), 500);
+      setTimeout(() => sectionExplore.classList.add('animated'), 700);
+      setTimeout(() => ctaBanner.classList.add('animated'), 900);
+
+      // Stagger individual cards
+      const cards = document.querySelectorAll('.feed-card');
+      cards.forEach((card, i) => {
+        setTimeout(() => {
+          card.classList.add('animated');
+        }, 400 + (i * 80));
+      });
     }
 
     // ========================================
@@ -581,6 +743,7 @@
     }
 
     function restartDemo() {
+      // Reset metrics
       genres.forEach(g => {
         metrics.genres[g.id] = { hoverTime: 0, hoverCount: 0, clickOrder: null, ...g };
       });
@@ -591,7 +754,13 @@
       metrics.startTime = null;
       metrics.totalTime = 0;
 
+      // Reset UI states
       document.getElementById('btn-continue').classList.remove('visible');
+
+      // Remove animation classes
+      document.querySelectorAll('.animated').forEach(el => el.classList.remove('animated'));
+      document.querySelectorAll('.feed-card').forEach(el => el.classList.remove('animated'));
+
       goToScreen('signin');
     }
 
