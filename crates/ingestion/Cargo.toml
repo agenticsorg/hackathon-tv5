@@ -1,0 +1,88 @@
+[package]
+name = "media-gateway-ingestion"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "ingestion-service"
+path = "src/main.rs"
+
+[dependencies]
+# Core dependencies
+media-gateway-core = { workspace = true }
+tokio = { workspace = true }
+actix-web = { workspace = true }
+actix-rt = { workspace = true }
+
+# Database
+sqlx = { workspace = true }
+
+# HTTP client
+reqwest = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Observability
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# String matching and processing
+regex = "1.10"
+strsim = "0.11"
+
+# Date and time
+chrono = { version = "0.4", features = ["serde"] }
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Async trait for event producer
+async-trait = "0.1"
+
+# Rate limiting
+governor = "0.6"
+nonzero_ext = "0.3"
+
+# Caching
+moka = { version = "0.12", features = ["future"] }
+
+# Math operations for embeddings
+ndarray = "0.15"
+
+# OAuth for YouTube
+oauth2 = "4.4"
+base64 = "0.21"
+
+# UUID generation
+uuid = { version = "1.6", features = ["v4", "serde"] }
+
+# URL encoding
+urlencoding = "2.1"
+
+# Vector database
+qdrant-client = { workspace = true }
+
+# Redis for webhooks
+redis = { version = "0.24", features = ["tokio-comp", "streams", "async-std-comp"] }
+
+# Cryptography for HMAC
+hmac = "0.12"
+sha2 = "0.10"
+hex = "0.4"
+
+# Kafka
+rdkafka = { version = "0.36", features = ["tokio", "ssl"] }
+
+# Metrics
+prometheus = "0.13"
+lazy_static = "1.4"
+
+[dev-dependencies]
+mockito = "1.2"
+tokio-test = "0.4"

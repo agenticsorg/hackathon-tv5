@@ -1,0 +1,70 @@
+# Example Terraform Variables
+# Copy this file to terraform.tfvars and update with your values
+# DO NOT commit terraform.tfvars to version control
+
+# GCP Project Configuration
+project_id   = "your-gcp-project-id"
+project_name = "media-gateway"
+environment  = "dev"
+region       = "us-central1"
+
+# Network Configuration
+gke_subnet_cidr     = "10.0.0.0/20"
+gke_pods_cidr       = "10.4.0.0/14"
+gke_services_cidr   = "10.8.0.0/20"
+private_subnet_cidr = "10.1.0.0/20"
+
+# GKE Configuration
+master_ipv4_cidr_block   = "172.16.0.0/28"
+maintenance_window_start = "03:00"
+release_channel          = "REGULAR"
+workload_identity_namespaces = ["auth", "discovery", "ingestion", "sync", "default"]
+
+# Optional: Restrict GKE master access to specific IPs
+# master_authorized_networks = [
+#   {
+#     cidr_block   = "YOUR_OFFICE_IP/32"
+#     display_name = "Office Network"
+#   },
+#   {
+#     cidr_block   = "YOUR_HOME_IP/32"
+#     display_name = "Home Network"
+#   }
+# ]
+
+# Cloud SQL Configuration
+database_version              = "POSTGRES_15"
+cloudsql_tier                 = "db-custom-2-7680"
+cloudsql_availability_type    = "REGIONAL"
+cloudsql_disk_size            = 100
+cloudsql_disk_autoresize_limit = 500
+database_name                 = "media_gateway"
+db_user                       = "media_gateway_app"
+enable_cloudsql_replica       = false
+
+# Optional: Create additional databases
+# additional_databases = ["media_gateway_analytics", "media_gateway_logs"]
+
+# Memorystore Redis Configuration
+redis_tier                    = "STANDARD_HA"
+redis_memory_size_gb          = 6
+redis_version                 = "REDIS_7_0"
+redis_reserved_ip_range       = "10.2.0.0/29"
+redis_replica_count           = 1
+redis_persistence_mode        = "RDB"
+redis_rdb_snapshot_period     = "TWELVE_HOURS"
+redis_transit_encryption_mode = "SERVER_AUTHENTICATION"
+redis_auth_enabled            = true
+
+# Cloud Armor Security Configuration
+rate_limit_threshold_count    = 1000
+rate_limit_threshold_interval = 60
+ban_duration_sec              = 600
+enable_adaptive_protection    = true
+log_level                     = "NORMAL"
+
+# Optional: Block specific IP ranges
+# blocked_ip_ranges = ["192.0.2.0/24", "198.51.100.0/24"]
+
+# Optional: Allow specific trusted IP ranges
+# allowed_ip_ranges = ["YOUR_OFFICE_IP/32"]

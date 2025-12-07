@@ -1,0 +1,43 @@
+[package]
+name = "mg-migrate"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+authors = ["Media Gateway Team"]
+license = "MIT"
+description = "Database migration CLI tool for Media Gateway"
+
+[[bin]]
+name = "mg-migrate"
+path = "src/main.rs"
+
+[dependencies]
+# Async runtime
+tokio = { workspace = true }
+futures = { workspace = true }
+
+# Database
+sqlx = { workspace = true }
+
+# CLI
+clap = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Configuration
+dotenvy = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Date/Time
+chrono = { workspace = true }
+
+# Terminal output
+colored = "2.1"
+
+# Utilities
+regex = { workspace = true }

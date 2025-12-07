@@ -1,0 +1,90 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-internal-traffic
+  namespace: media-gateway
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow traffic from within namespace
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            name: media-gateway
+    # Allow traffic from ingress controller
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            name: ingress-nginx
+  egress:
+    # Allow DNS resolution
+    - to:
+      - namespaceSelector:
+          matchLabels:
+            name: kube-system
+      ports:
+      - protocol: UDP
+        port: 53
+    # Allow traffic within namespace
+    - to:
+      - namespaceSelector:
+          matchLabels:
+            name: media-gateway
+    # Allow external HTTPS traffic
+    - to:
+      - namespaceSelector: {}
+      ports:
+      - protocol: TCP
+        port: 443
+    # Allow PostgreSQL
+    - to:
+      - namespaceSelector: {}
+      ports:
+      - protocol: TCP
+        port: 5432
+    # Allow Redis
+    - to:
+      - namespaceSelector: {}
+      ports:
+      - protocol: TCP
+        port: 6379
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: api-gateway-ingress
+  namespace: media-gateway
+spec:
+  podSelector:
+    matchLabels:
+      app: api-gateway
+  policyTypes:
+    - Ingress
+  ingress:
+    # Allow external traffic to API Gateway
+    - from: []
+      ports:
+      - protocol: TCP
+        port: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-mcp-server-external
+  namespace: media-gateway
+spec:
+  podSelector:
+    matchLabels:
+      app: mcp-server
+  policyTypes:
+    - Ingress
+  ingress:
+    # Only allow traffic from within namespace
+    - from:
+      - podSelector: {}
+      ports:
+      - protocol: TCP
+        port: 3000

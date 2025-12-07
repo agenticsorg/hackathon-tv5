@@ -1,0 +1,46 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: media-gateway-prod
+
+resources:
+  - namespace.yaml
+  - services/api-gateway.yaml
+  - services/discovery-service.yaml
+  - services/sona-engine.yaml
+  - services/sync-service.yaml
+  - services/auth-service.yaml
+  - services/mcp-server.yaml
+  - services/ingestion-service.yaml
+  - ingress.yaml
+  - configmaps/app-config.yaml
+  - secrets/external-secrets.yaml
+  - network-policies/default.yaml
+
+commonLabels:
+  app.kubernetes.io/name: media-gateway
+  app.kubernetes.io/managed-by: kustomize
+
+images:
+  - name: gcr.io/PROJECT_ID/media-gateway-api
+    newTag: latest
+  - name: gcr.io/PROJECT_ID/media-gateway-discovery
+    newTag: latest
+  - name: gcr.io/PROJECT_ID/media-gateway-sona
+    newTag: latest
+  - name: gcr.io/PROJECT_ID/media-gateway-sync
+    newTag: latest
+  - name: gcr.io/PROJECT_ID/media-gateway-auth
+    newTag: latest
+  - name: gcr.io/PROJECT_ID/media-gateway-mcp
+    newTag: latest
+  - name: gcr.io/PROJECT_ID/media-gateway-ingestion
+    newTag: latest
+
+patches:
+  - target:
+      kind: Deployment
+    patch: |-
+      - op: add
+        path: /spec/template/metadata/annotations/prometheus.io~1scrape
+        value: "true"

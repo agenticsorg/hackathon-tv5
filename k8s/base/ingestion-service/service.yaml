@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingestion-service
+  namespace: media-gateway
+  labels:
+    app: ingestion-service
+    app.kubernetes.io/name: ingestion-service
+    app.kubernetes.io/component: ingestion
+spec:
+  type: ClusterIP
+  selector:
+    app: ingestion-service
+  ports:
+  - name: http
+    port: 8085
+    targetPort: http
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: metrics
+    protocol: TCP

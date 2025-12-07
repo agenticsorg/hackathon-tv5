@@ -1,0 +1,49 @@
+# Build stage
+FROM rust:1.75-slim as builder
+
+WORKDIR /build
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    libssl-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy workspace files
+COPY Cargo.toml Cargo.lock ./
+COPY crates/core ./crates/core
+COPY crates/sync ./crates/sync
+
+# Build the application
+WORKDIR /build/crates/sync
+RUN cargo build --release
+
+# Runtime stage
+FROM debian:bookworm-slim
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    libssl3 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create app user
+RUN useradd -m -u 1000 app
+
+# Copy binary from builder
+COPY --from=builder /build/target/release/sync /usr/local/bin/sync
+
+# Switch to app user
+USER app
+
+# Expose port
+EXPOSE 8084
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8084/health || exit 1
+
+# Run the application
+CMD ["sync"]

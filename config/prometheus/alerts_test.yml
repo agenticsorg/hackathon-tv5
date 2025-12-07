@@ -1,0 +1,137 @@
+# Prometheus alert rule tests
+# Run with: promtool test rules alerts_test.yml
+
+rule_files:
+  - alerts.yml
+
+evaluation_interval: 1m
+
+tests:
+  # Test ServiceDown alert
+  - interval: 1m
+    input_series:
+      - series: 'up{job="api-gateway", instance="api-gateway:8080"}'
+        values: '1 1 1 0 0 0'
+
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: ServiceDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              category: availability
+              job: api-gateway
+              instance: api-gateway:8080
+            exp_annotations:
+              summary: "Service api-gateway is down"
+              description: "api-gateway:8080 of job api-gateway has been down for more than 1 minute."
+
+  # Test ServiceHighErrorRate alert
+  - interval: 1m
+    input_series:
+      - series: 'http_requests_total{job="discovery", status="500"}'
+        values: '0+10x10'
+      - series: 'http_requests_total{job="discovery", status="200"}'
+        values: '0+90x10'
+
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: ServiceHighErrorRate
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              category: availability
+              job: discovery
+            exp_annotations:
+              summary: "High error rate on discovery"
+
+  # Test HighLatencyP95 alert
+  - interval: 1m
+    input_series:
+      - series: 'http_request_duration_seconds_bucket{job="auth", le="0.1"}'
+        values: '0+10x10'
+      - series: 'http_request_duration_seconds_bucket{job="auth", le="0.5"}'
+        values: '0+80x10'
+      - series: 'http_request_duration_seconds_bucket{job="auth", le="1.0"}'
+        values: '0+95x10'
+      - series: 'http_request_duration_seconds_bucket{job="auth", le="+Inf"}'
+        values: '0+100x10'
+
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: HighLatencyP95
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              category: performance
+              job: auth
+
+  # Test DatabaseConnectionPoolExhausted alert
+  - interval: 1m
+    input_series:
+      - series: 'sqlx_pool_connections_idle{instance="auth:8083"}'
+        values: '5 5 0 0 0'
+      - series: 'sqlx_pool_connections_pending{instance="auth:8083"}'
+        values: '0 0 5 5 5'
+
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: DatabaseConnectionPoolExhausted
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              category: resources
+              instance: auth:8083
+            exp_annotations:
+              summary: "Database connection pool exhausted"
+
+  # Test RedisConnectionFailed alert
+  - interval: 1m
+    input_series:
+      - series: 'redis_up{instance="redis:6379"}'
+        values: '1 1 0 0 0'
+
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: RedisConnectionFailed
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              category: resources
+              instance: redis:6379
+
+  # Test SearchLatencyHigh alert
+  - interval: 1m
+    input_series:
+      - series: 'search_request_duration_seconds_bucket{instance="discovery:8081", le="0.1"}'
+        values: '0+10x10'
+      - series: 'search_request_duration_seconds_bucket{instance="discovery:8081", le="0.4"}'
+        values: '0+90x10'
+      - series: 'search_request_duration_seconds_bucket{instance="discovery:8081", le="1.0"}'
+        values: '0+95x10'
+      - series: 'search_request_duration_seconds_bucket{instance="discovery:8081", le="+Inf"}'
+        values: '0+100x10'
+
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: SearchLatencyHigh
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              category: business
+              instance: discovery:8081
+
+  # Test KafkaConsumerLag alert
+  - interval: 1m
+    input_series:
+      - series: 'kafka_consumer_lag{topic="media-events"}'
+        values: '0 5000 10000 15000 20000'
+
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: KafkaConsumerLag
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              category: messaging
+              topic: media-events

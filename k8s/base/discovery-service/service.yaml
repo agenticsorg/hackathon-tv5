@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: discovery-service
+  namespace: media-gateway
+  labels:
+    app: discovery-service
+    app.kubernetes.io/name: discovery-service
+    app.kubernetes.io/component: catalog
+spec:
+  type: ClusterIP
+  selector:
+    app: discovery-service
+  ports:
+  - name: http
+    port: 8081
+    targetPort: http
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: metrics
+    protocol: TCP

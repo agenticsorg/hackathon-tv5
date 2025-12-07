@@ -1,0 +1,103 @@
+# Development overrides for docker-compose.yml
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+version: "3.9"
+
+services:
+  api-gateway:
+    build:
+      target: builder
+    command: cargo watch -x 'run --bin media-gateway-api'
+    volumes:
+      - ./crates/api:/app/crates/api
+      - ./crates/core:/app/crates/core
+      - cargo_cache:/usr/local/cargo/registry
+      - target_cache:/app/target
+    environment:
+      RUST_BACKTRACE: 1
+      RUST_LOG: debug,media_gateway=trace
+
+  discovery:
+    build:
+      target: builder
+    command: cargo watch -x 'run --bin discovery'
+    volumes:
+      - ./crates/discovery:/app/crates/discovery
+      - ./crates/core:/app/crates/core
+      - cargo_cache:/usr/local/cargo/registry
+      - target_cache:/app/target
+    environment:
+      RUST_BACKTRACE: 1
+      RUST_LOG: debug,media_gateway=trace
+
+  sona:
+    build:
+      target: builder
+    command: cargo watch -x 'run --bin sona'
+    volumes:
+      - ./crates/sona:/app/crates/sona
+      - ./crates/core:/app/crates/core
+      - cargo_cache:/usr/local/cargo/registry
+      - target_cache:/app/target
+    environment:
+      RUST_BACKTRACE: 1
+      RUST_LOG: debug,media_gateway=trace
+
+  auth:
+    build:
+      target: builder
+    command: cargo watch -x 'run --bin auth'
+    volumes:
+      - ./crates/auth:/app/crates/auth
+      - ./crates/core:/app/crates/core
+      - ./tests:/app/tests
+      - cargo_cache:/usr/local/cargo/registry
+      - target_cache:/app/target
+    environment:
+      RUST_BACKTRACE: 1
+      RUST_LOG: debug,media_gateway=trace
+
+  sync:
+    build:
+      target: builder
+    command: cargo watch -x 'run --bin sync'
+    volumes:
+      - ./crates/sync:/app/crates/sync
+      - ./crates/core:/app/crates/core
+      - cargo_cache:/usr/local/cargo/registry
+      - target_cache:/app/target
+    environment:
+      RUST_BACKTRACE: 1
+      RUST_LOG: debug,media_gateway=trace
+
+  ingestion:
+    build:
+      target: builder
+    command: cargo watch -x 'run --bin ingestion'
+    volumes:
+      - ./crates/ingestion:/app/crates/ingestion
+      - ./crates/core:/app/crates/core
+      - cargo_cache:/usr/local/cargo/registry
+      - target_cache:/app/target
+    environment:
+      RUST_BACKTRACE: 1
+      RUST_LOG: debug,media_gateway=trace
+
+  playback:
+    build:
+      target: builder
+    command: cargo watch -x 'run --bin playback'
+    volumes:
+      - ./crates/playback:/app/crates/playback
+      - ./crates/core:/app/crates/core
+      - cargo_cache:/usr/local/cargo/registry
+      - target_cache:/app/target
+    environment:
+      RUST_BACKTRACE: 1
+      RUST_LOG: debug,media_gateway=trace
+
+volumes:
+  cargo_cache:
+    driver: local
+  target_cache:
+    driver: local

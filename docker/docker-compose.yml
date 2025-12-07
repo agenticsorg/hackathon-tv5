@@ -1,0 +1,507 @@
+# Media Gateway Local Development Environment
+# Usage: docker-compose up -d
+
+version: "3.9"
+
+services:
+  # PostgreSQL 16 - Primary Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: mg-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mediagateway
+      POSTGRES_PASSWORD: localdev123
+      POSTGRES_DB: media_gateway
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mediagateway -d media_gateway"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Redis 7 - Cache and Session Storage
+  redis:
+    image: redis:7-alpine
+    container_name: mg-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Zookeeper - Required for Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: mg-zookeeper
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_SYNC_LIMIT: 2
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_log:/var/lib/zookeeper/log
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # Kafka - Event Streaming Platform
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: mg-kafka
+    restart: unless-stopped
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_LOG_SEGMENT_BYTES: 1073741824
+      KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS: 300000
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # Qdrant - Vector Database
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: mg-qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"  # REST API
+      - "6334:6334"  # gRPC
+    volumes:
+      - qdrant_data:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__GRPC_PORT: 6334
+      QDRANT__SERVICE__HTTP_PORT: 6333
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # Jaeger - Distributed Tracing
+  jaeger:
+    image: jaegertracing/all-in-one:1.52
+    container_name: mg-jaeger
+    restart: unless-stopped
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "4317:4317"    # OTLP gRPC
+      - "4318:4318"    # OTLP HTTP
+      - "14250:14250"  # gRPC
+      - "14268:14268"  # HTTP
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+      SPAN_STORAGE_TYPE: memory
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:16686"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Prometheus - Metrics Collection
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: mg-prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--storage.tsdb.retention.time=30d'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Grafana - Metrics Visualization
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: mg-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_INSTALL_PLUGINS: ""
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+      GF_PATHS_DATA: /var/lib/grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # Alertmanager - Alert Routing and Management
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: mg-alertmanager
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./config/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - ./config/alertmanager/templates:/etc/alertmanager/templates:ro
+      - alertmanager_data:/alertmanager
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9093/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # API Gateway - Main Entry Point
+  api-gateway:
+    build:
+      context: .
+      dockerfile: crates/api/Dockerfile
+    container_name: mg-api-gateway
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-8080}:8080"
+    environment:
+      DATABASE_URL: postgresql://mediagateway:localdev123@postgres:5432/media_gateway
+      REDIS_URL: redis://redis:6379
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_GRPC_URL: http://qdrant:6334
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      RUST_LOG: ${RUST_LOG:-info}
+      DISCOVERY_URL: http://discovery:8081
+      SONA_URL: http://sona:8082
+      AUTH_URL: http://auth:8083
+      SYNC_URL: http://sync:8084
+      INGESTION_URL: http://ingestion:8085
+      PLAYBACK_URL: http://playback:8086
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+      SERVICE_NAME: api-gateway
+    volumes:
+      - ./crates/api:/app/crates/api:ro
+      - ./crates/core:/app/crates/core:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+      jaeger:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # Discovery Service - Media Discovery and Search
+  discovery:
+    build:
+      context: .
+      dockerfile: Dockerfile.discovery
+    container_name: mg-discovery
+    restart: unless-stopped
+    ports:
+      - "${DISCOVERY_PORT:-8081}:8081"
+    environment:
+      DATABASE_URL: postgresql://mediagateway:localdev123@postgres:5432/media_gateway
+      REDIS_URL: redis://redis:6379
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_GRPC_URL: http://qdrant:6334
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      RUST_LOG: ${RUST_LOG:-info}
+      PORT: 8081
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+      SERVICE_NAME: discovery
+    volumes:
+      - ./crates/discovery:/app/crates/discovery:ro
+      - ./crates/core:/app/crates/core:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # SONA Service - AI-Powered Media Intelligence
+  sona:
+    build:
+      context: .
+      dockerfile: Dockerfile.sona
+    container_name: mg-sona
+    restart: unless-stopped
+    ports:
+      - "${SONA_PORT:-8082}:8082"
+    environment:
+      DATABASE_URL: postgresql://mediagateway:localdev123@postgres:5432/media_gateway
+      REDIS_URL: redis://redis:6379
+      QDRANT_URL: http://qdrant:6333
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      RUST_LOG: ${RUST_LOG:-info}
+      PORT: 8082
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+      SERVICE_NAME: sona
+    volumes:
+      - ./crates/sona:/app/crates/sona:ro
+      - ./crates/core:/app/crates/core:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # Auth Service - Authentication and Authorization
+  auth:
+    build:
+      context: .
+      dockerfile: Dockerfile.auth
+    container_name: mg-auth
+    restart: unless-stopped
+    ports:
+      - "${AUTH_PORT:-8083}:8083"
+    environment:
+      DATABASE_URL: postgresql://mediagateway:localdev123@postgres:5432/media_gateway
+      REDIS_URL: redis://redis:6379
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JWT_PRIVATE_KEY_PATH: ${JWT_PRIVATE_KEY_PATH:-/app/tests/fixtures/test_private_key.pem}
+      JWT_PUBLIC_KEY_PATH: ${JWT_PUBLIC_KEY_PATH:-/app/tests/fixtures/test_public_key.pem}
+      JWT_ISSUER: ${JWT_ISSUER:-https://api.mediagateway.io}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-mediagateway-users}
+      RUST_LOG: ${RUST_LOG:-info}
+      PORT: 8083
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+      SERVICE_NAME: auth
+    volumes:
+      - ./crates/auth:/app/crates/auth:ro
+      - ./crates/core:/app/crates/core:ro
+      - ./tests:/app/tests:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # Sync Service - Real-time Synchronization
+  sync:
+    build:
+      context: .
+      dockerfile: Dockerfile.sync
+    container_name: mg-sync
+    restart: unless-stopped
+    ports:
+      - "${SYNC_PORT:-8084}:8084"
+    environment:
+      DATABASE_URL: postgresql://mediagateway:localdev123@postgres:5432/media_gateway
+      REDIS_URL: redis://redis:6379
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      PUBNUB_PUBLISH_KEY: ${PUBNUB_PUBLISH_KEY}
+      PUBNUB_SUBSCRIBE_KEY: ${PUBNUB_SUBSCRIBE_KEY}
+      RUST_LOG: ${RUST_LOG:-info}
+      PORT: 8084
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+      SERVICE_NAME: sync
+    volumes:
+      - ./crates/sync:/app/crates/sync:ro
+      - ./crates/core:/app/crates/core:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # Ingestion Service - Media Upload and Processing
+  ingestion:
+    build:
+      context: .
+      dockerfile: Dockerfile.ingestion
+    container_name: mg-ingestion
+    restart: unless-stopped
+    ports:
+      - "${INGESTION_PORT:-8085}:8085"
+    environment:
+      DATABASE_URL: postgresql://mediagateway:localdev123@postgres:5432/media_gateway
+      REDIS_URL: redis://redis:6379
+      QDRANT_URL: http://qdrant:6333
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      RUST_LOG: ${RUST_LOG:-info}
+      PORT: 8085
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+      SERVICE_NAME: ingestion
+    volumes:
+      - ./crates/ingestion:/app/crates/ingestion:ro
+      - ./crates/core:/app/crates/core:ro
+      - media_uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # Playback Service - Media Streaming and Delivery
+  playback:
+    build:
+      context: .
+      dockerfile: Dockerfile.playback
+    container_name: mg-playback
+    restart: unless-stopped
+    ports:
+      - "${PLAYBACK_PORT:-8086}:8086"
+    environment:
+      DATABASE_URL: postgresql://mediagateway:localdev123@postgres:5432/media_gateway
+      REDIS_URL: redis://redis:6379
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      RUST_LOG: ${RUST_LOG:-info}
+      PORT: 8086
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+      SERVICE_NAME: playback
+    volumes:
+      - ./crates/playback:/app/crates/playback:ro
+      - ./crates/core:/app/crates/core:ro
+      - media_uploads:/app/uploads:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8086/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  qdrant_data:
+    driver: local
+  media_uploads:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  alertmanager_data:
+    driver: local
+  zookeeper_data:
+    driver: local
+  zookeeper_log:
+    driver: local
+  kafka_data:
+    driver: local
+
+networks:
+  default:
+    name: media-gateway-network

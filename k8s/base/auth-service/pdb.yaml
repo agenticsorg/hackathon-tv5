@@ -1,0 +1,13 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: auth-service
+  namespace: media-gateway
+  labels:
+    app: auth-service
+    app.kubernetes.io/name: auth-service
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: auth-service

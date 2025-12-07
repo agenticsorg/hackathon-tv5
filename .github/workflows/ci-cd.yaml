@@ -1,0 +1,495 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
+  GKE_CLUSTER: media-gateway-cluster
+  GKE_ZONE: us-central1-a
+  REGISTRY: gcr.io
+  SQLX_OFFLINE: true
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        crate:
+          - core
+          - auth
+          - discovery
+          - sona
+          - sync
+          - ingestion
+          - playback
+          - api
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-
+
+      - name: Cache cargo index
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-git-
+
+      - name: Cache cargo build
+        uses: actions/cache@v4
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-${{ matrix.crate }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-build-${{ matrix.crate }}-
+            ${{ runner.os }}-cargo-build-
+
+      - name: Cache SQLx metadata
+        uses: actions/cache@v4
+        with:
+          path: .sqlx
+          key: ${{ runner.os }}-sqlx-${{ hashFiles('**/migrations/*.sql') }}
+          restore-keys: |
+            ${{ runner.os }}-sqlx-
+
+      - name: Check code formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run clippy for ${{ matrix.crate }}
+        run: cargo clippy -p media-gateway-${{ matrix.crate }} --all-features -- -D warnings
+
+      - name: Run unit tests for ${{ matrix.crate }}
+        run: cargo test -p media-gateway-${{ matrix.crate }} --lib
+
+      - name: Run integration tests for ${{ matrix.crate }}
+        run: cargo test -p media-gateway-${{ matrix.crate }} --test '*'
+
+  test-integration:
+    name: Integration Tests with TestContainers
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: media_gateway_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-integration-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install sqlx-cli
+        run: cargo install sqlx-cli --no-default-features --features postgres,rustls
+
+      - name: Run migrations
+        run: sqlx migrate run
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/media_gateway_test
+
+      - name: Run integration tests
+        run: cargo test --workspace --test '*'
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/media_gateway_test
+          REDIS_URL: redis://localhost:6379
+          SQLX_OFFLINE: false
+
+      - name: Generate code coverage
+        uses: actions-rs/tarpaulin@v0.1
+        with:
+          version: '0.22.0'
+          args: '--workspace --timeout 300 --out Xml'
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/media_gateway_test
+          REDIS_URL: redis://localhost:6379
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./cobertura.xml
+          fail_ci_if_error: false
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run cargo audit
+        uses: actions-rs/audit-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  validate-manifests:
+    name: Validate Kubernetes Manifests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create k8s manifests directory if not exists
+        run: mkdir -p infrastructure/k8s
+
+      - name: Validate Kubernetes manifests
+        uses: instrumenta/kubeval-action@master
+        if: hashFiles('infrastructure/k8s/**/*.yaml') != ''
+        with:
+          files: infrastructure/k8s/
+
+  validate-terraform:
+    name: Validate Terraform Configuration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Terraform Format Check
+        if: hashFiles('infrastructure/terraform/**/*.tf') != ''
+        run: terraform fmt -check -recursive infrastructure/terraform/
+        continue-on-error: true
+
+      - name: Terraform Init
+        if: hashFiles('infrastructure/terraform/**/*.tf') != ''
+        run: |
+          cd infrastructure/terraform
+          terraform init -backend=false
+
+      - name: Terraform Validate
+        if: hashFiles('infrastructure/terraform/**/*.tf') != ''
+        run: |
+          cd infrastructure/terraform
+          terraform validate
+
+  build:
+    name: Build and Push Images
+    needs: [test, test-integration, security-scan, validate-manifests, validate-terraform]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - name: api-gateway
+            dockerfile: docker/api.Dockerfile
+            binary: media-gateway-api
+          - name: discovery-service
+            dockerfile: docker/discovery.Dockerfile
+            binary: media-gateway-discovery
+          - name: sona-engine
+            dockerfile: docker/sona.Dockerfile
+            binary: media-gateway-sona
+          - name: sync-service
+            dockerfile: docker/sync.Dockerfile
+            binary: media-gateway-sync
+          - name: auth-service
+            dockerfile: docker/auth.Dockerfile
+            binary: media-gateway-auth
+          - name: ingestion-service
+            dockerfile: docker/ingestion.Dockerfile
+            binary: media-gateway-ingestion
+          - name: playback-service
+            dockerfile: docker/playback.Dockerfile
+            binary: media-gateway-playback
+          - name: mcp-server
+            dockerfile: docker/mcp.Dockerfile
+            binary: media-gateway-mcp
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Configure Docker for GCR
+        run: gcloud auth configure-docker
+
+      - name: Prepare SQLx offline data
+        run: |
+          if [ ! -d ".sqlx" ]; then
+            echo "Warning: .sqlx directory not found. SQLx offline mode may fail."
+            mkdir -p .sqlx
+          fi
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ matrix.service.dockerfile }}
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.GCP_PROJECT }}/${{ matrix.service.name }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.GCP_PROJECT }}/${{ matrix.service.name }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BINARY_NAME=${{ matrix.service.binary }}
+            SQLX_OFFLINE=true
+
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.GCP_PROJECT }}/${{ matrix.service.name }}:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-image-results.sarif'
+
+      - name: Upload Trivy image scan results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-image-results.sarif'
+
+  deploy-staging:
+    name: Deploy to Staging
+    needs: build
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.media-gateway.example.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Get GKE credentials
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ env.GKE_CLUSTER }}
+          location: ${{ env.GKE_ZONE }}
+
+      - name: Update image tags in manifests
+        run: |
+          cd infrastructure/k8s/services
+          for file in *.yaml; do
+            sed -i "s|gcr.io/PROJECT_ID|gcr.io/${{ env.GCP_PROJECT }}|g" $file
+            sed -i "s|:latest|:${{ github.sha }}|g" $file
+          done
+
+      - name: Deploy to staging namespace
+        run: |
+          kubectl apply -f infrastructure/k8s/namespace.yaml
+          kubectl apply -f infrastructure/k8s/configmaps/ -n media-gateway-staging
+          kubectl apply -f infrastructure/k8s/secrets/ -n media-gateway-staging
+          kubectl apply -f infrastructure/k8s/services/ -n media-gateway-staging
+          kubectl apply -f infrastructure/k8s/network-policies/ -n media-gateway-staging
+
+      - name: Wait for rollout to complete
+        run: |
+          kubectl rollout status deployment/api-gateway -n media-gateway-staging --timeout=5m
+          kubectl rollout status deployment/discovery-service -n media-gateway-staging --timeout=5m
+          kubectl rollout status deployment/sona-engine -n media-gateway-staging --timeout=5m
+          kubectl rollout status deployment/sync-service -n media-gateway-staging --timeout=5m
+          kubectl rollout status deployment/auth-service -n media-gateway-staging --timeout=5m
+          kubectl rollout status deployment/ingestion-service -n media-gateway-staging --timeout=5m
+          kubectl rollout status deployment/mcp-server -n media-gateway-staging --timeout=5m
+
+      - name: Run smoke tests
+        run: |
+          kubectl run smoke-test --image=curlimages/curl:latest --rm -i --restart=Never -n media-gateway-staging -- \
+            curl -f http://api-gateway.media-gateway-staging.svc.cluster.local:8080/health
+
+      - name: Notify deployment status
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: 'Staging deployment ${{ job.status }}'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  deploy-production:
+    name: Deploy to Production
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://api.media-gateway.example.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Get GKE credentials
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ env.GKE_CLUSTER }}
+          location: ${{ env.GKE_ZONE }}
+
+      - name: Update image tags in manifests
+        run: |
+          cd infrastructure/k8s/services
+          for file in *.yaml; do
+            sed -i "s|gcr.io/PROJECT_ID|gcr.io/${{ env.GCP_PROJECT }}|g" $file
+            sed -i "s|:latest|:${{ github.sha }}|g" $file
+          done
+
+      - name: Create backup of current deployment
+        run: |
+          kubectl get all -n media-gateway-prod -o yaml > backup-${{ github.sha }}.yaml
+
+      - name: Deploy with canary strategy
+        run: |
+          # Deploy new version with canary label
+          kubectl apply -f infrastructure/k8s/namespace.yaml
+          kubectl apply -f infrastructure/k8s/configmaps/ -n media-gateway-prod
+          kubectl apply -f infrastructure/k8s/secrets/ -n media-gateway-prod
+
+          # Canary deployment for API Gateway
+          kubectl set image deployment/api-gateway api-gateway=${{ env.REGISTRY }}/${{ env.GCP_PROJECT }}/api-gateway:${{ github.sha }} -n media-gateway-prod
+          kubectl rollout status deployment/api-gateway -n media-gateway-prod --timeout=5m
+
+          # Wait and monitor canary
+          sleep 60
+
+      - name: Run production health checks
+        run: |
+          kubectl run health-check --image=curlimages/curl:latest --rm -i --restart=Never -n media-gateway-prod -- \
+            curl -f http://api-gateway.media-gateway-prod.svc.cluster.local:8080/health
+
+      - name: Promote canary to production
+        run: |
+          # Deploy all services
+          kubectl apply -f infrastructure/k8s/services/ -n media-gateway-prod
+          kubectl apply -f infrastructure/k8s/network-policies/ -n media-gateway-prod
+          kubectl apply -f infrastructure/k8s/ingress.yaml
+
+      - name: Wait for all rollouts
+        run: |
+          kubectl rollout status deployment/api-gateway -n media-gateway-prod --timeout=10m
+          kubectl rollout status deployment/discovery-service -n media-gateway-prod --timeout=10m
+          kubectl rollout status deployment/sona-engine -n media-gateway-prod --timeout=10m
+          kubectl rollout status deployment/sync-service -n media-gateway-prod --timeout=10m
+          kubectl rollout status deployment/auth-service -n media-gateway-prod --timeout=10m
+          kubectl rollout status deployment/ingestion-service -n media-gateway-prod --timeout=10m
+          kubectl rollout status deployment/mcp-server -n media-gateway-prod --timeout=10m
+
+      - name: Run integration tests
+        run: |
+          kubectl run integration-test --image=curlimages/curl:latest --rm -i --restart=Never -n media-gateway-prod -- \
+            sh -c "curl -f http://api-gateway.media-gateway-prod.svc.cluster.local:8080/api/discovery/health"
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          kubectl rollout undo deployment/api-gateway -n media-gateway-prod
+          kubectl rollout undo deployment/discovery-service -n media-gateway-prod
+          kubectl rollout undo deployment/sona-engine -n media-gateway-prod
+          kubectl rollout undo deployment/sync-service -n media-gateway-prod
+          kubectl rollout undo deployment/auth-service -n media-gateway-prod
+          kubectl rollout undo deployment/ingestion-service -n media-gateway-prod
+          kubectl rollout undo deployment/mcp-server -n media-gateway-prod
+
+      - name: Notify deployment status
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: 'Production deployment ${{ job.status }}'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  performance-test:
+    name: Performance Testing
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run k6 load tests
+        uses: grafana/k6-action@v0.3.1
+        with:
+          filename: tests/performance/load-test.js
+          cloud: false
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-results
+          path: results.json

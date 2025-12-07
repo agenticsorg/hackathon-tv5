@@ -1,0 +1,80 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: media-gateway
+
+bases:
+  - ../../base
+
+namePrefix: staging-
+
+commonLabels:
+  environment: staging
+
+patches:
+  # Moderate replicas for staging environment
+  - target:
+      kind: Deployment
+      name: api-gateway
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: api-gateway
+    patch: |-
+      - op: replace
+        path: /spec/maxReplicas
+        value: 5
+
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: discovery-service
+    patch: |-
+      - op: replace
+        path: /spec/maxReplicas
+        value: 6
+
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: sona-service
+    patch: |-
+      - op: replace
+        path: /spec/maxReplicas
+        value: 5
+
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: playback-service
+    patch: |-
+      - op: replace
+        path: /spec/maxReplicas
+        value: 8
+
+configMapGenerator:
+  - name: media-gateway-config
+    behavior: merge
+    literals:
+      - LOG_LEVEL=info
+      - ENABLE_TRACING=true
+      - TRACE_SAMPLE_RATE=0.5
+
+images:
+  - name: gcr.io/PROJECT_ID/api-gateway
+    newTag: staging-latest
+  - name: gcr.io/PROJECT_ID/auth-service
+    newTag: staging-latest
+  - name: gcr.io/PROJECT_ID/discovery-service
+    newTag: staging-latest
+  - name: gcr.io/PROJECT_ID/sona-service
+    newTag: staging-latest
+  - name: gcr.io/PROJECT_ID/sync-service
+    newTag: staging-latest
+  - name: gcr.io/PROJECT_ID/ingestion-service
+    newTag: staging-latest
+  - name: gcr.io/PROJECT_ID/playback-service
+    newTag: staging-latest
+  - name: gcr.io/PROJECT_ID/mcp-server
+    newTag: staging-latest

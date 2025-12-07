@@ -1,0 +1,42 @@
+[package]
+name = "media-gateway-api"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "api-gateway"
+path = "src/main.rs"
+
+[dependencies]
+media-gateway-core = { workspace = true }
+actix-web = { workspace = true }
+actix-cors = { workspace = true }
+actix-files = "0.6"
+tokio = { workspace = true }
+redis = { workspace = true }
+governor = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tracing-actix-web = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+config = { workspace = true }
+dotenvy = { workspace = true }
+tonic = { workspace = true }
+num_cpus = { workspace = true }
+jsonwebtoken = { workspace = true }
+reqwest = { workspace = true }
+futures-util = "0.3"
+futures = { workspace = true }
+uuid = { version = "1.11", features = ["v4"] }
+chrono = "0.4"
+sha2 = "0.10"
+hex = "0.4"
+bytes = { workspace = true }
+serde_urlencoded = "0.7"
+sqlx = { workspace = true }

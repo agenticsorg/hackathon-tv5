@@ -1,0 +1,25 @@
+{{ define "pagerduty.default.description" }}
+{{ .GroupLabels.alertname }} - {{ .CommonLabels.severity | toUpper }}
+{{ end }}
+
+{{ define "pagerduty.default.instances" }}
+{{ range .Alerts }}
+Alert: {{ .Labels.alertname }}
+Severity: {{ .Labels.severity }}
+Priority: {{ .Labels.priority }}
+Service: {{ .Labels.service }}
+Instance: {{ .Labels.instance }}
+Summary: {{ .Annotations.summary }}
+Description: {{ .Annotations.description }}
+{{ if .Annotations.runbook_url }}Runbook: {{ .Annotations.runbook_url }}{{ end }}
+---
+{{ end }}
+{{ end }}
+
+{{ define "pagerduty.default.client" }}
+Media Gateway Monitoring
+{{ end }}
+
+{{ define "pagerduty.default.clientURL" }}
+{{ .ExternalURL }}
+{{ end }}

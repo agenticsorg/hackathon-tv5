@@ -1,0 +1,68 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: media-gateway
+
+resources:
+  # Namespace
+  - namespace.yaml
+
+  # Common resources
+  - common/configmap.yaml
+  - common/secrets.yaml
+  - common/network-policy.yaml
+
+  # API Gateway
+  - api-gateway/deployment.yaml
+  - api-gateway/service.yaml
+  - api-gateway/hpa.yaml
+  - api-gateway/pdb.yaml
+
+  # Auth Service
+  - auth-service/deployment.yaml
+  - auth-service/service.yaml
+  - auth-service/hpa.yaml
+  - auth-service/pdb.yaml
+
+  # Discovery Service
+  - discovery-service/deployment.yaml
+  - discovery-service/service.yaml
+  - discovery-service/hpa.yaml
+  - discovery-service/pdb.yaml
+
+  # SONA Service
+  - sona-service/deployment.yaml
+  - sona-service/service.yaml
+  - sona-service/hpa.yaml
+  - sona-service/pdb.yaml
+
+  # Sync Service
+  - sync-service/deployment.yaml
+  - sync-service/service.yaml
+  - sync-service/hpa.yaml
+  - sync-service/pdb.yaml
+
+  # Ingestion Service
+  - ingestion-service/deployment.yaml
+  - ingestion-service/service.yaml
+  - ingestion-service/hpa.yaml
+  - ingestion-service/pdb.yaml
+
+  # Playback Service
+  - playback-service/deployment.yaml
+  - playback-service/service.yaml
+  - playback-service/hpa.yaml
+  - playback-service/pdb.yaml
+
+  # MCP Server
+  - mcp-server/deployment.yaml
+  - mcp-server/service.yaml
+  - mcp-server/hpa.yaml
+  - mcp-server/pdb.yaml
+
+commonLabels:
+  app.kubernetes.io/managed-by: kustomize
+  app.kubernetes.io/part-of: media-gateway
+
+commonAnnotations:
+  app.kubernetes.io/version: "1.0.0"

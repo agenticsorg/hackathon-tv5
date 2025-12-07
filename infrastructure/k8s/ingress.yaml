@@ -1,0 +1,210 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: media-gateway-ingress
+  namespace: media-gateway-prod
+  annotations:
+    kubernetes.io/ingress.class: "gce"
+    kubernetes.io/ingress.global-static-ip-name: "media-gateway-ip"
+    networking.gke.io/managed-certificates: "media-gateway-cert"
+    kubernetes.io/ingress.allow-http: "false"
+
+    # Cloud Armor Security Policy
+    cloud.google.com/armor-config: |
+      {
+        "securityPolicy": {
+          "name": "media-gateway-security-policy"
+        }
+      }
+
+    # Backend Configuration
+    cloud.google.com/backend-config: '{"default": "media-gateway-backend-config"}'
+
+    # HTTPS Redirect
+    ingress.gcp.kubernetes.io/pre-shared-cert: "media-gateway-ssl-cert"
+
+    # Connection Draining
+    cloud.google.com/connection-draining-timeout: "300"
+
+    # Session Affinity
+    cloud.google.com/session-affinity: "CLIENT_IP"
+
+    # Rate Limiting
+    cloud.google.com/rate-limit: |
+      {
+        "rateLimitThreshold": {
+          "count": 1000,
+          "intervalSec": 60
+        }
+      }
+spec:
+  tls:
+  - hosts:
+    - api.media-gateway.example.com
+    - ws.media-gateway.example.com
+    secretName: media-gateway-tls
+  rules:
+  - host: api.media-gateway.example.com
+    http:
+      paths:
+      - path: /api/auth/*
+        pathType: Prefix
+        backend:
+          service:
+            name: auth-service
+            port:
+              number: 8084
+      - path: /api/discovery/*
+        pathType: Prefix
+        backend:
+          service:
+            name: discovery-service
+            port:
+              number: 8081
+      - path: /api/sona/*
+        pathType: Prefix
+        backend:
+          service:
+            name: sona-engine
+            port:
+              number: 8082
+      - path: /api/ingest/*
+        pathType: Prefix
+        backend:
+          service:
+            name: ingestion-service
+            port:
+              number: 8085
+      - path: /mcp/*
+        pathType: Prefix
+        backend:
+          service:
+            name: mcp-server
+            port:
+              number: 3000
+      - path: /*
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway
+            port:
+              number: 8080
+  - host: ws.media-gateway.example.com
+    http:
+      paths:
+      - path: /*
+        pathType: Prefix
+        backend:
+          service:
+            name: sync-service
+            port:
+              number: 8084
+---
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: media-gateway-cert
+  namespace: media-gateway-prod
+spec:
+  domains:
+  - api.media-gateway.example.com
+  - ws.media-gateway.example.com
+---
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: media-gateway-backend-config
+  namespace: media-gateway-prod
+spec:
+  timeoutSec: 300
+  connectionDraining:
+    drainingTimeoutSec: 300
+  sessionAffinity:
+    affinityType: "CLIENT_IP"
+    affinityCookieTtlSec: 3600
+  iap:
+    enabled: false
+  cdn:
+    enabled: true
+    cachePolicy:
+      includeHost: true
+      includeProtocol: true
+      includeQueryString: false
+    negativeCaching: true
+    negativeCachingPolicy:
+    - code: 404
+      ttl: 300
+    - code: 500
+      ttl: 60
+  healthCheck:
+    checkIntervalSec: 10
+    timeoutSec: 5
+    healthyThreshold: 2
+    unhealthyThreshold: 3
+    type: HTTP
+    requestPath: /health
+    port: 8080
+  customRequestHeaders:
+    headers:
+    - "X-Client-Region:{client_region}"
+    - "X-Client-City:{client_city}"
+  logging:
+    enable: true
+    sampleRate: 1.0
+---
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeSecurityPolicy
+metadata:
+  name: media-gateway-security-policy
+  namespace: media-gateway-prod
+spec:
+  description: "Cloud Armor security policy for Media Gateway"
+  rules:
+  - action: "allow"
+    priority: 1000
+    match:
+      versionedExpr: "SRC_IPS_V1"
+      config:
+        srcIpRanges:
+        - "*"
+    description: "Allow all traffic by default"
+  - action: "deny(403)"
+    priority: 900
+    match:
+      expr:
+        expression: "evaluatePreconfiguredExpr('sqli-stable')"
+    description: "Block SQL injection attempts"
+  - action: "deny(403)"
+    priority: 901
+    match:
+      expr:
+        expression: "evaluatePreconfiguredExpr('xss-stable')"
+    description: "Block XSS attempts"
+  - action: "deny(403)"
+    priority: 902
+    match:
+      expr:
+        expression: "evaluatePreconfiguredExpr('lfi-stable')"
+    description: "Block local file inclusion attempts"
+  - action: "deny(403)"
+    priority: 903
+    match:
+      expr:
+        expression: "evaluatePreconfiguredExpr('rce-stable')"
+    description: "Block remote code execution attempts"
+  - action: "rate_based_ban"
+    priority: 800
+    match:
+      versionedExpr: "SRC_IPS_V1"
+      config:
+        srcIpRanges:
+        - "*"
+    rateLimitOptions:
+      conformAction: "allow"
+      exceedAction: "deny(429)"
+      enforceOnKey: "IP"
+      rateLimitThreshold:
+        count: 1000
+        intervalSec: 60
+      banDurationSec: 600
+    description: "Rate limit: 1000 requests per minute per IP"

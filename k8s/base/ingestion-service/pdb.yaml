@@ -1,0 +1,13 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: ingestion-service
+  namespace: media-gateway
+  labels:
+    app: ingestion-service
+    app.kubernetes.io/name: ingestion-service
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: ingestion-service

@@ -1,0 +1,36 @@
+[package]
+name = "media-gateway-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+validator = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+url = { workspace = true }
+sqlx = { workspace = true }
+redis = { workspace = true }
+reqwest = { workspace = true }
+futures = { workspace = true }
+dotenvy = { workspace = true }
+async-trait = "0.1"
+regex = "1.10"
+once_cell = "1.19"
+num_cpus = { workspace = true }
+prometheus = { workspace = true }
+actix-web = { workspace = true }
+base64 = "0.22"
+rdkafka = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util", "macros"] }

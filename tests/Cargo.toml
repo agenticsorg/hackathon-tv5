@@ -1,0 +1,75 @@
+[package]
+name = "media-gateway-tests"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+# Internal crates (dev dependencies for integration testing)
+media-gateway-core = { path = "../crates/core" }
+media-gateway-auth = { path = "../crates/auth" }
+
+# Web framework (for testing)
+actix-web = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true }
+
+# HTTP client
+reqwest = { workspace = true }
+
+# Database
+sqlx = { workspace = true }
+
+# Cache
+redis = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Identifiers
+uuid = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+
+# Date/Time
+chrono = { workspace = true }
+
+# Testcontainers
+testcontainers = "0.15"
+testcontainers-modules = { version = "0.3", features = ["postgres", "redis"] }
+
+# Additional test dependencies
+base64 = "0.21"
+sha2 = "0.10"
+rand = "0.8"
+
+[lib]
+name = "media_gateway_tests"
+path = "src/lib.rs"
+
+[[test]]
+name = "auth_tests"
+path = "src/auth_tests.rs"
+harness = true
+
+[[test]]
+name = "search_tests"
+path = "src/search_tests.rs"
+harness = true
+
+[[test]]
+name = "playback_tests"
+path = "src/playback_tests.rs"
+harness = true
+
+[[test]]
+name = "e2e_auth_flow_tests"
+path = "src/e2e_auth_flow_tests.rs"
+harness = true
+
+[[test]]
+name = "metrics_endpoint_integration_test"
+path = "metrics_endpoint_integration_test.rs"
+harness = true

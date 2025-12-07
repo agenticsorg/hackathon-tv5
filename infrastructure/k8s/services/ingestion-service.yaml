@@ -1,0 +1,155 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingestion-service
+  namespace: media-gateway-prod
+  labels:
+    app: ingestion-service
+    component: ingestion
+    version: v1
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: ingestion-service
+  template:
+    metadata:
+      labels:
+        app: ingestion-service
+        component: ingestion
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8085"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: media-gateway-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: ingestion-service
+        image: gcr.io/PROJECT_ID/media-gateway-ingestion:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8085
+          protocol: TCP
+        - name: metrics
+          containerPort: 9096
+          protocol: TCP
+        env:
+        - name: RUST_LOG
+          value: "info,ingestion=debug"
+        - name: PORT
+          value: "8085"
+        - name: METRICS_PORT
+          value: "9096"
+        - name: SERVICE_NAME
+          value: "ingestion-service"
+        - name: BATCH_SIZE
+          value: "100"
+        envFrom:
+        - configMapRef:
+            name: app-config
+        - secretRef:
+            name: ingestion-secrets
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: data
+          mountPath: /app/data
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: data
+        emptyDir:
+          sizeLimit: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingestion-service
+  namespace: media-gateway-prod
+  labels:
+    app: ingestion-service
+    component: ingestion
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 8085
+    targetPort: http
+    protocol: TCP
+  - name: metrics
+    port: 9096
+    targetPort: metrics
+    protocol: TCP
+  selector:
+    app: ingestion-service
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ingestion-service-hpa
+  namespace: media-gateway-prod
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ingestion-service
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 75
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+    scaleUp:
+      stabilizationWindowSeconds: 60

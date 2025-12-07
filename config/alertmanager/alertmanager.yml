@@ -1,0 +1,114 @@
+global:
+  resolve_timeout: 5m
+  slack_api_url: 'https://hooks.slack.com/services/PLACEHOLDER'
+
+route:
+  group_by: ['alertname', 'severity', 'priority']
+  group_wait: 10s
+  group_interval: 5m
+  repeat_interval: 3h
+  receiver: 'default'
+  routes:
+    - match:
+        priority: P0
+      receiver: 'pagerduty-p0'
+      group_wait: 5s
+      repeat_interval: 5m
+      continue: false
+    - match:
+        priority: P1
+      receiver: 'slack-p1'
+      group_wait: 30s
+      repeat_interval: 1h
+      continue: false
+    - match:
+        priority: P2
+      receiver: 'slack-p2'
+      group_wait: 2m
+      repeat_interval: 4h
+      continue: false
+    - match:
+        priority: P3
+      receiver: 'slack-p3'
+      group_wait: 5m
+      repeat_interval: 12h
+      continue: false
+    - match:
+        severity: critical
+      receiver: 'pagerduty-critical'
+      continue: false
+    - match:
+        severity: warning
+      receiver: 'slack-warnings'
+
+receivers:
+  - name: 'default'
+    slack_configs:
+      - channel: '#monitoring'
+        title: '{{ template "slack.default.title" . }}'
+        text: '{{ template "slack.default.text" . }}'
+        send_resolved: true
+
+  - name: 'pagerduty-p0'
+    pagerduty_configs:
+      - service_key: 'PAGERDUTY_SERVICE_KEY_P0'
+        description: 'P0 CRITICAL: {{ .GroupLabels.alertname }}'
+        severity: 'critical'
+        details:
+          firing: '{{ template "pagerduty.default.instances" .Alerts.Firing }}'
+    slack_configs:
+      - channel: '#incidents'
+        title: ':rotating_light: P0 CRITICAL ALERT'
+        text: '{{ template "slack.default.text" . }}'
+        send_resolved: true
+
+  - name: 'pagerduty-critical'
+    pagerduty_configs:
+      - service_key: 'PAGERDUTY_SERVICE_KEY_CRITICAL'
+        description: 'CRITICAL: {{ .GroupLabels.alertname }}'
+        severity: 'critical'
+
+  - name: 'slack-p1'
+    slack_configs:
+      - channel: '#alerts-p1'
+        title: ':fire: P1 High Priority Alert'
+        text: '{{ template "slack.default.text" . }}'
+        send_resolved: true
+
+  - name: 'slack-p2'
+    slack_configs:
+      - channel: '#alerts-p2'
+        title: ':warning: P2 Medium Priority Alert'
+        text: '{{ template "slack.default.text" . }}'
+        send_resolved: true
+
+  - name: 'slack-p3'
+    slack_configs:
+      - channel: '#alerts-p3'
+        title: ':information_source: P3 Low Priority Alert'
+        text: '{{ template "slack.default.text" . }}'
+        send_resolved: true
+
+  - name: 'slack-warnings'
+    slack_configs:
+      - channel: '#alerts'
+        title: '{{ template "slack.default.title" . }}'
+        text: '{{ template "slack.default.text" . }}'
+        send_resolved: true
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'instance']
+  - source_match:
+      priority: 'P0'
+    target_match_re:
+      priority: 'P[123]'
+    equal: ['alertname', 'instance']
+  - source_match:
+      priority: 'P1'
+    target_match_re:
+      priority: 'P[23]'
+    equal: ['alertname', 'instance']

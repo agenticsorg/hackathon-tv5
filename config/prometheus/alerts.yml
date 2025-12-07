@@ -1,0 +1,326 @@
+groups:
+  - name: media-gateway-availability
+    interval: 30s
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: availability
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute."
+          runbook_url: "https://docs.media-gateway.io/runbooks/service-down"
+
+      - alert: ServiceHighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          category: availability
+        annotations:
+          summary: "High error rate on {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.job }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/high-error-rate"
+
+      - alert: ServiceCriticalErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.10
+        for: 2m
+        labels:
+          severity: critical
+          category: availability
+        annotations:
+          summary: "Critical error rate on {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.job }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/critical-error-rate"
+
+  - name: media-gateway-latency
+    interval: 30s
+    rules:
+      - alert: HighLatencyP95
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "High P95 latency on {{ $labels.job }}"
+          description: "P95 latency is {{ $value | humanizeDuration }} on {{ $labels.job }}, threshold is 500ms"
+          runbook_url: "https://docs.media-gateway.io/runbooks/high-latency"
+
+      - alert: HighLatencyP99
+        expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m])) > 1.0
+        for: 5m
+        labels:
+          severity: critical
+          category: performance
+        annotations:
+          summary: "Critical P99 latency on {{ $labels.job }}"
+          description: "P99 latency is {{ $value | humanizeDuration }} on {{ $labels.job }}, threshold is 1s"
+          runbook_url: "https://docs.media-gateway.io/runbooks/critical-latency"
+
+      - alert: VeryHighLatencyP50
+        expr: histogram_quantile(0.50, rate(http_request_duration_seconds_bucket[5m])) > 0.2
+        for: 10m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "Very high median latency on {{ $labels.job }}"
+          description: "P50 latency is {{ $value | humanizeDuration }} on {{ $labels.job }}, threshold is 200ms"
+          runbook_url: "https://docs.media-gateway.io/runbooks/median-latency"
+
+  - name: media-gateway-resources
+    interval: 30s
+    rules:
+      - alert: DatabaseConnectionPoolExhausted
+        expr: sqlx_pool_connections_idle == 0 and sqlx_pool_connections_pending > 0
+        for: 2m
+        labels:
+          severity: critical
+          category: resources
+        annotations:
+          summary: "Database connection pool exhausted"
+          description: "No idle connections available and {{ $value }} requests pending on {{ $labels.instance }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/db-pool-exhausted"
+
+      - alert: DatabaseConnectionPoolLow
+        expr: sqlx_pool_connections_idle < 2 and sqlx_pool_connections_active > 8
+        for: 5m
+        labels:
+          severity: warning
+          category: resources
+        annotations:
+          summary: "Database connection pool running low"
+          description: "Only {{ $value }} idle connections remaining on {{ $labels.instance }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/db-pool-low"
+
+      - alert: RedisConnectionFailed
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: resources
+        annotations:
+          summary: "Redis connection failed"
+          description: "Redis is unreachable from {{ $labels.instance }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/redis-down"
+
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          category: resources
+        annotations:
+          summary: "Redis memory usage high"
+          description: "Redis memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/redis-memory"
+
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes / 1024 / 1024 > 512
+        for: 5m
+        labels:
+          severity: warning
+          category: resources
+        annotations:
+          summary: "High memory usage on {{ $labels.job }}"
+          description: "Memory usage is {{ $value }}MB on {{ $labels.instance }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/high-memory"
+
+      - alert: CriticalMemoryUsage
+        expr: process_resident_memory_bytes / 1024 / 1024 > 768
+        for: 2m
+        labels:
+          severity: critical
+          category: resources
+        annotations:
+          summary: "Critical memory usage on {{ $labels.job }}"
+          description: "Memory usage is {{ $value }}MB on {{ $labels.instance }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/critical-memory"
+
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total[5m]) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          category: resources
+        annotations:
+          summary: "High CPU usage on {{ $labels.job }}"
+          description: "CPU usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/high-cpu"
+
+  - name: media-gateway-business
+    interval: 30s
+    rules:
+      - alert: SearchLatencyHigh
+        expr: histogram_quantile(0.95, rate(search_request_duration_seconds_bucket[5m])) > 0.4
+        for: 5m
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "Search latency exceeds SLO"
+          description: "Search P95 latency is {{ $value | humanizeDuration }}, SLO is 400ms on {{ $labels.instance }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/search-latency"
+
+      - alert: SearchLatencyCritical
+        expr: histogram_quantile(0.95, rate(search_request_duration_seconds_bucket[5m])) > 1.0
+        for: 2m
+        labels:
+          severity: critical
+          category: business
+        annotations:
+          summary: "Search latency critically high"
+          description: "Search P95 latency is {{ $value | humanizeDuration }}, critical threshold is 1s on {{ $labels.instance }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/search-latency-critical"
+
+      - alert: RecommendationServiceDegraded
+        expr: rate(recommendation_requests_total{status="error"}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "Recommendation service degraded"
+          description: "Recommendation error rate is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/recommendation-degraded"
+
+      - alert: RecommendationServiceDown
+        expr: rate(recommendation_requests_total{status="error"}[5m]) > 0.5
+        for: 2m
+        labels:
+          severity: critical
+          category: business
+        annotations:
+          summary: "Recommendation service down or severely degraded"
+          description: "Recommendation error rate is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/recommendation-down"
+
+      - alert: AuthServiceHighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="auth"}[5m])) > 0.3
+        for: 5m
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "Authentication service latency high"
+          description: "Auth P95 latency is {{ $value | humanizeDuration }}, threshold is 300ms on {{ $labels.instance }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/auth-latency"
+
+      - alert: PlaybackBufferingHigh
+        expr: rate(playback_buffer_events_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "High playback buffering rate"
+          description: "Buffering rate is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/playback-buffering"
+
+      - alert: UploadFailureRateHigh
+        expr: rate(upload_requests_total{status="failed"}[5m]) / rate(upload_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "High upload failure rate"
+          description: "Upload failure rate is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/upload-failures"
+
+  - name: media-gateway-database
+    interval: 30s
+    rules:
+      - alert: DatabaseHighConnections
+        expr: pg_stat_database_numbackends > 80
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "High number of database connections"
+          description: "{{ $value }} active connections to database {{ $labels.datname }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/db-connections"
+
+      - alert: DatabaseSlowQueries
+        expr: rate(pg_stat_statements_mean_exec_time[5m]) > 1000
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "Slow database queries detected"
+          description: "Mean query execution time is {{ $value }}ms on {{ $labels.datname }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/slow-queries"
+
+      - alert: DatabaseDeadlocks
+        expr: increase(pg_stat_database_deadlocks[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "Database deadlocks detected"
+          description: "{{ $value }} deadlocks in the last 5 minutes on {{ $labels.datname }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/db-deadlocks"
+
+      - alert: DatabaseReplicationLag
+        expr: pg_replication_lag > 10
+        for: 2m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "Database replication lag high"
+          description: "Replication lag is {{ $value }} seconds on {{ $labels.instance }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/replication-lag"
+
+  - name: media-gateway-kafka
+    interval: 30s
+    rules:
+      - alert: KafkaConsumerLag
+        expr: kafka_consumer_lag > 10000
+        for: 5m
+        labels:
+          severity: warning
+          category: messaging
+        annotations:
+          summary: "High Kafka consumer lag"
+          description: "Consumer lag is {{ $value }} messages on topic {{ $labels.topic }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/kafka-lag"
+
+      - alert: KafkaConsumerLagCritical
+        expr: kafka_consumer_lag > 100000
+        for: 2m
+        labels:
+          severity: critical
+          category: messaging
+        annotations:
+          summary: "Critical Kafka consumer lag"
+          description: "Consumer lag is {{ $value }} messages on topic {{ $labels.topic }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/kafka-lag-critical"
+
+      - alert: KafkaOfflinePartitions
+        expr: kafka_server_replica_manager_offline_replica_count > 0
+        for: 1m
+        labels:
+          severity: critical
+          category: messaging
+        annotations:
+          summary: "Kafka offline partitions detected"
+          description: "{{ $value }} offline partitions on {{ $labels.instance }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/kafka-offline-partitions"
+
+      - alert: KafkaUnderReplicatedPartitions
+        expr: kafka_server_replica_manager_under_replicated_partitions > 0
+        for: 5m
+        labels:
+          severity: warning
+          category: messaging
+        annotations:
+          summary: "Kafka under-replicated partitions"
+          description: "{{ $value }} under-replicated partitions on {{ $labels.instance }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/kafka-under-replicated"

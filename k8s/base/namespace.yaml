@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: media-gateway
+  labels:
+    app.kubernetes.io/name: media-gateway
+    app.kubernetes.io/component: namespace
+    environment: base

@@ -1,0 +1,13 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: sona-service
+  namespace: media-gateway
+  labels:
+    app: sona-service
+    app.kubernetes.io/name: sona-service
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: sona-service

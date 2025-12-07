@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: playback-service
+  namespace: media-gateway
+  labels:
+    app: playback-service
+    app.kubernetes.io/name: playback-service
+    app.kubernetes.io/component: playback
+spec:
+  type: ClusterIP
+  selector:
+    app: playback-service
+  ports:
+  - name: http
+    port: 8086
+    targetPort: http
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: metrics
+    protocol: TCP

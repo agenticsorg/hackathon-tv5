@@ -1,0 +1,13 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: discovery-service
+  namespace: media-gateway
+  labels:
+    app: discovery-service
+    app.kubernetes.io/name: discovery-service
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: discovery-service

@@ -1,0 +1,115 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: media-gateway
+
+bases:
+  - ../../base
+
+namePrefix: dev-
+
+commonLabels:
+  environment: development
+
+patches:
+  # Reduce replicas for dev environment
+  - target:
+      kind: Deployment
+      name: api-gateway
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+
+  - target:
+      kind: Deployment
+      name: auth-service
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+
+  - target:
+      kind: Deployment
+      name: discovery-service
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+
+  - target:
+      kind: Deployment
+      name: sona-service
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+
+  - target:
+      kind: Deployment
+      name: sync-service
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+
+  - target:
+      kind: Deployment
+      name: ingestion-service
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+
+  - target:
+      kind: Deployment
+      name: playback-service
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+
+  - target:
+      kind: Deployment
+      name: mcp-server
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+
+  # Reduce resource limits for dev environment
+  - target:
+      kind: Deployment
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: 200m
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: 256Mi
+
+configMapGenerator:
+  - name: media-gateway-config
+    behavior: merge
+    literals:
+      - LOG_LEVEL=debug
+      - ENABLE_TRACING=false
+      - TRACE_SAMPLE_RATE=1.0
+
+images:
+  - name: gcr.io/PROJECT_ID/api-gateway
+    newTag: dev-latest
+  - name: gcr.io/PROJECT_ID/auth-service
+    newTag: dev-latest
+  - name: gcr.io/PROJECT_ID/discovery-service
+    newTag: dev-latest
+  - name: gcr.io/PROJECT_ID/sona-service
+    newTag: dev-latest
+  - name: gcr.io/PROJECT_ID/sync-service
+    newTag: dev-latest
+  - name: gcr.io/PROJECT_ID/ingestion-service
+    newTag: dev-latest
+  - name: gcr.io/PROJECT_ID/playback-service
+    newTag: dev-latest
+  - name: gcr.io/PROJECT_ID/mcp-server
+    newTag: dev-latest

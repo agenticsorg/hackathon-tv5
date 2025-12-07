@@ -1,0 +1,44 @@
+[package]
+name = "media-gateway-mcp"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "mcp-server"
+path = "src/main.rs"
+
+[dependencies]
+media-gateway-core = { workspace = true }
+actix-web = { workspace = true }
+actix-rt = { workspace = true }
+tokio = { workspace = true }
+sqlx = { workspace = true }
+redis = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+config = { workspace = true }
+dotenvy = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+futures = { workspace = true }
+reqwest = { workspace = true }
+qdrant-client = { workspace = true }
+validator = { workspace = true }
+async-trait = "0.1"
+axum = { version = "0.7", features = ["json", "ws"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "trace"] }
+hyper = "1.0"
+
+[dev-dependencies]
+wiremock = { workspace = true }
+mockall = { workspace = true }
+test-context = { workspace = true }
+tokio-test = "0.4"

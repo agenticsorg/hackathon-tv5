@@ -1,0 +1,13 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: playback-service
+  namespace: media-gateway
+  labels:
+    app: playback-service
+    app.kubernetes.io/name: playback-service
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: playback-service

@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: media-gateway-config
+  namespace: media-gateway
+  labels:
+    app.kubernetes.io/name: media-gateway
+    app.kubernetes.io/component: config
+data:
+  # Logging configuration
+  LOG_LEVEL: "info"
+  LOG_FORMAT: "json"
+
+  # Tracing configuration
+  ENABLE_TRACING: "true"
+  TRACE_SAMPLE_RATE: "0.1"
+
+  # Metrics configuration
+  ENABLE_METRICS: "true"
+  METRICS_PORT: "9090"
+
+  # Service discovery
+  DISCOVERY_SERVICE_URL: "http://discovery-service:8081"
+
+  # Database configuration (non-sensitive)
+  DB_MAX_CONNECTIONS: "20"
+  DB_MIN_CONNECTIONS: "5"
+  DB_CONNECTION_TIMEOUT: "30"
+  DB_IDLE_TIMEOUT: "300"
+
+  # Cache configuration
+  CACHE_TTL: "3600"
+  CACHE_MAX_SIZE: "1000"
+
+  # API Gateway configuration
+  API_GATEWAY_URL: "http://api-gateway:8080"
+
+  # Service URLs
+  AUTH_SERVICE_URL: "http://auth-service:8084"
+  SONA_SERVICE_URL: "http://sona-service:8082"
+  SYNC_SERVICE_URL: "http://sync-service:8083"
+  INGESTION_SERVICE_URL: "http://ingestion-service:8085"
+  PLAYBACK_SERVICE_URL: "http://playback-service:8086"
+  MCP_SERVER_URL: "http://mcp-server:3000"

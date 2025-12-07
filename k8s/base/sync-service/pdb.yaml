@@ -1,0 +1,13 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: sync-service
+  namespace: media-gateway
+  labels:
+    app: sync-service
+    app.kubernetes.io/name: sync-service
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: sync-service

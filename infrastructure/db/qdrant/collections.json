@@ -1,0 +1,35 @@
+{
+  "collections": [
+    {
+      "name": "media_content",
+      "vectors": {
+        "size": 768,
+        "distance": "Cosine"
+      },
+      "hnsw_config": {
+        "m": 16,
+        "ef_construct": 100,
+        "full_scan_threshold": 10000
+      },
+      "payload_schema": {
+        "content_id": "keyword",
+        "content_type": "keyword",
+        "genres": "keyword",
+        "release_year": "integer",
+        "platforms": "keyword",
+        "popularity_score": "float"
+      }
+    },
+    {
+      "name": "user_preferences",
+      "vectors": {
+        "size": 512,
+        "distance": "Cosine"
+      },
+      "hnsw_config": {
+        "m": 16,
+        "ef_construct": 64
+      }
+    }
+  ]
+}

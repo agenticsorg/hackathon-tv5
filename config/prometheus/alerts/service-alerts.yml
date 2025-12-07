@@ -1,0 +1,241 @@
+groups:
+  - name: service-availability
+    interval: 30s
+    rules:
+      - alert: ServiceDown
+        expr: up{job=~".*-service"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: availability
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 2 minutes."
+          runbook_url: "https://docs.media-gateway.io/runbooks/service-down"
+
+      - alert: HighErrorRate
+        expr: |
+          (
+            rate(http_requests_total{status=~"5.."}[5m])
+            /
+            rate(http_requests_total[5m])
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          category: availability
+        annotations:
+          summary: "High error rate on {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.job }}, threshold is 5%"
+          runbook_url: "https://docs.media-gateway.io/runbooks/high-error-rate"
+
+      - alert: CriticalErrorRate
+        expr: |
+          (
+            rate(http_requests_total{status=~"5.."}[5m])
+            /
+            rate(http_requests_total[5m])
+          ) > 0.10
+        for: 2m
+        labels:
+          severity: critical
+          category: availability
+        annotations:
+          summary: "Critical error rate on {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.job }}, threshold is 10%"
+          runbook_url: "https://docs.media-gateway.io/runbooks/critical-error-rate"
+
+  - name: service-performance
+    interval: 30s
+    rules:
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95,
+            rate(http_request_duration_seconds_bucket[5m])
+          ) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "High P95 latency on {{ $labels.job }}"
+          description: "P95 latency is {{ $value | humanizeDuration }} on {{ $labels.job }}, threshold is 500ms"
+          runbook_url: "https://docs.media-gateway.io/runbooks/high-latency"
+
+      - alert: CriticalLatency
+        expr: |
+          histogram_quantile(0.99,
+            rate(http_request_duration_seconds_bucket[5m])
+          ) > 1.0
+        for: 5m
+        labels:
+          severity: critical
+          category: performance
+        annotations:
+          summary: "Critical P99 latency on {{ $labels.job }}"
+          description: "P99 latency is {{ $value | humanizeDuration }} on {{ $labels.job }}, threshold is 1s"
+          runbook_url: "https://docs.media-gateway.io/runbooks/critical-latency"
+
+  - name: service-database
+    interval: 30s
+    rules:
+      - alert: DatabaseDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: database
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "PostgreSQL instance {{ $labels.instance }} has been unreachable for more than 1 minute."
+          runbook_url: "https://docs.media-gateway.io/runbooks/database-down"
+
+      - alert: DatabaseConnectionPoolExhausted
+        expr: sqlx_pool_connections_idle == 0 and sqlx_pool_connections_pending > 0
+        for: 2m
+        labels:
+          severity: critical
+          category: database
+        annotations:
+          summary: "Database connection pool exhausted on {{ $labels.instance }}"
+          description: "No idle connections available and {{ $value }} requests pending"
+          runbook_url: "https://docs.media-gateway.io/runbooks/db-pool-exhausted"
+
+      - alert: DatabaseConnectionPoolLow
+        expr: sqlx_pool_connections_idle < 2 and sqlx_pool_connections_active > 8
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "Database connection pool running low on {{ $labels.instance }}"
+          description: "Only {{ $value }} idle connections remaining"
+          runbook_url: "https://docs.media-gateway.io/runbooks/db-pool-low"
+
+  - name: service-resources
+    interval: 30s
+    rules:
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            process_resident_memory_bytes
+            /
+            (process_virtual_memory_max_bytes > 0 or process_resident_memory_bytes)
+          ) > 0.85
+        for: 10m
+        labels:
+          severity: warning
+          category: resources
+        annotations:
+          summary: "High memory usage on {{ $labels.job }}"
+          description: "Memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}, threshold is 85%"
+          runbook_url: "https://docs.media-gateway.io/runbooks/high-memory"
+
+      - alert: CriticalMemoryUsage
+        expr: |
+          (
+            process_resident_memory_bytes
+            /
+            (process_virtual_memory_max_bytes > 0 or process_resident_memory_bytes)
+          ) > 0.95
+        for: 5m
+        labels:
+          severity: critical
+          category: resources
+        annotations:
+          summary: "Critical memory usage on {{ $labels.job }}"
+          description: "Memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}, threshold is 95%"
+          runbook_url: "https://docs.media-gateway.io/runbooks/critical-memory"
+
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total[5m]) > 0.90
+        for: 10m
+        labels:
+          severity: warning
+          category: resources
+        annotations:
+          summary: "High CPU usage on {{ $labels.job }}"
+          description: "CPU usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}, threshold is 90%"
+          runbook_url: "https://docs.media-gateway.io/runbooks/high-cpu"
+
+      - alert: CriticalCPUUsage
+        expr: rate(process_cpu_seconds_total[5m]) > 0.95
+        for: 5m
+        labels:
+          severity: critical
+          category: resources
+        annotations:
+          summary: "Critical CPU usage on {{ $labels.job }}"
+          description: "CPU usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}, threshold is 95%"
+          runbook_url: "https://docs.media-gateway.io/runbooks/critical-cpu"
+
+  - name: service-cache
+    interval: 30s
+    rules:
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: cache
+        annotations:
+          summary: "Redis cache is down"
+          description: "Redis instance {{ $labels.instance }} has been unreachable for more than 1 minute."
+          runbook_url: "https://docs.media-gateway.io/runbooks/redis-down"
+
+      - alert: RedisHighMemoryUsage
+        expr: |
+          (
+            redis_memory_used_bytes
+            /
+            redis_memory_max_bytes
+          ) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          category: cache
+        annotations:
+          summary: "Redis memory usage high on {{ $labels.instance }}"
+          description: "Redis memory usage is {{ $value | humanizePercentage }}, threshold is 85%"
+          runbook_url: "https://docs.media-gateway.io/runbooks/redis-memory"
+
+      - alert: RedisCriticalMemoryUsage
+        expr: |
+          (
+            redis_memory_used_bytes
+            /
+            redis_memory_max_bytes
+          ) > 0.95
+        for: 2m
+        labels:
+          severity: critical
+          category: cache
+        annotations:
+          summary: "Redis memory usage critical on {{ $labels.instance }}"
+          description: "Redis memory usage is {{ $value | humanizePercentage }}, threshold is 95%"
+          runbook_url: "https://docs.media-gateway.io/runbooks/redis-memory-critical"
+
+  - name: service-health
+    interval: 30s
+    rules:
+      - alert: ServiceUnhealthy
+        expr: up{job=~".*-service"} == 1 and http_health_check_status != 200
+        for: 3m
+        labels:
+          severity: warning
+          category: health
+        annotations:
+          summary: "Service {{ $labels.job }} health check failing"
+          description: "Health check returns status {{ $value }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/health-check-failed"
+
+      - alert: ServiceDegraded
+        expr: avg_over_time(http_health_check_duration_seconds[5m]) > 2
+        for: 5m
+        labels:
+          severity: info
+          category: health
+        annotations:
+          summary: "Service {{ $labels.job }} health check slow"
+          description: "Average health check duration is {{ $value | humanizeDuration }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.media-gateway.io/runbooks/health-check-slow"

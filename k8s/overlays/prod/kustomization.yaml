@@ -1,0 +1,97 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: media-gateway
+
+bases:
+  - ../../base
+
+namePrefix: prod-
+
+commonLabels:
+  environment: production
+
+patches:
+  # Production settings - keep base replicas
+  - target:
+      kind: Deployment
+      name: api-gateway
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 3
+
+  - target:
+      kind: Deployment
+      name: discovery-service
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 3
+
+  - target:
+      kind: Deployment
+      name: playback-service
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 3
+
+  # Increase PDB for critical services
+  - target:
+      kind: PodDisruptionBudget
+      name: api-gateway
+    patch: |-
+      - op: replace
+        path: /spec/minAvailable
+        value: 2
+
+  - target:
+      kind: PodDisruptionBudget
+      name: auth-service
+    patch: |-
+      - op: replace
+        path: /spec/minAvailable
+        value: 2
+
+  - target:
+      kind: PodDisruptionBudget
+      name: discovery-service
+    patch: |-
+      - op: replace
+        path: /spec/minAvailable
+        value: 2
+
+  - target:
+      kind: PodDisruptionBudget
+      name: playback-service
+    patch: |-
+      - op: replace
+        path: /spec/minAvailable
+        value: 2
+
+configMapGenerator:
+  - name: media-gateway-config
+    behavior: merge
+    literals:
+      - LOG_LEVEL=warn
+      - ENABLE_TRACING=true
+      - TRACE_SAMPLE_RATE=0.1
+
+images:
+  - name: gcr.io/PROJECT_ID/api-gateway
+    newTag: v1.0.0
+  - name: gcr.io/PROJECT_ID/auth-service
+    newTag: v1.0.0
+  - name: gcr.io/PROJECT_ID/discovery-service
+    newTag: v1.0.0
+  - name: gcr.io/PROJECT_ID/sona-service
+    newTag: v1.0.0
+  - name: gcr.io/PROJECT_ID/sync-service
+    newTag: v1.0.0
+  - name: gcr.io/PROJECT_ID/ingestion-service
+    newTag: v1.0.0
+  - name: gcr.io/PROJECT_ID/playback-service
+    newTag: v1.0.0
+  - name: gcr.io/PROJECT_ID/mcp-server
+    newTag: v1.0.0

@@ -140,6 +140,10 @@ vite.config.ts.timestamp-*
 .DS_Store
 .devcontainer/
 
+# Rust build artifacts
+target/
+Cargo.lock
+
 # Claude Flow generated files
 .claude/settings.local.json
 .mcp.json
