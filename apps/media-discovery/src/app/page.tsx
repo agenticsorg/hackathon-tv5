@@ -1,6 +1,7 @@
 'use client';
 
 import { Suspense, useEffect, useRef, useCallback, useState } from 'react';
+import confetti from 'canvas-confetti';
 import { SearchBar } from '@/components/SearchBar';
 import { TrendingSection } from '@/components/TrendingSection';
 import { RecommendationsSection } from '@/components/RecommendationsSection';
@@ -32,7 +33,30 @@ export default function HomePage() {
 
   const timerRef = useRef<number | null>(null);
   const lastMousePos = useRef({ x: 0, y: 0, time: 0 });
+  const confettiFiredRef = useRef(false);
   const [shuffledGenres, setShuffledGenres] = useState<typeof GENRES>([]);
+
+  const showContinueButton = totalTime > 8 || clickSequence.length >= 3;
+
+  // Fire confetti when profile is ready
+  useEffect(() => {
+    if (showContinueButton && currentScreen === 'discovery' && !confettiFiredRef.current) {
+      confettiFiredRef.current = true;
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.9 },
+        colors: ['#4ECDC4', '#FF6B6B', '#FFE66D', '#A855F7'],
+      });
+    }
+  }, [showContinueButton, currentScreen]);
+
+  // Reset confetti flag when discovery restarts
+  useEffect(() => {
+    if (currentScreen === 'signin') {
+      confettiFiredRef.current = false;
+    }
+  }, [currentScreen]);
 
   // Initialize genres on mount
   useEffect(() => {
@@ -101,16 +125,15 @@ export default function HomePage() {
     goToScreen('signin');
   };
 
-  const showContinueButton = totalTime > 8 || clickSequence.length >= 3;
-
   // Get top genres for personalized sections
   const topGenres = getGenreScores();
   const primaryGenres = topGenres.slice(0, 2);
-  const secondaryGenres = topGenres.slice(2, 4);
 
   // Extract TMDB IDs for API filtering
   const primaryGenreIds = primaryGenres.map(g => g.tmdbId).filter(Boolean);
-  const secondaryGenreIds = secondaryGenres.map(g => g.tmdbId).filter(Boolean);
+
+  // Determine if user completed profiling properly (8+ sec OR 3+ clicks)
+  const hasProfile = !(clickSequence.length === 0 || (totalTime <= 8 && clickSequence.length < 3));
 
   // If profile is complete, show the main app
   if (profileComplete) {
@@ -120,15 +143,18 @@ export default function HomePage() {
 
         {/* Hero Section */}
         <section className="relative py-16 md:py-24 px-4 text-center bg-gradient-to-b from-accent-cyan/10 to-transparent">
-          <h1 className="headline-hero mb-4 text-text-primary">
-            Curated for You
-          </h1>
-          <p className="text-lg md:text-xl text-text-secondary mb-4 max-w-2xl mx-auto">
-            Based on your unique viewing style. Describe what you want to watch
-            and our AI finds the perfect match.
-          </p>
+          {hasProfile && (
+            <>
+              <h1 className="headline-hero mb-4 text-text-primary">
+                Curated for You
+              </h1>
+              <p className="text-lg md:text-xl text-text-secondary mb-4 max-w-2xl mx-auto">
+                Based on your unique viewing style.
+              </p>
+            </>
+          )}
           {/* Time saved badge - only show if user completed profiling */}
-          {!(clickSequence.length === 0 || (totalTime <= 8 && clickSequence.length < 3)) && (
+          {hasProfile && (
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-bg-primary border border-border-subtle rounded-full mb-10">
               <span className="text-accent-cyan font-bold mono">{totalTime.toFixed(0)}s</span>
               <span className="text-text-secondary text-sm">to profile you, not 45 minutes</span>
@@ -136,7 +162,7 @@ export default function HomePage() {
           )}
 
           {/* Disclosure if user skipped or didn't select */}
-          {(clickSequence.length === 0 || (totalTime <= 8 && clickSequence.length < 3)) && (
+          {!hasProfile && (
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-genre-comedy/10 border border-genre-comedy/30 rounded-full mb-10">
               <span className="text-genre-comedy text-sm">
                 {clickSequence.length === 0
@@ -172,39 +198,52 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Primary Picks - Based on top genres */}
-        <section className="py-12 px-4 md:px-8">
-          <h2 className="headline-h2 mb-2 text-text-primary">
-            Perfect for {primaryGenres.map(g => g.name).join(' & ')} Fans
-          </h2>
-          <p className="text-text-secondary mb-6">Curated based on your taste profile</p>
-          <Suspense fallback={<ContentSkeleton />}>
-            <TrendingSection genreIds={primaryGenreIds} />
-          </Suspense>
-        </section>
+        {hasProfile ? (
+          <section className="py-12 px-4 md:px-8">
+            <h2 className="headline-h2 mb-2 text-text-primary">
+              Perfect for {primaryGenres.map(g => g.name).join(' & ')} Fans
+            </h2>
+            <p className="text-text-secondary mb-6">Curated based on your taste profile</p>
+            <Suspense fallback={<ContentSkeleton />}>
+              <TrendingSection genreIds={primaryGenreIds} />
+            </Suspense>
+          </section>
+        ) : (
+          <>
+            <section className="py-12 px-4 md:px-8">
+              <h2 className="headline-h2 mb-2 text-text-primary">Trending Now</h2>
+              <p className="text-text-secondary mb-6">Popular picks across all genres</p>
+              <Suspense fallback={<ContentSkeleton />}>
+                <TrendingSection />
+              </Suspense>
+            </section>
 
-        {/* Secondary Picks */}
-        <section className="py-12 px-4 md:px-8 bg-bg-primary/50">
-          <h2 className="headline-h2 mb-2 text-text-primary">More for You</h2>
-          <p className="text-text-secondary mb-6">
-            Because you like {secondaryGenres.map(g => g.name).join(' and ')}
-          </p>
-          <Suspense fallback={<ContentSkeleton />}>
-            <RecommendationsSection genreIds={secondaryGenreIds} />
-          </Suspense>
-        </section>
+            <section className="py-12 px-4 md:px-8 bg-bg-primary/50">
+              <h2 className="headline-h2 mb-2 text-text-primary">Popular This Week</h2>
+              <p className="text-text-secondary mb-6">What everyone is watching</p>
+              <Suspense fallback={<ContentSkeleton />}>
+                <RecommendationsSection />
+              </Suspense>
+            </section>
 
-        {/* Explore Section */}
-        <section className="py-12 px-4 md:px-8">
-          <h2 className="headline-h2 mb-2 text-text-primary">Expand Your Horizons</h2>
-          <p className="text-text-secondary mb-6">Discover something new outside your usual picks</p>
-          <Suspense fallback={<ContentSkeleton />}>
-            <TrendingSection />
-          </Suspense>
-        </section>
+            <section className="py-12 px-4 md:px-8">
+              <h2 className="headline-h2 mb-2 text-text-primary">Discover More</h2>
+              <p className="text-text-secondary mb-6">Explore the full library</p>
+              <Suspense fallback={<ContentSkeleton />}>
+                <TrendingSection />
+              </Suspense>
+            </section>
+          </>
+        )}
 
         {/* Footer */}
         <footer className="py-8 px-4 text-center text-text-secondary text-sm border-t border-border-subtle">
+          <p className="mb-2">
+            <a href="https://london.agentics.org" className="underline hover:text-accent-cyan">
+              Agentics Foundation London Team
+            </a>{' '}
+            &bull; Global Hackathon TV5MONDE
+          </p>
           <p>
             Powered by{' '}
             <a href="https://www.themoviedb.org/" className="underline hover:text-accent-cyan">
@@ -260,64 +299,83 @@ export default function HomePage() {
 
       {/* SCREEN 2: DISCOVERY GRID */}
       <section
-        className={`screen ${currentScreen === 'discovery' ? 'active' : ''} ${
+        className={`screen discovery-screen ${currentScreen === 'discovery' ? 'active' : ''} ${
           isTransitioning && currentScreen === 'discovery' ? 'entering' : ''
         }`}
       >
-        <div className="w-full max-w-[1000px]">
-          <div className="text-center mb-8">
+        <div className="w-full max-w-[1000px] h-full flex flex-col px-4">
+          {/* Header - fixed at top */}
+          <div className="text-center py-4 flex-shrink-0">
             <h1 className="headline-h1 mb-2">What catches your eye?</h1>
-            <p className="text-body">Hover over the images that interest you</p>
-            <div className="mono text-xl text-accent-cyan mt-4">
+            <p className="text-body">Select images that interest you</p>
+            <div className="mono text-xl text-accent-cyan mt-2">
               {totalTime.toFixed(3)}s
             </div>
           </div>
 
-          {/* Thumbnail Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            {shuffledGenres.map((genre, index) => {
-              const genreData = genres[genre.id];
-              const isClicked = genreData?.clickOrder !== null;
+          {/* Thumbnail Grid - scrollable */}
+          <div className="flex-1 overflow-auto scrollbar-hide py-2">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+              {shuffledGenres.map((genre, index) => {
+                const genreData = genres[genre.id];
+                const isClicked = genreData?.clickOrder !== null;
 
-              return (
-                <div
-                  key={genre.id}
-                  className="card-hover relative aspect-[9/16] overflow-hidden cursor-pointer rounded-lg"
-                  style={{
-                    borderWidth: '2px',
-                    borderStyle: 'solid',
-                    borderColor: isClicked ? genre.color : 'transparent',
-                    animationDelay: `${index * 50}ms`,
-                  }}
-                  onMouseEnter={() => onHoverEnter(genre.id)}
-                  onMouseLeave={() => onHoverLeave(genre.id)}
-                  onClick={() => onThumbnailClick(genre.id)}
-                >
-                  <img
-                    src={genre.src}
-                    alt={genre.name}
-                    className="w-full h-full object-cover"
-                  />
-                  {isClicked && (
-                    <div
-                      className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded text-xs font-bold animate-badge-pop"
-                      style={{ backgroundColor: genre.color, color: '#0D1117' }}
-                    >
-                      {genreData?.clickOrder}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                return (
+                  <div
+                    key={genre.id}
+                    className="card-hover relative aspect-[9/16] overflow-hidden cursor-pointer rounded-lg"
+                    style={{
+                      borderWidth: '2px',
+                      borderStyle: 'solid',
+                      borderColor: isClicked ? genre.color : 'transparent',
+                      animationDelay: `${index * 50}ms`,
+                    }}
+                    onMouseEnter={() => onHoverEnter(genre.id)}
+                    onMouseLeave={() => onHoverLeave(genre.id)}
+                    onClick={() => onThumbnailClick(genre.id)}
+                  >
+                    <img
+                      src={genre.src}
+                      alt={genre.name}
+                      className="w-full h-full object-cover"
+                    />
+                    {isClicked && (
+                      <div
+                        className="absolute inset-0 flex items-center justify-center"
+                      >
+                        <div
+                          className="w-16 h-16 flex items-center justify-center rounded-full text-3xl font-bold animate-badge-pop shadow-lg"
+                          style={{ backgroundColor: genre.color, color: '#0D1117' }}
+                        >
+                          {genreData?.clickOrder}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Skip / Continue Button - Always visible, text changes when profile ready */}
-          <button
-            className="btn-primary mx-auto block max-w-[300px] w-full rounded"
-            onClick={completeProfile}
-          >
-            {showContinueButton ? 'See My Recommendations' : 'Skip'}
-          </button>
+          {/* CTA - fixed at bottom */}
+          <div className="flex-shrink-0 py-4 pb-safe">
+            <div className="relative mx-auto max-w-[300px]">
+              {/* Animated border - only visible when profile ready */}
+              {showContinueButton && (
+                <div
+                  className="absolute -inset-[3px] rounded-lg bg-gradient-to-r from-accent-cyan via-genre-scifi to-accent-cyan bg-[length:200%_100%] animate-gradient-shift"
+                />
+              )}
+              <button
+                className={`btn-primary relative w-full rounded ${
+                  showContinueButton ? 'shadow-lg shadow-accent-cyan/30' : ''
+                }`}
+                onClick={completeProfile}
+              >
+                {showContinueButton ? 'See My Recommendations' : 'Skip'}
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 

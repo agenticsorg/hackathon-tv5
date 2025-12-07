@@ -132,6 +132,20 @@ h1, h2, h3, h4, h5, h6, .headline-hero, .headline-h1, .headline-h2 {
   opacity: 1;
 }
 
+/* Discovery screen needs full height for flex layout */
+.screen.discovery-screen.active {
+  justify-content: flex-start;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile */
+  overflow: hidden;
+  padding: 0;
+}
+
+/* Safe area padding for mobile devices */
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
 .screen.entering {
   animation: screenEnter 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -180,6 +194,20 @@ h1, h2, h3, h4, h5, h6, .headline-hero, .headline-h1, .headline-h2 {
   100% { transform: scale(1); }
 }
 
+@keyframes scaleUp {
+  0% { opacity: 0; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.animate-gradient-shift {
+  animation: gradientShift 2s ease infinite;
+}
+
 @keyframes buttonReveal {
   0% { opacity: 0; transform: translateY(10px); }
   100% { opacity: 1; transform: translateY(0); }
@@ -225,6 +253,10 @@ h1, h2, h3, h4, h5, h6, .headline-hero, .headline-h1, .headline-h2 {
 
 .animate-badge-pop {
   animation: badgePop 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.animate-scale-up {
+  animation: scaleUp 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-button-reveal {
