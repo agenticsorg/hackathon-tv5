@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { VoiceSearch } from './VoiceSearch';
 
@@ -11,29 +11,52 @@ export function SearchBar() {
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
 
+  // Reset loading state when search params change (navigation completed)
+  useEffect(() => {
+    setIsLoading(false);
+  }, [searchParams]);
+
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      if (!query.trim()) return;
+      if (!query.trim() || isLoading) return;
 
       setIsLoading(true);
-      router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+      try {
+        router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+      } catch (error) {
+        console.error('Search navigation failed:', error);
+        setIsLoading(false);
+      }
     },
-    [query, router]
+    [query, router, isLoading]
   );
 
   const handleVoiceResult = useCallback(
     (transcript: string) => {
+      if (isLoading) return; // Prevent duplicate submissions
+
       setQuery(transcript);
       // Auto-submit after voice input
       setIsLoading(true);
-      router.push(`/search?q=${encodeURIComponent(transcript.trim())}`);
+      try {
+        router.push(`/search?q=${encodeURIComponent(transcript.trim())}`);
+      } catch (error) {
+        console.error('Voice search navigation failed:', error);
+        setIsLoading(false);
+      }
     },
-    [router]
+    [router, isLoading]
   );
 
   const handleInterimResult = useCallback((transcript: string) => {
     setQuery(transcript);
+  }, []);
+
+  const handleVoiceError = useCallback((error: string) => {
+    console.error('Voice search error:', error);
+    // Reset loading state on voice errors
+    setIsLoading(false);
   }, []);
 
   return (
@@ -92,6 +115,7 @@ export function SearchBar() {
       <VoiceSearch
         onResult={handleVoiceResult}
         onInterimResult={handleInterimResult}
+        onError={handleVoiceError}
         onListeningChange={setIsListening}
         disabled={isLoading}
         className="flex-shrink-0"

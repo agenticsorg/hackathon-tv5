@@ -157,7 +157,6 @@ export class MultiTierCache<T> {
 
     try {
       // Dynamic import to avoid requiring redis when not used
-      // @ts-expect-error - redis is optional and may not be installed
       const { createClient } = await import('redis');
       const client = createClient({ url: this.config.redisUrl });
 

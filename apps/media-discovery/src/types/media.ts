@@ -52,6 +52,14 @@ export interface SemanticSearchQuery {
   intent?: SearchIntent;
   filters?: SearchFilters;
   embedding?: number[];
+  metadata?: {
+    detectedPerson?: string;
+    isTrending?: boolean;
+    isRecent?: boolean;
+    platform?: string;
+    detectedAward?: string;
+    hasSpecificIntent?: boolean;
+  };
 }
 
 // Search intent derived from natural language
@@ -63,6 +71,9 @@ export interface SearchIntent {
   setting?: string[];        // e.g., ["space", "urban"]
   similar_to?: string[];     // e.g., ["Inception", "The Matrix"]
   avoid?: string[];          // e.g., ["gore", "romance"]
+  genres?: string[];         // e.g., ["action", "comedy"]
+  keywords?: string[];       // e.g., ["trending", "person:Tom Hanks"]
+  mediaType?: 'movie' | 'tv' | 'all';
 }
 
 // Search filters

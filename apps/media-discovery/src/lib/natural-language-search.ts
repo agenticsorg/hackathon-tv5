@@ -8,7 +8,7 @@ import { openai } from '@ai-sdk/openai';
 import { google } from '@ai-sdk/google';
 import { z } from 'zod';
 import type { SemanticSearchQuery, SearchIntent, SearchFilters, MediaContent, SearchResult, StreamingInfo } from '@/types/media';
-import { searchMulti, getSimilarMovies, getSimilarTVShows, discoverMovies, discoverTVShows } from './tmdb';
+import { searchMulti, getSimilarMovies, getSimilarTVShows, discoverMovies, discoverTVShows, searchPerson, getPersonCredits, getTrending, getRecentReleases } from './tmdb';
 import { searchByEmbedding, getContentEmbedding, calculateSimilarity } from './vector-search';
 import {
   getBatchStreamingAvailability,
@@ -78,8 +78,130 @@ const GENRE_MAP: Record<string, { movie: number; tv: number }> = {
   western: { movie: 37, tv: 37 },
 };
 
+// Mood-to-genre mapping for natural language understanding without AI
+// Expanded with 50+ keywords to handle diverse voice queries
+const MOOD_MAP: Record<string, { genres: string[]; themes?: string[]; pacing?: 'slow' | 'medium' | 'fast' }> = {
+  // Excitement & Energy
+  'exciting': { genres: ['action', 'thriller', 'adventure'], pacing: 'fast' },
+  'thrilling': { genres: ['thriller', 'action', 'mystery'], pacing: 'fast' },
+  'adrenaline': { genres: ['action', 'thriller'], pacing: 'fast' },
+  'intense': { genres: ['thriller', 'drama', 'action'], pacing: 'fast' },
+  'edge of my seat': { genres: ['thriller', 'horror', 'action'] },
+
+  // Comfort & Warmth
+  'cozy': { genres: ['comedy', 'romance', 'family'], pacing: 'slow', themes: ['heartwarming', 'comfort'] },
+  'comforting': { genres: ['family', 'comedy', 'romance'], pacing: 'slow' },
+  'feel good': { genres: ['comedy', 'family', 'romance'], themes: ['uplifting', 'heartwarming'] },
+  'heartwarming': { genres: ['family', 'romance', 'drama'], themes: ['heartwarming'] },
+  'uplifting': { genres: ['family', 'comedy', 'drama'], themes: ['uplifting', 'inspiring'] },
+
+  // Darkness & Mystery
+  'dark': { genres: ['horror', 'thriller', 'mystery'], themes: ['dark', 'psychological'] },
+  'scary': { genres: ['horror', 'thriller'] },
+  'creepy': { genres: ['horror', 'mystery', 'thriller'] },
+  'suspenseful': { genres: ['thriller', 'mystery', 'crime'], pacing: 'medium' },
+  'mysterious': { genres: ['mystery', 'thriller', 'sci-fi'] },
+  'psychological': { genres: ['thriller', 'drama', 'mystery'], themes: ['psychological'] },
+
+  // Romance & Relationships
+  'romantic': { genres: ['romance', 'comedy', 'drama'] },
+  'love': { genres: ['romance', 'drama'] },
+  'relationship': { genres: ['romance', 'drama'], themes: ['relationships'] },
+
+  // Humor
+  'funny': { genres: ['comedy'] },
+  'hilarious': { genres: ['comedy'] },
+  'laugh': { genres: ['comedy'] },
+  'lighthearted': { genres: ['comedy', 'family'], pacing: 'medium' },
+
+  // Intellectual & Thought-provoking
+  'thought provoking': { genres: ['drama', 'sci-fi', 'mystery'], pacing: 'slow' },
+  'intelligent': { genres: ['drama', 'mystery', 'thriller'], pacing: 'slow' },
+  'cerebral': { genres: ['drama', 'sci-fi', 'thriller'], pacing: 'slow' },
+  'mind bending': { genres: ['sci-fi', 'thriller', 'mystery'], themes: ['complex'] },
+
+  // Action & Adventure
+  'action packed': { genres: ['action', 'adventure'], pacing: 'fast' },
+  'explosive': { genres: ['action', 'sci-fi'], pacing: 'fast' },
+  'adventurous': { genres: ['adventure', 'action', 'fantasy'], pacing: 'medium' },
+
+  // Emotional
+  'emotional': { genres: ['drama', 'romance'], themes: ['emotional'] },
+  'sad': { genres: ['drama'], themes: ['emotional', 'tragic'] },
+  'crying': { genres: ['drama', 'romance'], themes: ['emotional'] },
+  'inspiring': { genres: ['drama', 'family'], themes: ['inspiring', 'uplifting'] },
+
+  // Sci-Fi & Fantasy
+  'futuristic': { genres: ['sci-fi'], themes: ['futuristic'] },
+  'space': { genres: ['sci-fi', 'adventure'], themes: ['space'] },
+  'magical': { genres: ['fantasy', 'family'], themes: ['magic'] },
+  'epic': { genres: ['fantasy', 'adventure', 'action'], pacing: 'medium' },
+
+  // NEW: Positive/Quality Descriptors (for "cool", "awesome", "interesting", etc.)
+  'cool': { genres: ['action', 'sci-fi', 'thriller'], pacing: 'fast', themes: ['modern', 'stylish'] },
+  'awesome': { genres: ['action', 'adventure', 'sci-fi'], pacing: 'fast', themes: ['spectacular'] },
+  'amazing': { genres: ['adventure', 'fantasy', 'sci-fi'], pacing: 'medium', themes: ['spectacular'] },
+  'fantastic': { genres: ['fantasy', 'adventure', 'sci-fi'], pacing: 'medium' },
+  'great': { genres: ['action', 'comedy', 'drama'], pacing: 'medium' },
+  'good': { genres: ['comedy', 'drama', 'family'], pacing: 'medium' },
+  'excellent': { genres: ['drama', 'thriller', 'action'], pacing: 'medium' },
+  'wonderful': { genres: ['family', 'romance', 'comedy'], themes: ['heartwarming'] },
+  'brilliant': { genres: ['drama', 'mystery', 'thriller'], themes: ['intelligent'] },
+  'incredible': { genres: ['action', 'adventure', 'sci-fi'], pacing: 'fast' },
+  'outstanding': { genres: ['drama', 'thriller', 'action'], pacing: 'medium' },
+  'superb': { genres: ['drama', 'mystery', 'thriller'], pacing: 'medium' },
+  'terrific': { genres: ['comedy', 'action', 'adventure'], pacing: 'fast' },
+  'marvelous': { genres: ['fantasy', 'adventure', 'family'], pacing: 'medium' },
+  'spectacular': { genres: ['action', 'sci-fi', 'adventure'], pacing: 'fast', themes: ['spectacular'] },
+
+  // NEW: Interest/Engagement
+  'interesting': { genres: ['mystery', 'thriller', 'sci-fi'], themes: ['complex', 'intriguing'] },
+  'intriguing': { genres: ['mystery', 'thriller', 'drama'], themes: ['complex'] },
+  'compelling': { genres: ['drama', 'thriller', 'mystery'], themes: ['engaging'] },
+  'engaging': { genres: ['drama', 'thriller', 'comedy'], pacing: 'medium' },
+  'captivating': { genres: ['drama', 'romance', 'mystery'], pacing: 'medium' },
+  'gripping': { genres: ['thriller', 'action', 'mystery'], pacing: 'fast' },
+  'absorbing': { genres: ['drama', 'mystery', 'sci-fi'], pacing: 'slow' },
+  'mesmerizing': { genres: ['drama', 'fantasy', 'sci-fi'], pacing: 'slow' },
+  'fascinating': { genres: ['documentary', 'sci-fi', 'mystery'], themes: ['educational'] },
+
+  // NEW: Energy Levels
+  'energetic': { genres: ['action', 'comedy', 'adventure'], pacing: 'fast' },
+  'wild': { genres: ['action', 'thriller', 'comedy'], pacing: 'fast' },
+  'crazy': { genres: ['comedy', 'action', 'thriller'], pacing: 'fast' },
+  'insane': { genres: ['action', 'thriller', 'horror'], pacing: 'fast' },
+  'calm': { genres: ['drama', 'romance', 'family'], pacing: 'slow' },
+  'peaceful': { genres: ['drama', 'family', 'documentary'], pacing: 'slow' },
+  'relaxing': { genres: ['family', 'comedy', 'romance'], pacing: 'slow' },
+  'chill': { genres: ['comedy', 'romance', 'family'], pacing: 'slow' },
+
+  // NEW: Generic Entertainment Requests
+  'entertaining': { genres: ['comedy', 'action', 'adventure'], pacing: 'medium' },
+  'fun': { genres: ['comedy', 'adventure', 'family'], pacing: 'medium' },
+  'enjoyable': { genres: ['comedy', 'family', 'romance'], pacing: 'medium' },
+  'pleasurable': { genres: ['romance', 'comedy', 'family'], pacing: 'medium' },
+  'delightful': { genres: ['comedy', 'family', 'romance'], themes: ['heartwarming'] },
+
+  // NEW: Mood States
+  'bored': { genres: ['action', 'comedy', 'thriller'], pacing: 'fast', themes: ['exciting'] },
+  'tired': { genres: ['comedy', 'family', 'romance'], pacing: 'slow' },
+  'stressed': { genres: ['comedy', 'family', 'romance'], pacing: 'slow', themes: ['relaxing'] },
+  'happy': { genres: ['comedy', 'romance', 'family'], themes: ['uplifting'] },
+  'curious': { genres: ['mystery', 'sci-fi', 'documentary'], themes: ['intriguing'] },
+
+  // NEW: Novelty/Discovery
+  'fresh': { genres: ['comedy', 'drama', 'sci-fi'], pacing: 'medium', themes: ['modern'] },
+  'new': { genres: ['action', 'comedy', 'sci-fi'], pacing: 'medium', themes: ['modern'] },
+  'different': { genres: ['sci-fi', 'mystery', 'thriller'], themes: ['unique'] },
+  'unique': { genres: ['sci-fi', 'fantasy', 'mystery'], themes: ['unique'] },
+  'original': { genres: ['sci-fi', 'drama', 'mystery'], themes: ['unique'] },
+  'innovative': { genres: ['sci-fi', 'thriller', 'mystery'], themes: ['unique'] },
+  'creative': { genres: ['fantasy', 'sci-fi', 'comedy'], themes: ['unique'] },
+};
+
 /**
  * Parse natural language query into structured search intent
+ * Now with robust fallback mood detection that doesn't require API keys
  */
 export async function parseSearchQuery(query: string): Promise<SemanticSearchQuery> {
   // Normalize for cache key
@@ -92,13 +214,90 @@ export async function parseSearchQuery(query: string): Promise<SemanticSearchQue
     return cached;
   }
 
-  try {
-    console.log(`🧠 AI parsing intent for: "${query.slice(0, 30)}..."`);
-    // Use AI to extract intent from natural language
-    const { object: intent } = await generateObject({
-      model: openai('gpt-4o-mini'),
-      schema: SearchIntentSchema,
-      prompt: `Analyze this movie/TV show search query and extract the user's intent:
+  const queryLower = query.toLowerCase();
+  let intent: SearchIntent = {};
+  let usedFallback = false;
+
+  // Detect person names (actors, directors) - comprehensive patterns
+  const personPatterns = [
+    // Classic patterns: "starring [Name]", "by [Name]", "featuring [Name]"
+    /\b(with|starring|by|featuring|from)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\b/i,
+
+    // "[Name] movie/film/show/series"
+    /\b([A-Z][a-z]+\s+[A-Z][a-z]+)\s+(movie|film|show|series|movies|films|shows)/i,
+
+    // "actor/director [Name]"
+    /\b(actor|director|writer|producer)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\b/i,
+
+    // "Something [Name] played/acted/directed/wrote/produced"
+    /\b(something|anything|what)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\s+(played|acted|directed|wrote|produced|made|starred\s+in|was\s+in)\b/i,
+
+    // "movies/films/shows [Name] played/acted/directed/was in"
+    /\b(movies|films|shows|series)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\s+(played|acted|directed|wrote|produced|made|starred\s+in|was\s+in|acted\s+in)\b/i,
+
+    // "directed by [Name]", "written by [Name]", "produced by [Name]"
+    /\b(directed|written|produced|created)\s+by\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\b/i,
+
+    // "[Name] directed/wrote/produced"
+    /\b([A-Z][a-z]+\s+[A-Z][a-z]+)\s+(directed|wrote|produced|created|made)\b/i,
+  ];
+
+  let detectedPerson: string | undefined;
+  for (const pattern of personPatterns) {
+    const match = query.match(pattern);
+    if (match && match.length > 1) {
+      // Extract the name from the match groups
+      // The name is typically in group 2, but we need to find the capitalized name
+      for (let i = 1; i < match.length; i++) {
+        const candidate = match[i]?.trim();
+        // Check if this looks like a person name (starts with capital, has at least 2 words)
+        if (candidate && /^[A-Z][a-z]+\s+[A-Z][a-z]+/.test(candidate)) {
+          detectedPerson = candidate;
+          break;
+        }
+      }
+      if (detectedPerson) break;
+    }
+  }
+
+  // Detect trending/recency queries
+  const isTrendingQuery = /\b(trending|popular|hot|what'?s new|latest|recent|just released|new release)\b/i.test(query);
+  const isRecentQuery = /\b(latest|recent|new|2024|2023|just released|came out)\b/i.test(query);
+
+  // Detect platform queries (Netflix, etc.)
+  const platformMatch = query.match(/\b(netflix|hulu|disney|prime|hbo|apple\s*tv)\b/i);
+  const detectedPlatform = platformMatch ? platformMatch[1] : undefined;
+
+  // Detect award queries (Oscar, Emmy, Golden Globe, etc.)
+  const awardPatterns = [
+    /\b(oscar|academy\s+award)s?\s+(winner|winning|nominated|nomination)\b/i,
+    /\b(oscar|academy\s+award)s?\s+for\s+best\b/i,
+    /\b(emmy|golden\s+globe|bafta|sag|screen\s+actors\s+guild)\s+(winner|winning|award|nominated|nomination)\b/i,
+    /\bwon\s+(an?\s+)?(oscar|academy\s+award|emmy|golden\s+globe|bafta|sag)\b/i,
+    /\b(oscar|academy\s+award|emmy|golden\s+globe|bafta|sag)[\s-]winning\b/i,
+  ];
+
+  let detectedAward: string | undefined;
+  for (const pattern of awardPatterns) {
+    const match = query.match(pattern);
+    if (match) {
+      // Extract award type from the match
+      const awardMatch = match[0].match(/\b(oscar|academy\s+award|emmy|golden\s+globe|bafta|sag)\b/i);
+      if (awardMatch) {
+        detectedAward = awardMatch[0];
+        break;
+      }
+    }
+  }
+
+  // Try AI-powered parsing first (if API keys are available)
+  if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.length > 10) {
+    try {
+      console.log(`🧠 AI parsing intent for: "${query.slice(0, 30)}..."`);
+      const { object: aiIntent } = await generateObject({
+        model: openai('gpt-4o-mini'),
+        schema: SearchIntentSchema,
+        prompt: `Analyze this movie/TV show search query and extract the user's intent:
 
 Query: "${query}"
 
@@ -115,36 +314,129 @@ Extract:
 - Media type: Do they specifically want movies or TV shows?
 
 Be specific and extract as much relevant information as possible.`,
-    });
-
-    // Convert genre names to IDs
-    const genreIds = intent.genres?.flatMap(genre => {
-      const normalized = genre.toLowerCase();
-      const mapping = GENRE_MAP[normalized];
-      if (mapping) {
-        return [mapping.movie, mapping.tv].filter((v, i, a) => a.indexOf(v) === i);
-      }
-      return [];
-    }) || [];
-
-    const result: SemanticSearchQuery = {
-      query,
-      intent: intent as SearchIntent,
-      filters: {
-        mediaType: intent.mediaType || 'all',
-        genres: genreIds.length > 0 ? genreIds : undefined,
-      },
-    };
-
-    // Cache the result in multi-tier cache
-    await intentCacheInstance.set(cacheKey, result);
-
-    return result;
-  } catch (error) {
-    console.error('Failed to parse search query with AI:', error);
-    // Fallback to basic query
-    return { query };
+      });
+      intent = aiIntent as SearchIntent;
+    } catch (error) {
+      console.log('⚠️  AI parsing failed, using fallback mood detection');
+      usedFallback = true;
+    }
+  } else {
+    console.log('💡 Using fallback mood detection (no API key configured)');
+    usedFallback = true;
   }
+
+  // Fallback: Pattern-based mood and genre detection
+  if (usedFallback || !intent.genres || intent.genres.length === 0) {
+    const detectedMoods: string[] = [];
+    const detectedGenres: string[] = [];
+    const detectedThemes: string[] = [];
+    let detectedPacing: 'slow' | 'medium' | 'fast' | undefined;
+
+    // Check for mood keywords
+    for (const [mood, config] of Object.entries(MOOD_MAP)) {
+      if (queryLower.includes(mood)) {
+        detectedMoods.push(mood);
+        detectedGenres.push(...config.genres);
+        if (config.themes) {
+          detectedThemes.push(...config.themes);
+        }
+        if (config.pacing && !detectedPacing) {
+          detectedPacing = config.pacing;
+        }
+      }
+    }
+
+    // Check for direct genre mentions
+    for (const [genre] of Object.entries(GENRE_MAP)) {
+      if (queryLower.includes(genre)) {
+        detectedGenres.push(genre);
+      }
+    }
+
+    // Special patterns
+    if (queryLower.match(/\b(rom-?com|romantic comedy)\b/)) {
+      detectedGenres.push('romance', 'comedy');
+      detectedMoods.push('romantic');
+    }
+    if (queryLower.match(/\b(sci-?fi|science fiction)\b/)) {
+      detectedGenres.push('sci-fi');
+    }
+    if (queryLower.match(/\b(tonight|streaming|watch now)\b/)) {
+      intent.keywords = [...(intent.keywords || []), 'streaming now'];
+    }
+
+    // Update intent with detected values
+    if (detectedMoods.length > 0) {
+      intent.mood = [...new Set([...(intent.mood || []), ...detectedMoods])];
+    }
+    if (detectedGenres.length > 0) {
+      intent.genres = [...new Set([...(intent.genres || []), ...detectedGenres])];
+    }
+    if (detectedThemes.length > 0) {
+      intent.themes = [...new Set([...(intent.themes || []), ...detectedThemes])];
+    }
+    if (detectedPacing) {
+      intent.pacing = detectedPacing;
+    }
+  }
+
+  // Convert genre names to IDs
+  const genreIds = intent.genres?.flatMap(genre => {
+    const normalized = genre.toLowerCase();
+    const mapping = GENRE_MAP[normalized];
+    if (mapping) {
+      return [mapping.movie, mapping.tv].filter((v, i, a) => a.indexOf(v) === i);
+    }
+    return [];
+  }) || [];
+
+  // Add detected person, trending flags, platform, and awards to keywords
+  const keywords: string[] = [...(intent.keywords || [])];
+  if (detectedPerson) {
+    keywords.push(`person:${detectedPerson}`);
+  }
+  if (isTrendingQuery) {
+    keywords.push('trending');
+  }
+  if (isRecentQuery) {
+    keywords.push('recent');
+  }
+  if (detectedPlatform) {
+    keywords.push(`platform:${detectedPlatform}`);
+  }
+  if (detectedAward) {
+    keywords.push(`award:${detectedAward}`);
+  }
+
+  const result: SemanticSearchQuery = {
+    query,
+    intent: Object.keys(intent).length > 0 ? intent : undefined,
+    filters: {
+      mediaType: intent.mediaType || 'all',
+      genres: genreIds.length > 0 ? genreIds : undefined,
+    },
+    metadata: {
+      detectedPerson,
+      isTrending: isTrendingQuery,
+      isRecent: isRecentQuery,
+      platform: detectedPlatform,
+      detectedAward,
+      hasSpecificIntent: genreIds.length > 0 || detectedPerson !== undefined || detectedAward !== undefined,
+    },
+  };
+
+  // Update keywords in intent
+  if (keywords.length > 0) {
+    if (!result.intent) result.intent = {};
+    result.intent.keywords = keywords;
+  }
+
+  // Cache the result in multi-tier cache
+  await intentCacheInstance.set(cacheKey, result);
+
+  console.log(`✅ Parsed intent: ${intent.mood?.join(', ') || 'none'} → genres: ${intent.genres?.join(', ') || 'none'} | person: ${detectedPerson || 'none'} | award: ${detectedAward || 'none'} | trending: ${isTrendingQuery}`);
+
+  return result;
 }
 
 /**
@@ -288,8 +580,268 @@ export async function semanticSearch(
 async function performTMDBSearch(query: SemanticSearchQuery): Promise<SearchResult[]> {
   const results: SearchResult[] = [];
 
-  // Text search - prioritize direct title matches
-  if (query.query) {
+  // 1. PERSON SEARCH - Check if query is about a specific person (actor/director)
+  const detectedPerson = query.metadata?.detectedPerson;
+  if (detectedPerson) {
+    try {
+      const { results: personResults } = await searchPerson(detectedPerson);
+
+      if (personResults.length > 0) {
+        const topPerson = personResults[0];
+        console.log(`🎭 Found person: ${topPerson.name} (ID: ${topPerson.id}), fetching full credits...`);
+
+        // Get comprehensive credits (all movies/shows they were in)
+        const credits = await getPersonCredits(topPerson.id);
+
+        // Filter cast roles to prioritize major appearances (high vote count and popularity)
+        // This filters out minor guest appearances and focuses on main roles
+
+        // Detect if user wants movies or TV shows specifically
+        const queryLower = query.query.toLowerCase();
+        const wantsMovies = /\b(movie|film|cinema)\b/.test(queryLower);
+        const wantsTV = /\b(tv|show|series|episode)\b/.test(queryLower);
+
+        const majorCastRoles = credits.cast
+          .filter(content => {
+            // Require minimum vote count to filter out obscure/minor appearances
+            const hasSignificantVotes = content.voteCount >= 100;
+            // Require reasonable popularity score
+            const isPopular = content.popularity >= 5;
+            // Require decent rating (filters out very poorly rated content)
+            const isWellRated = content.voteAverage >= 5.0;
+
+            // If user specifically wants movies, filter out TV shows
+            if (wantsMovies && !wantsTV && content.mediaType === 'tv') {
+              return false;
+            }
+
+            // If user specifically wants TV, filter out movies
+            if (wantsTV && !wantsMovies && content.mediaType === 'movie') {
+              return false;
+            }
+
+            return hasSignificantVotes && isPopular && isWellRated;
+          })
+          .slice(0, 20); // Top 20 major roles
+
+        // Filter crew roles similarly (for directors, producers, etc.)
+        const majorCrewRoles = credits.crew
+          .filter(content => {
+            const hasSignificantVotes = content.voteCount >= 50;
+            const isPopular = content.popularity >= 3;
+            return hasSignificantVotes && isPopular;
+          })
+          .slice(0, 10); // Top 10 crew roles
+
+        // Combine cast and crew, prioritizing cast roles with variable relevance scores
+        const allWork = [
+          ...majorCastRoles.map((content, index) => ({
+            content,
+            relevanceScore: 0.95 - (index * 0.01), // Slightly decay for lower positions
+            matchReasons: [`${topPerson.name} starred in this`],
+          })),
+          ...majorCrewRoles.map((content, index) => ({
+            content,
+            relevanceScore: 0.88 - (index * 0.01),
+            matchReasons: [`${topPerson.name} worked on this`],
+          })),
+        ];
+
+        console.log(`✅ Found ${allWork.length} major credits for ${topPerson.name} (filtered from ${credits.cast.length + credits.crew.length} total)`);
+        results.push(...allWork);
+
+        // Fallback: If filtering was too aggressive and we have no results, relax the filters
+        if (results.length === 0 && (credits.cast.length > 0 || credits.crew.length > 0)) {
+          console.log(`⚠️ Relaxing filters for ${topPerson.name}...`);
+          const relaxedWork = [
+            ...credits.cast.slice(0, 15).map((content, index) => ({
+              content,
+              relevanceScore: 0.92 - (index * 0.02),
+              matchReasons: [`${topPerson.name} appeared in this`],
+            })),
+            ...credits.crew.slice(0, 8).map((content, index) => ({
+              content,
+              relevanceScore: 0.85 - (index * 0.02),
+              matchReasons: [`${topPerson.name} worked on this`],
+            })),
+          ];
+          results.push(...relaxedWork);
+          console.log(`✅ Added ${relaxedWork.length} results with relaxed filters`);
+        }
+
+        // Final fallback: If credits API fails entirely, use knownFor
+        if (results.length === 0) {
+          console.log(`⚠️ Using fallback knownFor data`);
+          results.push(...topPerson.knownFor.map(content => ({
+            content,
+            relevanceScore: 0.92,
+            matchReasons: [`Features ${topPerson.name}`],
+          })));
+        }
+      } else {
+        console.log(`⚠️ No person found matching: ${detectedPerson}`);
+      }
+    } catch (error) {
+      console.error('Person search failed:', error);
+    }
+  }
+
+  // 2. AWARD-WINNING CONTENT - Handle Oscar, Emmy, etc. queries
+  if (query.metadata?.detectedAward) {
+    try {
+      console.log(`🏆 Searching for award-winning content: ${query.metadata.detectedAward}...`);
+
+      // For Oscar/Academy Awards, search for highly acclaimed films
+      const isOscar = /oscar|academy\s+award/i.test(query.metadata.detectedAward);
+      const isEmmy = /emmy/i.test(query.metadata.detectedAward);
+      const isGoldenGlobe = /golden\s+globe/i.test(query.metadata.detectedAward);
+      const isSAG = /sag|screen\s+actors\s+guild/i.test(query.metadata.detectedAward);
+      const isBAFTA = /bafta/i.test(query.metadata.detectedAward);
+
+      // Search for highly rated content with strict filters
+      // Award winners typically have: high ratings, many votes, and high popularity
+      const [awardMovies, awardShows] = await Promise.all([
+        // Movies with very high ratings and significant vote counts (likely award winners)
+        (isOscar || isGoldenGlobe || isSAG || isBAFTA || !isEmmy) ? discoverMovies({
+          sortBy: 'vote_average.desc',
+          ratingMin: 7.8, // Higher threshold for awards
+          page: 1,
+        }).catch(() => ({ results: [] })) : Promise.resolve({ results: [] }),
+
+        // TV shows with very high ratings (for Emmy queries)
+        (isEmmy || isGoldenGlobe) ? discoverTVShows({
+          sortBy: 'vote_average.desc',
+          ratingMin: 8.2, // Higher threshold for TV awards
+          page: 1,
+        }).catch(() => ({ results: [] })) : Promise.resolve({ results: [] }),
+      ]);
+
+      // Filter movies/shows to only include those with substantial vote counts
+      // This further filters out obscure content and focuses on well-known acclaimed works
+      const qualityMovies = awardMovies.results.filter(
+        content => content.voteCount >= 100 && content.popularity >= 5
+      );
+      const qualityShows = awardShows.results.filter(
+        content => content.voteCount >= 50 && content.popularity >= 5
+      );
+
+      // Add award-winning content with high relevance scores
+      if (isOscar && qualityMovies.length > 0) {
+        // For Oscars, prioritize critically acclaimed films with high vote counts
+        results.push(...qualityMovies.slice(0, 15).map((content, index) => ({
+          content,
+          relevanceScore: 0.93 - (index * 0.01),
+          matchReasons: ['Critically acclaimed film / Likely Oscar contender'],
+        })));
+        console.log(`🏆 Added ${Math.min(15, qualityMovies.length)} Oscar-caliber films`);
+      }
+
+      if (isEmmy && qualityShows.length > 0) {
+        // For Emmy, prioritize acclaimed TV series
+        results.push(...qualityShows.slice(0, 15).map((content, index) => ({
+          content,
+          relevanceScore: 0.93 - (index * 0.01),
+          matchReasons: ['Critically acclaimed series / Likely Emmy contender'],
+        })));
+        console.log(`📺 Added ${Math.min(15, qualityShows.length)} Emmy-caliber shows`);
+      }
+
+      if (isGoldenGlobe) {
+        // Golden Globes cover both film and TV
+        const combinedResults = [
+          ...qualityMovies.slice(0, 10).map((content, index) => ({
+            content,
+            relevanceScore: 0.92 - (index * 0.01),
+            matchReasons: ['Critically acclaimed film / Golden Globe caliber'],
+          })),
+          ...qualityShows.slice(0, 8).map((content, index) => ({
+            content,
+            relevanceScore: 0.91 - (index * 0.01),
+            matchReasons: ['Acclaimed series / Golden Globe caliber'],
+          })),
+        ];
+        results.push(...combinedResults);
+        console.log(`🌟 Added ${combinedResults.length} Golden Globe-caliber content`);
+      }
+
+      if ((isSAG || isBAFTA) && qualityMovies.length > 0) {
+        // SAG and BAFTA are primarily film awards
+        results.push(...qualityMovies.slice(0, 12).map((content, index) => ({
+          content,
+          relevanceScore: 0.91 - (index * 0.01),
+          matchReasons: [`Critically acclaimed film / ${isSAG ? 'SAG' : 'BAFTA'} caliber`],
+        })));
+      }
+
+      // Generic award query (if no specific award matched)
+      if (!isOscar && !isEmmy && !isGoldenGlobe && !isSAG && !isBAFTA) {
+        const combinedResults = [
+          ...qualityMovies.slice(0, 10).map((content, index) => ({
+            content,
+            relevanceScore: 0.90 - (index * 0.01),
+            matchReasons: ['Critically acclaimed / Award-worthy film'],
+          })),
+          ...qualityShows.slice(0, 5).map((content, index) => ({
+            content,
+            relevanceScore: 0.88 - (index * 0.01),
+            matchReasons: ['Critically acclaimed / Award-worthy series'],
+          })),
+        ];
+        results.push(...combinedResults);
+      }
+
+      console.log(`✅ Added ${results.length} award-caliber content results`);
+    } catch (error) {
+      console.error('Award content search failed:', error);
+    }
+  }
+
+  // 3. TRENDING/RECENT CONTENT - Handle "what's new", "trending", etc.
+  if (query.metadata?.isTrending) {
+    try {
+      const trendingContent = await getTrending('all', 'week');
+      console.log(`📈 Adding trending content (${trendingContent.length} items)...`);
+
+      results.push(...trendingContent.slice(0, 15).map((content, index) => ({
+        content,
+        relevanceScore: 0.88 - (index * 0.02),
+        matchReasons: ['Currently trending'],
+      })));
+    } catch (error) {
+      console.error('Trending search failed:', error);
+    }
+  }
+
+  if (query.metadata?.isRecent) {
+    try {
+      const [recentMovies, recentShows] = await Promise.all([
+        getRecentReleases('movie'),
+        getRecentReleases('tv'),
+      ]);
+      console.log(`🆕 Adding recent releases...`);
+
+      const mediaType = query.filters?.mediaType;
+      if (mediaType !== 'tv') {
+        results.push(...recentMovies.results.slice(0, 10).map((content, index) => ({
+          content,
+          relevanceScore: 0.86 - (index * 0.02),
+          matchReasons: ['Recent release'],
+        })));
+      }
+      if (mediaType !== 'movie') {
+        results.push(...recentShows.results.slice(0, 10).map((content, index) => ({
+          content,
+          relevanceScore: 0.86 - (index * 0.02),
+          matchReasons: ['Recent release'],
+        })));
+      }
+    } catch (error) {
+      console.error('Recent releases search failed:', error);
+    }
+  }
+
+  // 4. TEXT SEARCH - Traditional title/keyword search
+  if (query.query && !detectedPerson) { // Skip if we already did person search
     const { results: textResults } = await searchMulti(query.query, query.filters);
 
     // Check if the query looks like a specific title (contains proper nouns or is in similar_to)
@@ -321,7 +873,7 @@ async function performTMDBSearch(query: SemanticSearchQuery): Promise<SearchResu
     }));
   }
 
-  // Similar content search if references found (but DON'T overshadow direct matches)
+  // 5. SIMILAR CONTENT SEARCH - If references found (but DON'T overshadow direct matches)
   if (query.intent?.similar_to?.length) {
     // Search for the referenced content first
     for (const ref of query.intent.similar_to.slice(0, 3)) {
@@ -355,7 +907,7 @@ async function performTMDBSearch(query: SemanticSearchQuery): Promise<SearchResu
     }
   }
 
-  // Discovery-based search with filters
+  // 6. DISCOVERY-BASED SEARCH - Genre/filter based discovery
   if (query.filters?.genres?.length) {
     const movieGenres = query.filters.genres.filter(id => id < 10000);
     const tvGenres = query.filters.genres.filter(id => id >= 10000 || GENRE_MAP.action?.tv === id);
@@ -382,6 +934,51 @@ async function performTMDBSearch(query: SemanticSearchQuery): Promise<SearchResu
         relevanceScore: 0.7,
         matchReasons: ['Genre match'],
       })));
+    }
+  }
+
+  // 7. FALLBACK STRATEGY - If no results yet, return trending/popular content
+  // This ensures ZERO empty results for vague queries like "show me something cool"
+  if (results.length === 0) {
+    console.log(`⚠️ No results found, applying fallback strategy...`);
+
+    try {
+      // Return a mix of trending and popular content
+      const [trending, popularMovies, popularShows] = await Promise.all([
+        getTrending('all', 'week').catch(() => []),
+        discoverMovies({ sortBy: 'popularity.desc', ratingMin: 7.0 }).catch(() => ({ results: [] })),
+        discoverTVShows({ sortBy: 'popularity.desc', ratingMin: 7.0 }).catch(() => ({ results: [] })),
+      ]);
+
+      // Add trending content
+      results.push(...trending.slice(0, 10).map((content, index) => ({
+        content,
+        relevanceScore: 0.75 - (index * 0.02),
+        matchReasons: ['Popular & Trending'],
+      })));
+
+      // Add popular movies
+      const mediaType = query.filters?.mediaType;
+      if (mediaType !== 'tv') {
+        results.push(...popularMovies.results.slice(0, 8).map((content, index) => ({
+          content,
+          relevanceScore: 0.72 - (index * 0.02),
+          matchReasons: ['Highly rated & Popular'],
+        })));
+      }
+
+      // Add popular shows
+      if (mediaType !== 'movie') {
+        results.push(...popularShows.results.slice(0, 8).map((content, index) => ({
+          content,
+          relevanceScore: 0.72 - (index * 0.02),
+          matchReasons: ['Highly rated & Popular'],
+        })));
+      }
+
+      console.log(`✅ Fallback added ${results.length} results`);
+    } catch (error) {
+      console.error('Fallback strategy failed:', error);
     }
   }
 

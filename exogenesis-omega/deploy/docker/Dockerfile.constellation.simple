@@ -1,0 +1,39 @@
+# Simple runtime-only Dockerfile using pre-built binaries
+FROM debian:bookworm-slim
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    libssl3 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN useradd -m -u 1000 omega && \
+    mkdir -p /data/omega && \
+    chown -R omega:omega /data/omega
+
+# Copy pre-built binary from host
+COPY target/release/constellation-server /usr/local/bin/
+
+# Set ownership
+RUN chown omega:omega /usr/local/bin/constellation-server
+
+# Switch to non-root user
+USER omega
+
+# Expose ports
+EXPOSE 50051
+EXPOSE 8080
+EXPOSE 9090
+
+# Set working directory
+WORKDIR /data/omega
+
+# Run constellation server
+ENTRYPOINT ["/usr/local/bin/constellation-server"]
+CMD []
+
+# Labels
+LABEL org.opencontainers.image.title="Exogenesis Omega Constellation Server"
+LABEL org.opencontainers.image.description="Distributed TV recommendation server"
+LABEL org.opencontainers.image.version="0.1.0"

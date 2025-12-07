@@ -18,13 +18,13 @@ RUN apt-get update && apt-get install -y \
 # Copy workspace manifest
 COPY Cargo.toml Cargo.lock ./
 
-# Copy all crates
+# Copy all crates and services
 COPY crates ./crates
 COPY services ./services
+COPY proto ./proto
 
-# Fetch omega-* crates from crates.io
-# This ensures we have the latest versions before building
-RUN cargo fetch
+# Create tools directory to satisfy workspace
+RUN mkdir -p tools/omega-cli && echo '[package]\nname = "omega-cli"\nversion = "0.1.0"\nedition = "2021"' > tools/omega-cli/Cargo.toml && mkdir -p tools/omega-cli/src && echo 'fn main() {}' > tools/omega-cli/src/main.rs
 
 # Build release binary with optimizations
 # Uses omega-core, omega-agentdb, omega-memory, omega-loops, omega-runtime, omega-persistence
@@ -57,9 +57,9 @@ RUN chown omega:omega /usr/local/bin/constellation-server
 USER omega
 
 # Expose ports
-EXPOSE 50051/tcp  # gRPC sync service
-EXPOSE 8080/tcp   # REST management API
-EXPOSE 9090/tcp   # Prometheus metrics
+EXPOSE 50051
+EXPOSE 8080
+EXPOSE 9090
 
 # Health check
 HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=3 \

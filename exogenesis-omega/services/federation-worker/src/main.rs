@@ -50,9 +50,10 @@ async fn main() -> anyhow::Result<()> {
     register_metrics();
 
     // Start Prometheus metrics exporter
-    let metrics_addr = std::env::var("METRICS_ADDR")
+    let metrics_addr: std::net::SocketAddr = std::env::var("METRICS_ADDR")
         .unwrap_or_else(|_| "0.0.0.0:9091".to_string())
-        .parse()?;
+        .parse()
+        .map_err(|e| anyhow::anyhow!("Invalid metrics address: {}", e))?;
     info!("Starting Prometheus metrics server on {}", metrics_addr);
     PrometheusBuilder::new()
         .with_http_listener(metrics_addr)

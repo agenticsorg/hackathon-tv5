@@ -35,13 +35,18 @@ pub fn create_extended_router(
         config,
     };
 
-    // Merge constellation router with our custom routes
-    constellation_router
+    // Create separate router for extended endpoints with their own state
+    let extended_router = Router::new()
         .route("/health/ready", get(readiness_handler))
         .route("/health/live", get(liveness_handler))
         .route("/health/detailed", get(detailed_health_handler))
         .route("/api/v1/info", get(info_handler))
-        .with_state(state)
+        .with_state(state);
+
+    // Merge routers using nest (preserves separate states)
+    Router::new()
+        .nest("/", constellation_router)
+        .nest("/", extended_router)
 }
 
 /// Readiness probe (for Kubernetes)

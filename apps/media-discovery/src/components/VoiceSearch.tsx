@@ -85,12 +85,31 @@ export function VoiceSearch({
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isCleaningUpRef = useRef(false);
 
   // Check for browser support
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     setIsSupported(!!SpeechRecognition);
   }, []);
+
+  // Cleanup effect - stop listening when disabled or component unmounts
+  useEffect(() => {
+    if (disabled && isListening && !isCleaningUpRef.current) {
+      isCleaningUpRef.current = true;
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          console.error('Cleanup stop failed:', e);
+        }
+      }
+      // Reset cleanup flag after a short delay
+      setTimeout(() => {
+        isCleaningUpRef.current = false;
+      }, 100);
+    }
+  }, [disabled, isListening]);
 
   // Initialize speech recognition
   useEffect(() => {
@@ -143,6 +162,12 @@ export function VoiceSearch({
     recognition.onerror = (event: { error: string }) => {
       console.error('Speech recognition error:', event.error);
 
+      // Clear timeout on error
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+
       if (event.error === 'not-allowed' || event.error === 'permission-denied') {
         setPermissionDenied(true);
         onError?.('Microphone permission denied. Please allow microphone access.');
@@ -152,7 +177,9 @@ export function VoiceSearch({
         onError?.(`Speech recognition error: ${event.error}`);
       }
 
+      // Always reset state on error
       setIsListening(false);
+      setInterimTranscript('');
       onListeningChange?.(false);
     };
 
@@ -178,29 +205,93 @@ export function VoiceSearch({
   const startListening = useCallback(() => {
     if (!recognitionRef.current || disabled || permissionDenied) return;
 
-    try {
-      recognitionRef.current.start();
-
-      // Auto-stop after 30 seconds to prevent indefinite listening
-      timeoutRef.current = setTimeout(() => {
-        if (recognitionRef.current && isListening) {
-          recognitionRef.current.stop();
-        }
-      }, 30000);
-    } catch (error) {
-      console.error('Failed to start recognition:', error);
+    // Force stop any existing recognition before starting
+    if (isListening) {
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {
+        // Ignore stop errors
+      }
+      // Reset state immediately
+      setIsListening(false);
+      setInterimTranscript('');
+      onListeningChange?.(false);
     }
-  }, [disabled, permissionDenied, isListening]);
+
+    // Small delay to ensure previous session is fully stopped
+    setTimeout(() => {
+      if (!recognitionRef.current) return;
+
+      try {
+        // Clear any existing timeout
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+        }
+
+        recognitionRef.current.start();
+
+        // Auto-stop after 30 seconds to prevent indefinite listening
+        timeoutRef.current = setTimeout(() => {
+          if (recognitionRef.current) {
+            try {
+              recognitionRef.current.stop();
+              onError?.('Voice search timed out after 30 seconds');
+            } catch (e) {
+              console.error('Failed to stop recognition on timeout:', e);
+            }
+          }
+        }, 30000);
+      } catch (error) {
+        console.error('Failed to start recognition:', error);
+        // Reset state on start failure
+        setIsListening(false);
+        setInterimTranscript('');
+        onListeningChange?.(false);
+
+        // Handle "already started" error with retry
+        if (error instanceof Error && error.message.includes('already started')) {
+          // Abort and reset the recognition
+          try {
+            recognitionRef.current.abort();
+            setTimeout(() => {
+              if (recognitionRef.current) {
+                try {
+                  recognitionRef.current.start();
+                } catch (retryError) {
+                  onError?.('Failed to restart voice recognition. Please refresh the page.');
+                }
+              }
+            }, 100);
+          } catch (abortError) {
+            onError?.('Voice recognition error. Please refresh the page.');
+          }
+        } else {
+          onError?.('Failed to start voice recognition');
+        }
+      }
+    }, isListening ? 200 : 0);
+  }, [disabled, permissionDenied, isListening, onError, onListeningChange]);
 
   const stopListening = useCallback(() => {
     if (!recognitionRef.current) return;
 
     try {
+      // Clear timeout when manually stopping
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+
       recognitionRef.current.stop();
     } catch (error) {
       console.error('Failed to stop recognition:', error);
+      // Force reset state even if stop fails
+      setIsListening(false);
+      setInterimTranscript('');
+      onListeningChange?.(false);
     }
-  }, []);
+  }, [onListeningChange]);
 
   const toggleListening = useCallback(() => {
     if (isListening) {

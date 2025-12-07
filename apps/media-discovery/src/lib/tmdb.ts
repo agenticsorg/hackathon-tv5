@@ -434,6 +434,128 @@ function transformToTVShow(show: any): TVShow {
   };
 }
 
+/**
+ * Search for people (actors, directors, crew)
+ */
+export async function searchPerson(query: string, page = 1): Promise<{
+  results: Array<{
+    id: number;
+    name: string;
+    knownFor: MediaContent[];
+    profilePath: string | null;
+    popularity: number;
+  }>;
+  totalPages: number;
+}> {
+  if (!tmdb) throw new Error('TMDB client not initialized');
+
+  const response = await tmdb.search.people({ query, page });
+
+  return {
+    results: response.results.map(person => ({
+      id: person.id,
+      name: person.name,
+      knownFor: (person.known_for || [])
+        .filter((item: any) => item.media_type === 'movie' || item.media_type === 'tv')
+        .map((item: any) => transformToMediaContent(item)),
+      profilePath: person.profile_path,
+      popularity: person.popularity,
+    })),
+    totalPages: response.total_pages,
+  };
+}
+
+/**
+ * Get person credits (all movies and TV shows for a person)
+ */
+export async function getPersonCredits(personId: number): Promise<{
+  cast: MediaContent[];
+  crew: MediaContent[];
+}> {
+  if (!tmdb) throw new Error('TMDB client not initialized');
+
+  const response = await fetch(
+    `https://api.themoviedb.org/3/person/${personId}/combined_credits`,
+    {
+      headers: {
+        Authorization: `Bearer ${TMDB_ACCESS_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`TMDB API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+
+  return {
+    cast: (data.cast || [])
+      .filter((item: any) => item.media_type === 'movie' || item.media_type === 'tv')
+      .map((item: any) => transformToMediaContent(item))
+      .sort((a: MediaContent, b: MediaContent) => b.popularity - a.popularity), // Sort by popularity
+    crew: (data.crew || [])
+      .filter((item: any) => item.media_type === 'movie' || item.media_type === 'tv')
+      .map((item: any) => transformToMediaContent(item))
+      .sort((a: MediaContent, b: MediaContent) => b.popularity - a.popularity),
+  };
+}
+
+/**
+ * Get recent releases (last 90 days)
+ */
+export async function getRecentReleases(
+  mediaType: 'movie' | 'tv' = 'movie',
+  page = 1
+): Promise<{ results: MediaContent[]; totalPages: number }> {
+  if (!tmdb) throw new Error('TMDB client not initialized');
+
+  const now = new Date();
+  const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+
+  const params: Record<string, string | number> = {
+    page,
+    sort_by: 'release_date.desc',
+    'primary_release_date.gte': ninetyDaysAgo.toISOString().split('T')[0],
+    'primary_release_date.lte': now.toISOString().split('T')[0],
+    'vote_count.gte': 10, // Filter out obscure content
+  };
+
+  if (mediaType === 'movie') {
+    const response = await tmdb.discover.movie(params);
+    return {
+      results: response.results.map(movie => transformToMovie(movie)),
+      totalPages: response.total_pages,
+    };
+  } else {
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      queryParams.append(key.replace('primary_release_date', 'first_air_date'), String(value));
+    });
+
+    const response = await fetch(
+      `https://api.themoviedb.org/3/discover/tv?${queryParams.toString()}`,
+      {
+        headers: {
+          Authorization: `Bearer ${TMDB_ACCESS_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`TMDB API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return {
+      results: data.results.map((show: any) => transformToTVShow(show)),
+      totalPages: data.total_pages,
+    };
+  }
+}
+
 // Helper: Apply search filters
 function applyFilters(results: MediaContent[], filters: SearchFilters): MediaContent[] {
   return results.filter(item => {

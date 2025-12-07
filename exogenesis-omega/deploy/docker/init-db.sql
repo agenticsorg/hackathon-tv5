@@ -8,7 +8,7 @@ CREATE EXTENSION IF NOT EXISTS ruvector;
 CREATE TABLE IF NOT EXISTS patterns (
     id UUID PRIMARY KEY,
     device_id VARCHAR(255) NOT NULL,
-    embedding vector(384) NOT NULL,
+    embedding ruvector(384) NOT NULL,
     success_rate REAL NOT NULL,
     sample_count INTEGER NOT NULL DEFAULT 1,
     context JSONB,
@@ -17,10 +17,11 @@ CREATE TABLE IF NOT EXISTS patterns (
 );
 
 -- Create HNSW index on embeddings for fast similarity search
-CREATE INDEX IF NOT EXISTS patterns_embedding_idx
-ON patterns
-USING hnsw (embedding vector_cosine_ops)
-WITH (m = 32, ef_construction = 200);
+-- TODO: Re-enable when RuVector HNSW support is available
+-- CREATE INDEX IF NOT EXISTS patterns_embedding_idx
+-- ON patterns
+-- USING hnsw (embedding ruvector_cosine_ops)
+-- WITH (m = 32, ef_construction = 200);
 
 -- Create index on device_id for fast device queries
 CREATE INDEX IF NOT EXISTS patterns_device_id_idx
@@ -54,16 +55,17 @@ ON devices (shard_id);
 CREATE TABLE IF NOT EXISTS content_embeddings (
     content_id VARCHAR(255) PRIMARY KEY,
     title TEXT NOT NULL,
-    embedding vector(384) NOT NULL,
+    embedding ruvector(384) NOT NULL,
     metadata JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Create HNSW index on content embeddings
-CREATE INDEX IF NOT EXISTS content_embeddings_idx
-ON content_embeddings
-USING hnsw (embedding vector_cosine_ops)
-WITH (m = 32, ef_construction = 200);
+-- TODO: Re-enable when RuVector HNSW support is available
+-- CREATE INDEX IF NOT EXISTS content_embeddings_idx
+-- ON content_embeddings
+-- USING hnsw (embedding ruvector_cosine_ops)
+-- WITH (m = 32, ef_construction = 200);
 
 -- Create trending table for global trends
 CREATE TABLE IF NOT EXISTS trending_content (
@@ -131,11 +133,12 @@ GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO omega;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO omega;
 
 -- Insert sample content (optional, for testing)
-INSERT INTO content_embeddings (content_id, title, embedding, metadata)
-VALUES
-    ('content-1', 'Sample Movie 1', array_fill(0.5::real, ARRAY[384])::vector, '{"genre": "action", "year": 2024}'::jsonb),
-    ('content-2', 'Sample Series 1', array_fill(0.3::real, ARRAY[384])::vector, '{"genre": "drama", "year": 2024}'::jsonb)
-ON CONFLICT (content_id) DO NOTHING;
+-- TODO: Fix ruvector casting syntax before enabling
+-- INSERT INTO content_embeddings (content_id, title, embedding, metadata)
+-- VALUES
+--     ('content-1', 'Sample Movie 1', array_fill(0.5::real, ARRAY[384])::ruvector, '{"genre": "action", "year": 2024}'::jsonb),
+--     ('content-2', 'Sample Series 1', array_fill(0.3::real, ARRAY[384])::ruvector, '{"genre": "drama", "year": 2024}'::jsonb)
+-- ON CONFLICT (content_id) DO NOTHING;
 
 -- Create view for high-quality patterns
 CREATE OR REPLACE VIEW high_quality_patterns AS

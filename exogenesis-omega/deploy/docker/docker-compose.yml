@@ -39,9 +39,7 @@ services:
   # Uses omega-core, omega-agentdb, omega-memory, omega-loops, omega-runtime
   # ============================================================
   constellation-1:
-    build:
-      context: ../../
-      dockerfile: deploy/docker/Dockerfile.constellation
+    image: exogenesis-omega/constellation-server:latest
     container_name: omega-constellation-1
     environment:
       SHARD_ID: 1
@@ -52,7 +50,7 @@ services:
       RUST_LOG: info
     ports:
       - "50051:50051"
-      - "8080:8080"
+      - "8083:8080"
       - "9090:9090"
     depends_on:
       database:
@@ -69,9 +67,7 @@ services:
   # Constellation Server (Replica 2)
   # ============================================================
   constellation-2:
-    build:
-      context: ../../
-      dockerfile: deploy/docker/Dockerfile.constellation
+    image: exogenesis-omega/constellation-server:latest
     container_name: omega-constellation-2
     environment:
       SHARD_ID: 1
@@ -99,9 +95,7 @@ services:
   # Constellation Server (Replica 3)
   # ============================================================
   constellation-3:
-    build:
-      context: ../../
-      dockerfile: deploy/docker/Dockerfile.constellation
+    image: exogenesis-omega/constellation-server:latest
     container_name: omega-constellation-3
     environment:
       SHARD_ID: 1

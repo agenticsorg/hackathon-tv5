@@ -52,7 +52,8 @@ async fn main() -> anyhow::Result<()> {
     register_metrics();
 
     // Start Prometheus metrics exporter
-    let metrics_addr = config.metrics_addr.parse()?;
+    let metrics_addr: std::net::SocketAddr = config.metrics_addr.parse()
+        .map_err(|e| anyhow::anyhow!("Invalid metrics address: {}", e))?;
     info!("Starting Prometheus metrics server on {}", metrics_addr);
     PrometheusBuilder::new()
         .with_http_listener(metrics_addr)
@@ -118,7 +119,8 @@ async fn main() -> anyhow::Result<()> {
     );
 
     // Start REST server
-    let rest_addr = config.rest_addr.parse()?;
+    let rest_addr: std::net::SocketAddr = config.rest_addr.parse()
+        .map_err(|e| anyhow::anyhow!("Invalid REST address: {}", e))?;
     info!("Starting REST API server on {}", rest_addr);
     let rest_listener = TcpListener::bind(rest_addr).await?;
 
