@@ -84,8 +84,12 @@ const nextConfig = {
 
   // Experimental features
   experimental: {
+    // Allow localtunnel and localhost.run for development
+    allowedDevOrigins: ['localhost:3005', '*.loca.lt', '*.localhost.run', '*.lhr.life'],
+
     // Enable server actions
     serverActions: {
+      allowedOrigins: ['localhost:3005', '*.loca.lt', '*.localhost.run', '*.lhr.life'],
       bodySizeLimit: '2mb',
     },
     // Exclude native modules from webpack bundling

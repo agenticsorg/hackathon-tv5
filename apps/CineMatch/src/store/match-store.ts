@@ -14,6 +14,12 @@ export interface UserPreferences {
     isOnboarded: boolean;
 }
 
+export interface ChatMessage {
+    role: 'user' | 'assistant';
+    content: string;
+    recommendations?: (Movie | TVShow)[];
+}
+
 interface MatchState {
     preferences: UserPreferences;
     likedContent: (Movie | TVShow)[];
@@ -25,16 +31,20 @@ interface MatchState {
     currentIndex: number;
     page: number;
     incrementPage: () => void;
+    chatHistory: ChatMessage[];
 
     // Actions
     setPreferences: (prefs: Partial<UserPreferences>) => void;
     completeOnboarding: () => void;
     likeContent: (content: Movie | TVShow) => void;
+    unlikeContent: (contentId: number) => void;
     dislikeContent: (contentId: number) => void;
     setRecommendations: (content: (Movie | TVShow)[]) => void;
     appendRecommendations: (content: (Movie | TVShow)[]) => void;
     nextCard: () => void;
     reset: () => void;
+    addChatMessage: (message: ChatMessage) => void;
+    clearChatHistory: () => void;
 }
 
 export const useMatchStore = create<MatchState>()(
@@ -51,6 +61,7 @@ export const useMatchStore = create<MatchState>()(
             recommendations: [],
             currentIndex: 0,
             page: 1,
+            chatHistory: [],
 
             setPreferences: (prefs) =>
                 set((state) => ({
@@ -85,6 +96,12 @@ export const useMatchStore = create<MatchState>()(
                     currentIndex: state.currentIndex + 1,
                 })),
 
+            unlikeContent: (contentId) =>
+                set((state) => ({
+                    likedContent: state.likedContent.filter((c) => c.id !== contentId),
+                    totalLikes: state.totalLikes - 1,
+                })),
+
             setRecommendations: (content) =>
                 set({ recommendations: content, currentIndex: 0, page: 1 }),
 
@@ -114,7 +131,16 @@ export const useMatchStore = create<MatchState>()(
                     recommendations: [],
                     currentIndex: 0,
                     page: 1,
+                    chatHistory: [],
                 }),
+
+            addChatMessage: (message) =>
+                set((state) => ({
+                    chatHistory: [...state.chatHistory, message],
+                })),
+
+            clearChatHistory: () =>
+                set({ chatHistory: [] }),
         }),
         {
             name: 'movie-match-storage',

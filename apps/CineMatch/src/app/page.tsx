@@ -11,7 +11,7 @@ import { AnimatePresence } from 'framer-motion';
 import { getSimilarMovies, getSimilarTVShows, getTrending, discoverMovies, discoverTVShows } from '@/lib/tmdb';
 
 import Link from 'next/link';
-import { Info, RotateCcw, History } from 'lucide-react';
+import { Info, RotateCcw, History, MessageSquare } from 'lucide-react';
 
 export default function Home() {
   const {
@@ -327,7 +327,14 @@ export default function Home() {
       </div>
 
       {/* Controls */}
-      <div className="p-8 flex justify-center gap-6 z-10 items-center" style={{ marginLeft: '70px' }}>
+      <div className="p-8 flex justify-center gap-6 z-10 items-center">
+        <Link
+          href="/chat"
+          className="w-12 h-12 rounded-full bg-gray-900 border border-pink-500/50 text-pink-500 flex items-center justify-center hover:scale-110 transition-transform"
+        >
+          <MessageSquare className="w-6 h-6" />
+        </Link>
+
         <button
           onClick={() => {
             dislikeContent(currentCard.id);
