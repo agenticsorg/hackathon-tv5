@@ -1,0 +1,62 @@
+{
+  "name": "tvdb-recommender",
+  "version": "1.0.0",
+  "description": "Self-learning recommendation system for TheTVDB.com using AgentDB and agentic-flow",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "db:setup": "tsx src/db/setup.ts",
+    "db:migrate": "npx @ruvector/postgres-cli install && tsx src/db/migrate.ts",
+    "embeddings:generate": "tsx src/scripts/generate-embeddings.ts",
+    "learn:train": "tsx src/scripts/train-patterns.ts",
+    "workflow:start": "npx agentic-flow@alpha start",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "agentdb": "alpha",
+    "agentic-flow": "alpha",
+    "@ruvector/postgres-cli": "^0.2.5",
+    "@xenova/transformers": "^2.17.0",
+    "pg": "^8.11.3",
+    "node-cache": "^5.1.2",
+    "axios": "^1.6.2",
+    "zod": "^3.22.4",
+    "dotenv": "^16.3.1",
+    "uuid": "^9.0.1",
+    "pino": "^8.17.1",
+    "pino-pretty": "^10.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.4",
+    "@types/pg": "^8.10.9",
+    "@types/uuid": "^9.0.7",
+    "tsx": "^4.6.2",
+    "typescript": "^5.3.3",
+    "vitest": "^1.1.0",
+    "@vitest/coverage-v8": "^1.1.0",
+    "eslint": "^8.55.0",
+    "@typescript-eslint/eslint-plugin": "^6.14.0",
+    "@typescript-eslint/parser": "^6.14.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "tvdb",
+    "recommendation",
+    "self-learning",
+    "vector-database",
+    "agentdb",
+    "agentic-flow",
+    "ai",
+    "embeddings"
+  ],
+  "author": "",
+  "license": "MIT"
+}
