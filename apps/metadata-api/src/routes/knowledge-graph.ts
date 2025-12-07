@@ -18,6 +18,7 @@ import {
   MovieNode,
 } from '../knowledge-graph';
 import { createIngestionPipeline } from '../knowledge-graph/ingestion-pipeline';
+import { getGCSReader } from '../knowledge-graph/gcs-reader';
 import { getEmbeddingsInstance } from '../vertex-ai/embeddings';
 import { NetflixIMFConnector } from '../connectors/netflix-imf';
 import { AmazonMECConnector } from '../connectors/amazon-mec';
