@@ -1,7 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { JWTService } from '../../auth/jwt-service';
 import { PasswordService } from '../../auth/password-service';
-import { UserStore, User } from '../../persistence/user-store';
+import { User } from '../../persistence/user-store';
+import { IUserStore } from '../../persistence/user-store-adapter';
 
 export interface RegisterRequest {
   email: string;
@@ -26,7 +27,7 @@ export interface RefreshRequest {
 export function createAuthRouter(
   jwtService: JWTService,
   passwordService: PasswordService,
-  userStore: UserStore
+  userStore: IUserStore
 ): Router {
   const router = Router();
 
@@ -93,7 +94,8 @@ export function createAuthRouter(
       }
 
       // Check if email already exists
-      if (userStore.getByEmail(email)) {
+      const existingUser = await userStore.getByEmail(email);
+      if (existingUser) {
         res.status(400).json({
           success: false,
           data: null,
@@ -123,7 +125,7 @@ export function createAuthRouter(
         lastActive: now
       };
 
-      userStore.create(user);
+      await userStore.create(user);
 
       // Generate tokens
       const token = jwtService.generateAccessToken(userId);
@@ -183,7 +185,7 @@ export function createAuthRouter(
       }
 
       // Get user by email
-      const user = userStore.getByEmail(email);
+      const user = await userStore.getByEmail(email);
       if (!user) {
         res.status(401).json({
           success: false,
@@ -215,7 +217,7 @@ export function createAuthRouter(
       }
 
       // Update last active
-      userStore.updateLastActive(user.id);
+      await userStore.updateLastActive(user.id);
 
       // Generate tokens
       const token = jwtService.generateAccessToken(user.id);
@@ -293,7 +295,7 @@ export function createAuthRouter(
       }
 
       // Verify user exists
-      const user = userStore.getById(payload.userId);
+      const user = await userStore.getById(payload.userId);
       if (!user) {
         res.status(401).json({
           success: false,

@@ -13,7 +13,7 @@ import { EpsilonGreedyStrategy } from '../rl/exploration/epsilon-greedy.js';
 import { ContentProfiler } from '../content/profiler.js';
 import { JWTService } from '../auth/jwt-service.js';
 import { PasswordService } from '../auth/password-service.js';
-import { UserStore } from '../persistence/user-store.js';
+import { IUserStore, getUserStoreAdapter } from '../persistence/user-store-adapter.js';
 import { initializeDatabase, checkConnection } from '../persistence/postgres-client.js';
 import { createLogger } from '../utils/logger.js';
 
@@ -35,7 +35,7 @@ export class ServiceContainer {
   // Auth services
   public readonly jwtService: JWTService;
   public readonly passwordService: PasswordService;
-  public readonly userStore: UserStore;
+  public readonly userStore: IUserStore;
 
   private initialized: boolean = false;
 
@@ -69,7 +69,8 @@ export class ServiceContainer {
     // Step 6: Initialize auth services
     this.jwtService = new JWTService();
     this.passwordService = new PasswordService();
-    this.userStore = new UserStore();
+    // User store is initialized later in initialize() to support PostgreSQL
+    this.userStore = getUserStoreAdapter();
   }
 
   /**
