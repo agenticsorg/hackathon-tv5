@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 type TabId = 'intro' | 'features' | 'data' | 'comparison' | 'architecture' | 'research';
+type Language = 'en' | 'fr';
 
 interface LiveStats {
   totalContent: number;
@@ -16,8 +17,292 @@ interface LiveStats {
   topPatterns: Array<{ type: string; rate: number; uses: number }>;
 }
 
+// Translations
+const translations = {
+  en: {
+    // Header
+    backToApp: 'Back to App',
+    aiSystemOverview: 'AI System Overview',
+    dashboard: 'Dashboard',
+    analytics: 'Analytics',
+    settings: 'Settings',
+    // Hero
+    hackathonBadge: 'TV5MONDE Hackathon 2024 - Entertainment Discovery Track',
+    heroTitle: 'Self-Learning Recommendation Engine',
+    heroDescription: 'An AI-powered content discovery system that learns from every interaction, using advanced vector mathematics and reinforcement learning to deliver personalized recommendations.',
+    contentItems: 'Content Items',
+    activePatterns: 'Active Patterns',
+    queryLatency: 'Query Latency',
+    successRate: 'Success Rate',
+    learningFrom: 'Learning from',
+    userInteractions: 'user interactions',
+    systemReady: 'System ready - waiting for first interactions',
+    // Tabs
+    introduction: 'Introduction',
+    features: 'Features',
+    dataVectors: 'Data & Vectors',
+    comparison: 'Comparison',
+    architecture: 'Architecture',
+    research: 'Research',
+    // Introduction Tab
+    theProblem: 'The Problem',
+    problemText: 'Traditional recommendation systems are <strong>static</strong>. They rely on pre-computed similarities and user profiles that don\'t adapt in real-time. Users get stuck in "filter bubbles" seeing the same types of content, and the system doesn\'t learn from immediate feedback like skipping a recommendation.',
+    ourSolution: 'Our Solution',
+    solutionText: 'We built a <strong>self-learning recommendation engine</strong> that combines three powerful technologies:',
+    vectorEmbeddings: 'Vector Embeddings',
+    vectorEmbeddingsDesc: 'Content represented as 384-dimensional vectors for semantic similarity',
+    qLearning: 'Q-Learning',
+    qLearningDesc: 'Reinforcement learning that improves from every Watch/Skip action',
+    hyperbolicVectors: 'Hyperbolic Vectors',
+    hyperbolicVectorsDesc: 'Advanced geometry for better hierarchical content relationships',
+    howItWorks: 'How It Works (Simple Version)',
+    step1Title: 'You browse content',
+    step1Desc: 'The AI shows you movies and series based on your mood or search',
+    step2Title: 'You give feedback',
+    step2Desc: 'Click "Watch" if interested, "Skip" if not - each click teaches the AI',
+    step3Title: 'AI learns patterns',
+    step3Desc: 'Q-Learning algorithm updates pattern success rates and rewards',
+    step4Title: 'Recommendations improve',
+    step4Desc: 'Future suggestions are boosted by patterns that worked well',
+    keyMetrics: 'Key Metrics',
+    live: 'Live',
+    vectorDimensions: 'Vector Dimensions',
+    semanticEmbedding: 'Semantic embedding',
+    realTimeMeasurement: 'Real-time measurement',
+    mlAlgorithms: 'ML Algorithms',
+    workingInParallel: 'Working in parallel',
+    learnedPatterns: 'Learned Patterns',
+    userInteractionsLabel: 'User Interactions',
+    patternSuccessRate: 'Pattern Success Rate',
+    contentSafety: 'Content Safety & Parental Controls',
+    contentSafetyText: 'We take content safety seriously. Our system includes multi-layer filtering to ensure age-appropriate recommendations.',
+    audienceFiltering: 'Audience Filtering',
+    contentRatings: 'Content Ratings',
+    fuzzySearch: 'Intelligent Fuzzy Search',
+    fuzzySearchText: 'Using PostgreSQL pg_trgm extension for typo-tolerant, fuzzy matching. No more frustration when you can\'t remember exact titles!',
+    // Features Tab
+    coreFeaturesCapabilities: 'Core Features & Capabilities',
+    // Data Tab
+    dataSourceTVDB: 'Data Source: TVDB API',
+    dataSourceText: 'We use the official TVDB (TheTVDB.com) API to fetch real movie and TV series data, including metadata, artwork, and descriptions.',
+    tvSeries: 'TV Series',
+    movies: 'Movies',
+    withEmbeddings: 'With Embeddings',
+    languages: 'Languages',
+    vectorEmbeddingsExplained: 'Vector Embeddings Explained',
+    vectorEmbeddingsExplainedText: 'Each piece of content is converted into a <strong>384-dimensional vector</strong> - a list of 384 numbers that represent its "meaning" in mathematical space.',
+    why384Dimensions: 'Why 384 Dimensions?',
+    why384Text: 'More dimensions = more nuance. With 384 numbers, we can capture subtle differences like:',
+    genreCombinations: 'Genre combinations (Action-Comedy vs Action-Drama)',
+    toneAndMood: 'Tone and mood (dark vs lighthearted)',
+    eraAndStyle: 'Era and style (80s nostalgia vs modern)',
+    thematicElements: 'Thematic elements (family, revenge, love)',
+    ruVectorTitle: 'RuVector: High-Performance Vector Database',
+    ruVectorText: 'RuVector is a PostgreSQL extension written in Rust that provides ultra-fast vector operations. It\'s what makes our similarity searches return in milliseconds instead of seconds.',
+    distanceFunctions: 'Distance Functions',
+    cosineDistance: 'Cosine Distance',
+    cosineDistanceDesc: 'Measures angle between vectors (default)',
+    euclideanDistance: 'Euclidean Distance',
+    euclideanDistanceDesc: 'Measures straight-line distance',
+    hyperbolicDistance: 'Hyperbolic Distance',
+    hyperbolicDistanceDesc: 'Better for hierarchical data (genres → subgenres)',
+    performance: 'Performance (Live)',
+    currentQueryLatency: 'Current Query Latency',
+    vectorSearch: 'Vector Search',
+    simdAcceleration: 'SIMD Acceleration',
+    enabled: 'Enabled',
+    activeLabel: 'active',
+    // Comparison Tab
+    traditionalVsOur: 'Traditional vs Our Approach',
+    aspect: 'Aspect',
+    traditionalSystems: 'Traditional Systems',
+    ourSystem: 'Our System',
+    learningSpeed: 'Learning Speed',
+    batchUpdates: 'Batch updates (daily/weekly)',
+    realTimeEveryInteraction: 'Real-time (every interaction)',
+    coldStartProblem: 'Cold Start Problem',
+    needsExtensiveHistory: 'Needs extensive user history',
+    worksFromFirstClick: 'Works from first click via patterns',
+    similarityMatching: 'Similarity Matching',
+    genreTagMatching: 'Genre/tag matching (exact)',
+    semanticVectors: 'Semantic vectors (meaning-based)',
+    feedbackIntegration: 'Feedback Integration',
+    explicitRatingsOnly: 'Explicit ratings only',
+    watchSkipImplicit: 'Watch/Skip implicit signals',
+    searchCapability: 'Search Capability',
+    keywordMatching: 'Keyword matching',
+    naturalLanguageUnderstanding: 'Natural language understanding',
+    exploration: 'Exploration',
+    fixedRecommendations: 'Fixed recommendations',
+    epsilonGreedy: 'ε-greedy exploration (30%)',
+    hierarchyUnderstanding: 'Hierarchy Understanding',
+    flatCategories: 'Flat categories',
+    hyperbolicGeometry: 'Hyperbolic geometry (tree-like)',
+    traditionalApproach: 'Traditional Approach',
+    ourApproachLabel: 'Our Approach',
+    traditionalResult: 'Result: User sees same suggestions, gets bored',
+    ourResult: 'Result: Personalized, improving recommendations',
+    whyQLearningWins: 'Why Q-Learning Wins',
+    mathBehindIt: 'The Math Behind It',
+    inPlainEnglish: 'In Plain English',
+    inPlainEnglishText: 'Every time you click "Watch" or "Skip", the AI updates its understanding of what works. Patterns that lead to watches get higher "Q-values" (quality scores) and are more likely to be recommended in the future. The 30% exploration rate ensures we don\'t get stuck showing only what we think you\'ll like - we occasionally try new things to learn more.',
+    // Architecture Tab
+    systemArchitecture: 'System Architecture',
+    dataFlowWatch: 'Data Flow: Watch Action',
+    keyDatabaseTables: 'Key Database Tables',
+    // Research Tab
+    researchFoundation: 'Research Foundation',
+    researchFoundationText: 'Our system is built on established research in machine learning and information retrieval. Here are the key papers and concepts that inspired our approach:',
+    optimizationsInnovations: 'Optimizations & Innovations',
+    futureDirections: 'Future Directions',
+    technologyStack: 'Technology Stack',
+  },
+  fr: {
+    // Header
+    backToApp: 'Retour à l\'app',
+    aiSystemOverview: 'Aperçu du Système IA',
+    dashboard: 'Tableau de Bord',
+    analytics: 'Analytique',
+    settings: 'Paramètres',
+    // Hero
+    hackathonBadge: 'TV5MONDE Hackathon 2024 - Piste Découverte de Divertissement',
+    heroTitle: 'Moteur de Recommandation Auto-Apprenant',
+    heroDescription: 'Un système de découverte de contenu alimenté par l\'IA qui apprend de chaque interaction, utilisant des mathématiques vectorielles avancées et l\'apprentissage par renforcement pour des recommandations personnalisées.',
+    contentItems: 'Éléments de Contenu',
+    activePatterns: 'Modèles Actifs',
+    queryLatency: 'Latence de Requête',
+    successRate: 'Taux de Succès',
+    learningFrom: 'Apprentissage à partir de',
+    userInteractions: 'interactions utilisateur',
+    systemReady: 'Système prêt - en attente des premières interactions',
+    // Tabs
+    introduction: 'Introduction',
+    features: 'Fonctionnalités',
+    dataVectors: 'Données & Vecteurs',
+    comparison: 'Comparaison',
+    architecture: 'Architecture',
+    research: 'Recherche',
+    // Introduction Tab
+    theProblem: 'Le Problème',
+    problemText: 'Les systèmes de recommandation traditionnels sont <strong>statiques</strong>. Ils reposent sur des similarités pré-calculées et des profils utilisateur qui ne s\'adaptent pas en temps réel. Les utilisateurs restent coincés dans des "bulles de filtre" voyant les mêmes types de contenu, et le système n\'apprend pas des retours immédiats comme le fait de passer une recommandation.',
+    ourSolution: 'Notre Solution',
+    solutionText: 'Nous avons construit un <strong>moteur de recommandation auto-apprenant</strong> qui combine trois technologies puissantes :',
+    vectorEmbeddings: 'Embeddings Vectoriels',
+    vectorEmbeddingsDesc: 'Contenu représenté sous forme de vecteurs à 384 dimensions pour la similarité sémantique',
+    qLearning: 'Q-Learning',
+    qLearningDesc: 'Apprentissage par renforcement qui s\'améliore à chaque action Regarder/Passer',
+    hyperbolicVectors: 'Vecteurs Hyperboliques',
+    hyperbolicVectorsDesc: 'Géométrie avancée pour de meilleures relations hiérarchiques de contenu',
+    howItWorks: 'Comment Ça Marche (Version Simple)',
+    step1Title: 'Vous parcourez le contenu',
+    step1Desc: 'L\'IA vous montre des films et séries basés sur votre humeur ou recherche',
+    step2Title: 'Vous donnez votre avis',
+    step2Desc: 'Cliquez "Regarder" si intéressé, "Passer" sinon - chaque clic enseigne l\'IA',
+    step3Title: 'L\'IA apprend les modèles',
+    step3Desc: 'L\'algorithme Q-Learning met à jour les taux de succès et récompenses des modèles',
+    step4Title: 'Les recommandations s\'améliorent',
+    step4Desc: 'Les suggestions futures sont boostées par les modèles qui ont bien fonctionné',
+    keyMetrics: 'Métriques Clés',
+    live: 'En Direct',
+    vectorDimensions: 'Dimensions Vectorielles',
+    semanticEmbedding: 'Embedding sémantique',
+    realTimeMeasurement: 'Mesure en temps réel',
+    mlAlgorithms: 'Algorithmes ML',
+    workingInParallel: 'Travaillant en parallèle',
+    learnedPatterns: 'Modèles Appris',
+    userInteractionsLabel: 'Interactions Utilisateur',
+    patternSuccessRate: 'Taux de Succès des Modèles',
+    contentSafety: 'Sécurité du Contenu & Contrôle Parental',
+    contentSafetyText: 'Nous prenons la sécurité du contenu au sérieux. Notre système inclut un filtrage multicouche pour assurer des recommandations adaptées à l\'âge.',
+    audienceFiltering: 'Filtrage par Audience',
+    contentRatings: 'Classifications de Contenu',
+    fuzzySearch: 'Recherche Floue Intelligente',
+    fuzzySearchText: 'Utilisant l\'extension PostgreSQL pg_trgm pour une correspondance floue tolérante aux fautes de frappe. Plus de frustration quand vous ne vous souvenez pas des titres exacts !',
+    // Features Tab
+    coreFeaturesCapabilities: 'Fonctionnalités et Capacités Principales',
+    // Data Tab
+    dataSourceTVDB: 'Source de Données : API TVDB',
+    dataSourceText: 'Nous utilisons l\'API officielle TVDB (TheTVDB.com) pour récupérer de vraies données de films et séries TV, incluant métadonnées, illustrations et descriptions.',
+    tvSeries: 'Séries TV',
+    movies: 'Films',
+    withEmbeddings: 'Avec Embeddings',
+    languages: 'Langues',
+    vectorEmbeddingsExplained: 'Les Embeddings Vectoriels Expliqués',
+    vectorEmbeddingsExplainedText: 'Chaque contenu est converti en un <strong>vecteur à 384 dimensions</strong> - une liste de 384 nombres qui représentent sa "signification" dans l\'espace mathématique.',
+    why384Dimensions: 'Pourquoi 384 Dimensions ?',
+    why384Text: 'Plus de dimensions = plus de nuance. Avec 384 nombres, nous pouvons capturer des différences subtiles comme :',
+    genreCombinations: 'Combinaisons de genres (Action-Comédie vs Action-Drame)',
+    toneAndMood: 'Ton et ambiance (sombre vs léger)',
+    eraAndStyle: 'Époque et style (nostalgie 80s vs moderne)',
+    thematicElements: 'Éléments thématiques (famille, vengeance, amour)',
+    ruVectorTitle: 'RuVector : Base de Données Vectorielle Haute Performance',
+    ruVectorText: 'RuVector est une extension PostgreSQL écrite en Rust qui fournit des opérations vectorielles ultra-rapides. C\'est ce qui permet à nos recherches de similarité de retourner en millisecondes au lieu de secondes.',
+    distanceFunctions: 'Fonctions de Distance',
+    cosineDistance: 'Distance Cosinus',
+    cosineDistanceDesc: 'Mesure l\'angle entre vecteurs (par défaut)',
+    euclideanDistance: 'Distance Euclidienne',
+    euclideanDistanceDesc: 'Mesure la distance en ligne droite',
+    hyperbolicDistance: 'Distance Hyperbolique',
+    hyperbolicDistanceDesc: 'Meilleure pour les données hiérarchiques (genres → sous-genres)',
+    performance: 'Performance (En Direct)',
+    currentQueryLatency: 'Latence de Requête Actuelle',
+    vectorSearch: 'Recherche Vectorielle',
+    simdAcceleration: 'Accélération SIMD',
+    enabled: 'Activée',
+    activeLabel: 'actifs',
+    // Comparison Tab
+    traditionalVsOur: 'Approche Traditionnelle vs La Nôtre',
+    aspect: 'Aspect',
+    traditionalSystems: 'Systèmes Traditionnels',
+    ourSystem: 'Notre Système',
+    learningSpeed: 'Vitesse d\'Apprentissage',
+    batchUpdates: 'Mises à jour par lots (quotidien/hebdomadaire)',
+    realTimeEveryInteraction: 'Temps réel (chaque interaction)',
+    coldStartProblem: 'Problème du Démarrage à Froid',
+    needsExtensiveHistory: 'Nécessite un historique utilisateur étendu',
+    worksFromFirstClick: 'Fonctionne dès le premier clic via les modèles',
+    similarityMatching: 'Correspondance de Similarité',
+    genreTagMatching: 'Correspondance genre/tag (exacte)',
+    semanticVectors: 'Vecteurs sémantiques (basé sur le sens)',
+    feedbackIntegration: 'Intégration des Retours',
+    explicitRatingsOnly: 'Notes explicites uniquement',
+    watchSkipImplicit: 'Signaux implicites Regarder/Passer',
+    searchCapability: 'Capacité de Recherche',
+    keywordMatching: 'Correspondance par mots-clés',
+    naturalLanguageUnderstanding: 'Compréhension du langage naturel',
+    exploration: 'Exploration',
+    fixedRecommendations: 'Recommandations fixes',
+    epsilonGreedy: 'Exploration ε-greedy (30%)',
+    hierarchyUnderstanding: 'Compréhension Hiérarchique',
+    flatCategories: 'Catégories plates',
+    hyperbolicGeometry: 'Géométrie hyperbolique (arborescente)',
+    traditionalApproach: 'Approche Traditionnelle',
+    ourApproachLabel: 'Notre Approche',
+    traditionalResult: 'Résultat : L\'utilisateur voit les mêmes suggestions, s\'ennuie',
+    ourResult: 'Résultat : Recommandations personnalisées et améliorées',
+    whyQLearningWins: 'Pourquoi le Q-Learning Gagne',
+    mathBehindIt: 'Les Mathématiques Derrière',
+    inPlainEnglish: 'En Termes Simples',
+    inPlainEnglishText: 'Chaque fois que vous cliquez "Regarder" ou "Passer", l\'IA met à jour sa compréhension de ce qui fonctionne. Les modèles qui mènent à des visionnages obtiennent des "Q-values" (scores de qualité) plus élevées et sont plus susceptibles d\'être recommandés à l\'avenir. Le taux d\'exploration de 30% assure que nous ne restons pas bloqués à montrer uniquement ce que nous pensons que vous aimerez - nous essayons occasionnellement de nouvelles choses pour en apprendre plus.',
+    // Architecture Tab
+    systemArchitecture: 'Architecture du Système',
+    dataFlowWatch: 'Flux de Données : Action Regarder',
+    keyDatabaseTables: 'Tables de Base de Données Clés',
+    // Research Tab
+    researchFoundation: 'Fondation de Recherche',
+    researchFoundationText: 'Notre système est construit sur des recherches établies en apprentissage automatique et recherche d\'information. Voici les articles et concepts clés qui ont inspiré notre approche :',
+    optimizationsInnovations: 'Optimisations & Innovations',
+    futureDirections: 'Directions Futures',
+    technologyStack: 'Stack Technologique',
+  },
+};
+
+type TranslationKey = keyof typeof translations.en;
+
 export default function AboutPage() {
   const [activeTab, setActiveTab] = useState<TabId>('intro');
+  const [language, setLanguage] = useState<Language>('en');
+  const [showSettings, setShowSettings] = useState(false);
   const [liveStats, setLiveStats] = useState<LiveStats | null>(null);
   const [animatedStats, setAnimatedStats] = useState({
     content: 0,
@@ -25,6 +310,8 @@ export default function AboutPage() {
     feedback: 0,
     successRate: 0,
   });
+
+  const t = translations[language];
 
   // Fetch live stats
   useEffect(() => {
@@ -79,10 +366,10 @@ export default function AboutPage() {
     }
   }, [liveStats]);
 
-  const tabs: { id: TabId; label: string; icon: JSX.Element }[] = [
+  const tabs: { id: TabId; labelKey: keyof typeof translations.en; icon: JSX.Element }[] = [
     {
       id: 'intro',
-      label: 'Introduction',
+      labelKey: 'introduction',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -91,7 +378,7 @@ export default function AboutPage() {
     },
     {
       id: 'features',
-      label: 'Features',
+      labelKey: 'features',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
@@ -100,7 +387,7 @@ export default function AboutPage() {
     },
     {
       id: 'data',
-      label: 'Data & Vectors',
+      labelKey: 'dataVectors',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
@@ -109,7 +396,7 @@ export default function AboutPage() {
     },
     {
       id: 'comparison',
-      label: 'Comparison',
+      labelKey: 'comparison',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -118,7 +405,7 @@ export default function AboutPage() {
     },
     {
       id: 'architecture',
-      label: 'Architecture',
+      labelKey: 'architecture',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -127,7 +414,7 @@ export default function AboutPage() {
     },
     {
       id: 'research',
-      label: 'Research',
+      labelKey: 'research',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -140,7 +427,7 @@ export default function AboutPage() {
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
       {/* Header */}
       <div className="border-b border-zinc-800">
-        <div className="max-w-6xl mx-auto px-6 py-6">
+        <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <Link
               href="/"
@@ -149,19 +436,136 @@ export default function AboutPage() {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              Back to App
+              {t.backToApp}
             </Link>
+
+            {/* Center - Title */}
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
                 <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
               </div>
-              <span className="text-white font-semibold">AI System Overview</span>
+              <span className="text-white font-semibold hidden sm:inline">{t.aiSystemOverview}</span>
+            </div>
+
+            {/* Right - Navigation Links + Language Toggle */}
+            <div className="flex items-center gap-3">
+              {/* Navigation Links */}
+              <div className="hidden md:flex items-center gap-2">
+                <Link
+                  href="/"
+                  className="px-3 py-1.5 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+                >
+                  {t.dashboard}
+                </Link>
+                <Link
+                  href="/analytics"
+                  className="px-3 py-1.5 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+                >
+                  {t.analytics}
+                </Link>
+                <button
+                  onClick={() => setShowSettings(true)}
+                  className="px-3 py-1.5 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors flex items-center gap-1.5"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  {t.settings}
+                </button>
+              </div>
+
+              {/* Language Toggle */}
+              <button
+                onClick={() => setLanguage(language === 'en' ? 'fr' : 'en')}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 hover:border-emerald-500/50 transition-colors"
+              >
+                <span className="text-lg">{language === 'en' ? '🇬🇧' : '🇫🇷'}</span>
+                <span className="text-sm font-medium text-white">{language.toUpperCase()}</span>
+              </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="glass-card rounded-2xl p-6 max-w-md w-full mx-4 border border-zinc-700">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-white">{t.settings}</h2>
+              <button
+                onClick={() => setShowSettings(false)}
+                className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Language Setting */}
+              <div className="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-white font-medium">{language === 'en' ? 'Language' : 'Langue'}</div>
+                    <div className="text-zinc-500 text-sm">{language === 'en' ? 'Choose your preferred language' : 'Choisissez votre langue'}</div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setLanguage('en')}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                        language === 'en'
+                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                          : 'bg-zinc-700 text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      English
+                    </button>
+                    <button
+                      onClick={() => setLanguage('fr')}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                        language === 'fr'
+                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                          : 'bg-zinc-700 text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      Francais
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Navigation Links in Modal (for mobile) */}
+              <div className="md:hidden space-y-2">
+                <Link
+                  href="/"
+                  className="flex items-center gap-3 p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50 text-zinc-400 hover:text-white hover:border-emerald-500/30 transition-colors"
+                  onClick={() => setShowSettings(false)}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                  {t.dashboard}
+                </Link>
+                <Link
+                  href="/analytics"
+                  className="flex items-center gap-3 p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50 text-zinc-400 hover:text-white hover:border-emerald-500/30 transition-colors"
+                  onClick={() => setShowSettings(false)}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  {t.analytics}
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hero with Live Stats */}
       <div className="relative overflow-hidden">
@@ -173,15 +577,13 @@ export default function AboutPage() {
         <div className="relative max-w-6xl mx-auto px-6 py-16 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium mb-6">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            TV5MONDE Hackathon 2024 - Entertainment Discovery Track
+            {t.hackathonBadge}
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Self-Learning Recommendation Engine
+            {t.heroTitle}
           </h1>
           <p className="text-xl text-zinc-400 max-w-3xl mx-auto mb-8">
-            An AI-powered content discovery system that learns from every interaction,
-            using advanced vector mathematics and reinforcement learning to deliver
-            personalized recommendations.
+            {t.heroDescription}
           </p>
 
           {/* Animated Live Stats Bar */}
@@ -191,7 +593,7 @@ export default function AboutPage() {
                 <div className="text-3xl font-bold text-emerald-400 transition-transform group-hover:scale-110">
                   {animatedStats.content.toLocaleString()}
                 </div>
-                <div className="text-zinc-500 text-sm">Content Items</div>
+                <div className="text-zinc-500 text-sm">{t.contentItems}</div>
                 <div className="absolute -top-2 -right-2 w-4 h-4 bg-emerald-500 rounded-full animate-ping opacity-75" />
               </div>
             </div>
@@ -200,7 +602,7 @@ export default function AboutPage() {
                 <div className="text-3xl font-bold text-blue-400 transition-transform group-hover:scale-110">
                   {animatedStats.patterns}
                 </div>
-                <div className="text-zinc-500 text-sm">Active Patterns</div>
+                <div className="text-zinc-500 text-sm">{t.activePatterns}</div>
               </div>
             </div>
             <div className="group">
@@ -208,7 +610,7 @@ export default function AboutPage() {
                 <div className="text-3xl font-bold text-purple-400 transition-transform group-hover:scale-110">
                   {liveStats?.avgLatency || '~3ms'}
                 </div>
-                <div className="text-zinc-500 text-sm">Query Latency</div>
+                <div className="text-zinc-500 text-sm">{t.queryLatency}</div>
               </div>
             </div>
             <div className="group relative">
@@ -216,7 +618,7 @@ export default function AboutPage() {
                 <div className="text-3xl font-bold text-yellow-400 transition-transform group-hover:scale-110">
                   {animatedStats.successRate}%
                 </div>
-                <div className="text-zinc-500 text-sm">Success Rate</div>
+                <div className="text-zinc-500 text-sm">{t.successRate}</div>
                 {(liveStats?.avgSuccessRate || 0) > 0.5 && (
                   <div className="absolute -top-2 -right-2 px-2 py-0.5 bg-emerald-500 rounded-full text-[10px] text-white font-bold animate-bounce">
                     LIVE
@@ -234,9 +636,9 @@ export default function AboutPage() {
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
               </span>
               {liveStats.totalFeedback > 0 ? (
-                <span>Learning from <span className="text-emerald-400 font-semibold">{liveStats.totalFeedback}</span> user interactions</span>
+                <span>{t.learningFrom} <span className="text-emerald-400 font-semibold">{liveStats.totalFeedback}</span> {t.userInteractions}</span>
               ) : (
-                <span>System ready - waiting for first interactions</span>
+                <span>{t.systemReady}</span>
               )}
             </div>
           )}
@@ -258,7 +660,7 @@ export default function AboutPage() {
                 }`}
               >
                 {tab.icon}
-                {tab.label}
+                {t[tab.labelKey]}
               </button>
             ))}
           </div>
@@ -267,12 +669,12 @@ export default function AboutPage() {
 
       {/* Content */}
       <div className="max-w-6xl mx-auto px-6 py-12">
-        {activeTab === 'intro' && <IntroductionTab liveStats={liveStats} animatedStats={animatedStats} />}
-        {activeTab === 'features' && <FeaturesTab />}
-        {activeTab === 'data' && <DataTab liveStats={liveStats} />}
-        {activeTab === 'comparison' && <ComparisonTab />}
-        {activeTab === 'architecture' && <ArchitectureTab />}
-        {activeTab === 'research' && <ResearchTab />}
+        {activeTab === 'intro' && <IntroductionTab liveStats={liveStats} animatedStats={animatedStats} t={t} />}
+        {activeTab === 'features' && <FeaturesTab t={t} />}
+        {activeTab === 'data' && <DataTab liveStats={liveStats} t={t} />}
+        {activeTab === 'comparison' && <ComparisonTab t={t} />}
+        {activeTab === 'architecture' && <ArchitectureTab t={t} />}
+        {activeTab === 'research' && <ResearchTab t={t} />}
       </div>
     </div>
   );
@@ -281,9 +683,10 @@ export default function AboutPage() {
 interface IntroductionTabProps {
   liveStats: LiveStats | null;
   animatedStats: { content: number; patterns: number; feedback: number; successRate: number };
+  t: typeof translations.en;
 }
 
-function IntroductionTab({ liveStats, animatedStats }: IntroductionTabProps) {
+function IntroductionTab({ liveStats, animatedStats, t }: IntroductionTabProps) {
   return (
     <div className="space-y-12">
       {/* Problem Statement */}
@@ -294,14 +697,9 @@ function IntroductionTab({ liveStats, animatedStats }: IntroductionTabProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </span>
-          The Problem
+          {t.theProblem}
         </h2>
-        <p className="text-zinc-400 text-lg leading-relaxed">
-          Traditional recommendation systems are <span className="text-white font-medium">static</span>.
-          They rely on pre-computed similarities and user profiles that don't adapt in real-time.
-          Users get stuck in "filter bubbles" seeing the same types of content, and the system
-          doesn't learn from immediate feedback like skipping a recommendation.
-        </p>
+        <p className="text-zinc-400 text-lg leading-relaxed" dangerouslySetInnerHTML={{ __html: t.problemText }} />
       </section>
 
       {/* Solution */}
@@ -312,27 +710,24 @@ function IntroductionTab({ liveStats, animatedStats }: IntroductionTabProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </span>
-          Our Solution
+          {t.ourSolution}
         </h2>
-        <p className="text-zinc-400 text-lg leading-relaxed mb-6">
-          We built a <span className="text-emerald-400 font-medium">self-learning recommendation engine</span> that
-          combines three powerful technologies:
-        </p>
+        <p className="text-zinc-400 text-lg leading-relaxed mb-6" dangerouslySetInnerHTML={{ __html: t.solutionText }} />
         <div className="grid md:grid-cols-3 gap-4">
           <div className="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
             <div className="text-3xl mb-2">🧮</div>
-            <h3 className="text-white font-semibold mb-1">Vector Embeddings</h3>
-            <p className="text-zinc-500 text-sm">Content represented as 384-dimensional vectors for semantic similarity</p>
+            <h3 className="text-white font-semibold mb-1">{t.vectorEmbeddings}</h3>
+            <p className="text-zinc-500 text-sm">{t.vectorEmbeddingsDesc}</p>
           </div>
           <div className="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
             <div className="text-3xl mb-2">🎯</div>
-            <h3 className="text-white font-semibold mb-1">Q-Learning</h3>
-            <p className="text-zinc-500 text-sm">Reinforcement learning that improves from every Watch/Skip action</p>
+            <h3 className="text-white font-semibold mb-1">{t.qLearning}</h3>
+            <p className="text-zinc-500 text-sm">{t.qLearningDesc}</p>
           </div>
           <div className="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
             <div className="text-3xl mb-2">🌐</div>
-            <h3 className="text-white font-semibold mb-1">Hyperbolic Vectors</h3>
-            <p className="text-zinc-500 text-sm">Advanced geometry for better hierarchical content relationships</p>
+            <h3 className="text-white font-semibold mb-1">{t.hyperbolicVectors}</h3>
+            <p className="text-zinc-500 text-sm">{t.hyperbolicVectorsDesc}</p>
           </div>
         </div>
       </section>
@@ -345,35 +740,35 @@ function IntroductionTab({ liveStats, animatedStats }: IntroductionTabProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </span>
-          How It Works (Simple Version)
+          {t.howItWorks}
         </h2>
         <div className="space-y-6">
           <div className="flex gap-4">
             <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0 text-emerald-400 font-bold">1</div>
             <div>
-              <h3 className="text-white font-semibold text-lg">You browse content</h3>
-              <p className="text-zinc-400">The AI shows you movies and series based on your mood or search</p>
+              <h3 className="text-white font-semibold text-lg">{t.step1Title}</h3>
+              <p className="text-zinc-400">{t.step1Desc}</p>
             </div>
           </div>
           <div className="flex gap-4">
             <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0 text-emerald-400 font-bold">2</div>
             <div>
-              <h3 className="text-white font-semibold text-lg">You give feedback</h3>
-              <p className="text-zinc-400">Click "Watch" if interested, "Skip" if not - each click teaches the AI</p>
+              <h3 className="text-white font-semibold text-lg">{t.step2Title}</h3>
+              <p className="text-zinc-400">{t.step2Desc}</p>
             </div>
           </div>
           <div className="flex gap-4">
             <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0 text-emerald-400 font-bold">3</div>
             <div>
-              <h3 className="text-white font-semibold text-lg">AI learns patterns</h3>
-              <p className="text-zinc-400">Q-Learning algorithm updates pattern success rates and rewards</p>
+              <h3 className="text-white font-semibold text-lg">{t.step3Title}</h3>
+              <p className="text-zinc-400">{t.step3Desc}</p>
             </div>
           </div>
           <div className="flex gap-4">
             <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0 text-emerald-400 font-bold">4</div>
             <div>
-              <h3 className="text-white font-semibold text-lg">Recommendations improve</h3>
-              <p className="text-zinc-400">Future suggestions are boosted by patterns that worked well</p>
+              <h3 className="text-white font-semibold text-lg">{t.step4Title}</h3>
+              <p className="text-zinc-400">{t.step4Desc}</p>
             </div>
           </div>
         </div>
@@ -382,39 +777,39 @@ function IntroductionTab({ liveStats, animatedStats }: IntroductionTabProps) {
       {/* Key Metrics - Animated with Live Data */}
       <section>
         <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-          Key Metrics
+          {t.keyMetrics}
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          <span className="text-xs font-normal text-zinc-500">Live</span>
+          <span className="text-xs font-normal text-zinc-500">{t.live}</span>
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="glass-card rounded-xl p-6 text-center group hover:border-emerald-500/30 transition-all">
             <div className="text-3xl font-bold text-emerald-400 mb-1 transition-transform group-hover:scale-110">
               {animatedStats.content.toLocaleString()}
             </div>
-            <div className="text-zinc-500 text-sm">Content Items</div>
+            <div className="text-zinc-500 text-sm">{t.contentItems}</div>
             <div className="text-xs text-zinc-600 mt-1">
-              {liveStats ? `${liveStats.totalSeries} series + ${liveStats.totalMovies} movies` : 'Loading...'}
+              {liveStats ? `${liveStats.totalSeries} ${t.tvSeries.toLowerCase()} + ${liveStats.totalMovies} ${t.movies.toLowerCase()}` : 'Loading...'}
             </div>
           </div>
           <div className="glass-card rounded-xl p-6 text-center group hover:border-blue-500/30 transition-all">
             <div className="text-3xl font-bold text-blue-400 mb-1">384</div>
-            <div className="text-zinc-500 text-sm">Vector Dimensions</div>
-            <div className="text-xs text-zinc-600 mt-1">Semantic embedding</div>
+            <div className="text-zinc-500 text-sm">{t.vectorDimensions}</div>
+            <div className="text-xs text-zinc-600 mt-1">{t.semanticEmbedding}</div>
           </div>
           <div className="glass-card rounded-xl p-6 text-center group hover:border-purple-500/30 transition-all">
             <div className="text-3xl font-bold text-purple-400 mb-1 transition-transform group-hover:scale-110">
               {liveStats?.avgLatency || '~3ms'}
             </div>
-            <div className="text-zinc-500 text-sm">Query Latency</div>
-            <div className="text-xs text-emerald-500 mt-1">Real-time measurement</div>
+            <div className="text-zinc-500 text-sm">{t.queryLatency}</div>
+            <div className="text-xs text-emerald-500 mt-1">{t.realTimeMeasurement}</div>
           </div>
           <div className="glass-card rounded-xl p-6 text-center group hover:border-yellow-500/30 transition-all">
             <div className="text-3xl font-bold text-yellow-400 mb-1">6</div>
-            <div className="text-zinc-500 text-sm">ML Algorithms</div>
-            <div className="text-xs text-zinc-600 mt-1">Working in parallel</div>
+            <div className="text-zinc-500 text-sm">{t.mlAlgorithms}</div>
+            <div className="text-xs text-zinc-600 mt-1">{t.workingInParallel}</div>
           </div>
         </div>
 
@@ -422,15 +817,15 @@ function IntroductionTab({ liveStats, animatedStats }: IntroductionTabProps) {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
           <div className="glass-card rounded-xl p-4 text-center">
             <div className="text-2xl font-bold text-cyan-400 mb-1">{animatedStats.patterns}</div>
-            <div className="text-zinc-500 text-sm">Learned Patterns</div>
+            <div className="text-zinc-500 text-sm">{t.learnedPatterns}</div>
           </div>
           <div className="glass-card rounded-xl p-4 text-center">
             <div className="text-2xl font-bold text-pink-400 mb-1">{animatedStats.feedback}</div>
-            <div className="text-zinc-500 text-sm">User Interactions</div>
+            <div className="text-zinc-500 text-sm">{t.userInteractionsLabel}</div>
           </div>
           <div className="glass-card rounded-xl p-4 text-center col-span-2 md:col-span-1">
             <div className="text-2xl font-bold text-orange-400 mb-1">{animatedStats.successRate}%</div>
-            <div className="text-zinc-500 text-sm">Pattern Success Rate</div>
+            <div className="text-zinc-500 text-sm">{t.patternSuccessRate}</div>
           </div>
         </div>
       </section>
@@ -443,15 +838,14 @@ function IntroductionTab({ liveStats, animatedStats }: IntroductionTabProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
           </span>
-          Content Safety & Parental Controls
+          {t.contentSafety}
         </h2>
         <p className="text-zinc-400 text-lg mb-6">
-          We take content safety seriously. Our system includes multi-layer filtering to ensure
-          age-appropriate recommendations.
+          {t.contentSafetyText}
         </p>
         <div className="grid md:grid-cols-2 gap-4">
           <div className="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
-            <div className="text-emerald-400 font-semibold mb-2">Audience Filtering</div>
+            <div className="text-emerald-400 font-semibold mb-2">{t.audienceFiltering}</div>
             <ul className="text-zinc-400 text-sm space-y-1">
               <li>• Kids: G-rated only, family genres, no violence</li>
               <li>• Family: G/PG rated, no horror or mature themes</li>
@@ -460,7 +854,7 @@ function IntroductionTab({ liveStats, animatedStats }: IntroductionTabProps) {
             </ul>
           </div>
           <div className="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
-            <div className="text-emerald-400 font-semibold mb-2">Content Ratings</div>
+            <div className="text-emerald-400 font-semibold mb-2">{t.contentRatings}</div>
             <ul className="text-zinc-400 text-sm space-y-1">
               <li>• G: 331 titles (general audiences)</li>
               <li>• PG: 14 titles (parental guidance)</li>
@@ -479,11 +873,10 @@ function IntroductionTab({ liveStats, animatedStats }: IntroductionTabProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </span>
-          Intelligent Fuzzy Search
+          {t.fuzzySearch}
         </h2>
         <p className="text-zinc-400 text-lg mb-6">
-          Using PostgreSQL pg_trgm extension for typo-tolerant, fuzzy matching. No more frustration
-          when you can't remember exact titles!
+          {t.fuzzySearchText}
         </p>
         <div className="bg-zinc-900 rounded-xl p-6 font-mono text-sm">
           <div className="text-zinc-500 mb-2">// Example fuzzy matches:</div>
@@ -508,7 +901,11 @@ function IntroductionTab({ liveStats, animatedStats }: IntroductionTabProps) {
   );
 }
 
-function FeaturesTab() {
+interface FeaturesTabProps {
+  t: typeof translations.en;
+}
+
+function FeaturesTab({ t }: FeaturesTabProps) {
   const features = [
     {
       icon: '🧠',
@@ -594,7 +991,7 @@ function FeaturesTab() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-white mb-6">Core Features & Capabilities</h2>
+      <h2 className="text-2xl font-bold text-white mb-6">{t.coreFeaturesCapabilities}</h2>
       <div className="grid md:grid-cols-2 gap-6">
         {features.map((feature, index) => (
           <div key={index} className="glass-card rounded-2xl p-6 hover:border-emerald-500/30 transition-colors">
@@ -620,9 +1017,10 @@ function FeaturesTab() {
 
 interface DataTabProps {
   liveStats: LiveStats | null;
+  t: typeof translations.en;
 }
 
-function DataTab({ liveStats }: DataTabProps) {
+function DataTab({ liveStats, t }: DataTabProps) {
   return (
     <div className="space-y-12">
       {/* Data Source */}
@@ -633,36 +1031,35 @@ function DataTab({ liveStats }: DataTabProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
             </svg>
           </span>
-          Data Source: TVDB API
+          {t.dataSourceTVDB}
           <span className="relative flex h-2 w-2 ml-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
         </h2>
         <p className="text-zinc-400 text-lg mb-6">
-          We use the official TVDB (TheTVDB.com) API to fetch real movie and TV series data,
-          including metadata, artwork, and descriptions.
+          {t.dataSourceText}
         </p>
         <div className="grid md:grid-cols-4 gap-4">
           <div className="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50 text-center group hover:border-blue-500/30 transition-all">
             <div className="text-2xl font-bold text-white mb-1 transition-transform group-hover:scale-110">
               {liveStats?.totalSeries?.toLocaleString() || '1,176'}
             </div>
-            <div className="text-zinc-500 text-sm">TV Series</div>
+            <div className="text-zinc-500 text-sm">{t.tvSeries}</div>
           </div>
           <div className="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50 text-center group hover:border-purple-500/30 transition-all">
             <div className="text-2xl font-bold text-white mb-1 transition-transform group-hover:scale-110">
               {liveStats?.totalMovies?.toLocaleString() || '1,039'}
             </div>
-            <div className="text-zinc-500 text-sm">Movies</div>
+            <div className="text-zinc-500 text-sm">{t.movies}</div>
           </div>
           <div className="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50 text-center group hover:border-emerald-500/30 transition-all">
             <div className="text-2xl font-bold text-emerald-400 mb-1">100%</div>
-            <div className="text-zinc-500 text-sm">With Embeddings</div>
+            <div className="text-zinc-500 text-sm">{t.withEmbeddings}</div>
           </div>
           <div className="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50 text-center group hover:border-orange-500/30 transition-all">
             <div className="text-2xl font-bold text-white mb-1">20+</div>
-            <div className="text-zinc-500 text-sm">Languages</div>
+            <div className="text-zinc-500 text-sm">{t.languages}</div>
           </div>
         </div>
       </section>
@@ -675,12 +1072,9 @@ function DataTab({ liveStats }: DataTabProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
             </svg>
           </span>
-          Vector Embeddings Explained
+          {t.vectorEmbeddingsExplained}
         </h2>
-        <p className="text-zinc-400 text-lg mb-6">
-          Each piece of content is converted into a <span className="text-purple-400 font-medium">384-dimensional vector</span> -
-          a list of 384 numbers that represent its "meaning" in mathematical space.
-        </p>
+        <p className="text-zinc-400 text-lg mb-6" dangerouslySetInnerHTML={{ __html: t.vectorEmbeddingsExplainedText }} />
 
         <div className="bg-zinc-900 rounded-xl p-6 mb-6 font-mono text-sm overflow-x-auto">
           <div className="text-zinc-500 mb-2">// Example: "The Batman" might have a vector like:</div>
@@ -690,26 +1084,26 @@ function DataTab({ liveStats }: DataTabProps) {
           <div className="text-zinc-500 mt-1">// Distance: 0.02 (very similar!)</div>
         </div>
 
-        <h3 className="text-lg font-semibold text-white mb-3">Why 384 Dimensions?</h3>
+        <h3 className="text-lg font-semibold text-white mb-3">{t.why384Dimensions}</h3>
         <p className="text-zinc-400 mb-4">
-          More dimensions = more nuance. With 384 numbers, we can capture subtle differences like:
+          {t.why384Text}
         </p>
         <ul className="grid md:grid-cols-2 gap-2 text-zinc-400">
           <li className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            Genre combinations (Action-Comedy vs Action-Drama)
+            {t.genreCombinations}
           </li>
           <li className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            Tone and mood (dark vs lighthearted)
+            {t.toneAndMood}
           </li>
           <li className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            Era and style (80s nostalgia vs modern)
+            {t.eraAndStyle}
           </li>
           <li className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            Thematic elements (family, revenge, love)
+            {t.thematicElements}
           </li>
         </ul>
       </section>
@@ -722,34 +1116,33 @@ function DataTab({ liveStats }: DataTabProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </span>
-          RuVector: High-Performance Vector Database
+          {t.ruVectorTitle}
         </h2>
         <p className="text-zinc-400 text-lg mb-6">
-          RuVector is a PostgreSQL extension written in Rust that provides ultra-fast vector operations.
-          It's what makes our similarity searches return in milliseconds instead of seconds.
+          {t.ruVectorText}
         </p>
 
         <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <h3 className="text-lg font-semibold text-white mb-3">Distance Functions</h3>
+            <h3 className="text-lg font-semibold text-white mb-3">{t.distanceFunctions}</h3>
             <div className="space-y-3">
               <div className="p-3 rounded-lg bg-zinc-800/50 border border-zinc-700/50">
-                <div className="text-white font-medium">Cosine Distance</div>
-                <div className="text-zinc-500 text-sm">Measures angle between vectors (default)</div>
+                <div className="text-white font-medium">{t.cosineDistance}</div>
+                <div className="text-zinc-500 text-sm">{t.cosineDistanceDesc}</div>
               </div>
               <div className="p-3 rounded-lg bg-zinc-800/50 border border-zinc-700/50">
-                <div className="text-white font-medium">Euclidean Distance</div>
-                <div className="text-zinc-500 text-sm">Measures straight-line distance</div>
+                <div className="text-white font-medium">{t.euclideanDistance}</div>
+                <div className="text-zinc-500 text-sm">{t.euclideanDistanceDesc}</div>
               </div>
               <div className="p-3 rounded-lg bg-zinc-800/50 border border-emerald-500/30">
-                <div className="text-emerald-400 font-medium">Hyperbolic Distance ✨</div>
-                <div className="text-zinc-500 text-sm">Better for hierarchical data (genres → subgenres)</div>
+                <div className="text-emerald-400 font-medium">{t.hyperbolicDistance} ✨</div>
+                <div className="text-zinc-500 text-sm">{t.hyperbolicDistanceDesc}</div>
               </div>
             </div>
           </div>
           <div>
             <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-              Performance (Live)
+              {t.performance}
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -758,26 +1151,26 @@ function DataTab({ liveStats }: DataTabProps) {
             <div className="space-y-3">
               <div className="p-3 rounded-lg bg-zinc-800/50 border border-emerald-500/30">
                 <div className="flex justify-between items-center">
-                  <span className="text-zinc-400">Current Query Latency</span>
+                  <span className="text-zinc-400">{t.currentQueryLatency}</span>
                   <span className="text-emerald-400 font-mono font-bold">{liveStats?.avgLatency || '~3ms'}</span>
                 </div>
               </div>
               <div className="p-3 rounded-lg bg-zinc-800/50 border border-zinc-700/50">
                 <div className="flex justify-between items-center">
-                  <span className="text-zinc-400">Vector Search</span>
+                  <span className="text-zinc-400">{t.vectorSearch}</span>
                   <span className="text-emerald-400 font-mono">~7.8ms</span>
                 </div>
               </div>
               <div className="p-3 rounded-lg bg-zinc-800/50 border border-zinc-700/50">
                 <div className="flex justify-between items-center">
-                  <span className="text-zinc-400">SIMD Acceleration</span>
-                  <span className="text-emerald-400">Enabled</span>
+                  <span className="text-zinc-400">{t.simdAcceleration}</span>
+                  <span className="text-emerald-400">{t.enabled}</span>
                 </div>
               </div>
               <div className="p-3 rounded-lg bg-zinc-800/50 border border-zinc-700/50">
                 <div className="flex justify-between items-center">
-                  <span className="text-zinc-400">Learned Patterns</span>
-                  <span className="text-emerald-400">{liveStats?.totalPatterns || 0} active</span>
+                  <span className="text-zinc-400">{t.learnedPatterns}</span>
+                  <span className="text-emerald-400">{liveStats?.totalPatterns || 0} {t.activeLabel}</span>
                 </div>
               </div>
             </div>
@@ -788,11 +1181,15 @@ function DataTab({ liveStats }: DataTabProps) {
   );
 }
 
-function ComparisonTab() {
+interface ComparisonTabProps {
+  t: typeof translations.en;
+}
+
+function ComparisonTab({ t }: ComparisonTabProps) {
   return (
     <div className="space-y-12">
       <section>
-        <h2 className="text-2xl font-bold text-white mb-6">Traditional vs Our Approach</h2>
+        <h2 className="text-2xl font-bold text-white mb-6">{t.traditionalVsOur}</h2>
 
         {/* Comparison Table */}
         <div className="glass-card rounded-2xl overflow-hidden">
@@ -800,46 +1197,46 @@ function ComparisonTab() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-zinc-700">
-                  <th className="text-left p-4 text-zinc-400 font-medium">Aspect</th>
-                  <th className="text-left p-4 text-zinc-400 font-medium">Traditional Systems</th>
-                  <th className="text-left p-4 text-emerald-400 font-medium">Our System</th>
+                  <th className="text-left p-4 text-zinc-400 font-medium">{t.aspect}</th>
+                  <th className="text-left p-4 text-zinc-400 font-medium">{t.traditionalSystems}</th>
+                  <th className="text-left p-4 text-emerald-400 font-medium">{t.ourSystem}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800">
                 <tr>
-                  <td className="p-4 text-white font-medium">Learning Speed</td>
-                  <td className="p-4 text-zinc-400">Batch updates (daily/weekly)</td>
-                  <td className="p-4 text-emerald-400">Real-time (every interaction)</td>
+                  <td className="p-4 text-white font-medium">{t.learningSpeed}</td>
+                  <td className="p-4 text-zinc-400">{t.batchUpdates}</td>
+                  <td className="p-4 text-emerald-400">{t.realTimeEveryInteraction}</td>
                 </tr>
                 <tr>
-                  <td className="p-4 text-white font-medium">Cold Start Problem</td>
-                  <td className="p-4 text-zinc-400">Needs extensive user history</td>
-                  <td className="p-4 text-emerald-400">Works from first click via patterns</td>
+                  <td className="p-4 text-white font-medium">{t.coldStartProblem}</td>
+                  <td className="p-4 text-zinc-400">{t.needsExtensiveHistory}</td>
+                  <td className="p-4 text-emerald-400">{t.worksFromFirstClick}</td>
                 </tr>
                 <tr>
-                  <td className="p-4 text-white font-medium">Similarity Matching</td>
-                  <td className="p-4 text-zinc-400">Genre/tag matching (exact)</td>
-                  <td className="p-4 text-emerald-400">Semantic vectors (meaning-based)</td>
+                  <td className="p-4 text-white font-medium">{t.similarityMatching}</td>
+                  <td className="p-4 text-zinc-400">{t.genreTagMatching}</td>
+                  <td className="p-4 text-emerald-400">{t.semanticVectors}</td>
                 </tr>
                 <tr>
-                  <td className="p-4 text-white font-medium">Feedback Integration</td>
-                  <td className="p-4 text-zinc-400">Explicit ratings only</td>
-                  <td className="p-4 text-emerald-400">Watch/Skip implicit signals</td>
+                  <td className="p-4 text-white font-medium">{t.feedbackIntegration}</td>
+                  <td className="p-4 text-zinc-400">{t.explicitRatingsOnly}</td>
+                  <td className="p-4 text-emerald-400">{t.watchSkipImplicit}</td>
                 </tr>
                 <tr>
-                  <td className="p-4 text-white font-medium">Search Capability</td>
-                  <td className="p-4 text-zinc-400">Keyword matching</td>
-                  <td className="p-4 text-emerald-400">Natural language understanding</td>
+                  <td className="p-4 text-white font-medium">{t.searchCapability}</td>
+                  <td className="p-4 text-zinc-400">{t.keywordMatching}</td>
+                  <td className="p-4 text-emerald-400">{t.naturalLanguageUnderstanding}</td>
                 </tr>
                 <tr>
-                  <td className="p-4 text-white font-medium">Exploration</td>
-                  <td className="p-4 text-zinc-400">Fixed recommendations</td>
-                  <td className="p-4 text-emerald-400">ε-greedy exploration (30%)</td>
+                  <td className="p-4 text-white font-medium">{t.exploration}</td>
+                  <td className="p-4 text-zinc-400">{t.fixedRecommendations}</td>
+                  <td className="p-4 text-emerald-400">{t.epsilonGreedy}</td>
                 </tr>
                 <tr>
-                  <td className="p-4 text-white font-medium">Hierarchy Understanding</td>
-                  <td className="p-4 text-zinc-400">Flat categories</td>
-                  <td className="p-4 text-emerald-400">Hyperbolic geometry (tree-like)</td>
+                  <td className="p-4 text-white font-medium">{t.hierarchyUnderstanding}</td>
+                  <td className="p-4 text-zinc-400">{t.flatCategories}</td>
+                  <td className="p-4 text-emerald-400">{t.hyperbolicGeometry}</td>
                 </tr>
               </tbody>
             </table>
@@ -856,7 +1253,7 @@ function ComparisonTab() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </span>
-            Traditional Approach
+            {t.traditionalApproach}
           </h3>
           <div className="space-y-3 text-zinc-400">
             <p>1. User watches "The Office"</p>
@@ -866,7 +1263,7 @@ function ComparisonTab() {
             <p>5. Same recommendations forever</p>
           </div>
           <div className="mt-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-            Result: User sees same suggestions, gets bored
+            {t.traditionalResult}
           </div>
         </div>
 
@@ -877,7 +1274,7 @@ function ComparisonTab() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </span>
-            Our Approach
+            {t.ourApproachLabel}
           </h3>
           <div className="space-y-3 text-zinc-400">
             <p>1. User watches "The Office"</p>
@@ -887,17 +1284,17 @@ function ComparisonTab() {
             <p>5. Recommendations evolve with each click</p>
           </div>
           <div className="mt-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm">
-            Result: Personalized, improving recommendations
+            {t.ourResult}
           </div>
         </div>
       </section>
 
       {/* Why It's Better */}
       <section className="glass-card rounded-2xl p-8">
-        <h2 className="text-2xl font-bold text-white mb-6">Why Q-Learning Wins</h2>
+        <h2 className="text-2xl font-bold text-white mb-6">{t.whyQLearningWins}</h2>
         <div className="grid md:grid-cols-2 gap-8">
           <div>
-            <h3 className="text-lg font-semibold text-white mb-3">The Math Behind It</h3>
+            <h3 className="text-lg font-semibold text-white mb-3">{t.mathBehindIt}</h3>
             <div className="bg-zinc-900 rounded-xl p-4 font-mono text-sm">
               <div className="text-zinc-500 mb-2">// Q-Learning Update Formula</div>
               <div className="text-emerald-400">Q(s,a) ← Q(s,a) + α[r + γ·max(Q(s',a')) - Q(s,a)]</div>
@@ -909,12 +1306,9 @@ function ComparisonTab() {
             </div>
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-white mb-3">In Plain English</h3>
+            <h3 className="text-lg font-semibold text-white mb-3">{t.inPlainEnglish}</h3>
             <p className="text-zinc-400">
-              Every time you click "Watch" or "Skip", the AI updates its understanding of what works.
-              Patterns that lead to watches get higher "Q-values" (quality scores) and are more likely
-              to be recommended in the future. The 30% exploration rate ensures we don't get stuck
-              showing only what we think you'll like - we occasionally try new things to learn more.
+              {t.inPlainEnglishText}
             </p>
           </div>
         </div>
@@ -923,12 +1317,16 @@ function ComparisonTab() {
   );
 }
 
-function ArchitectureTab() {
+interface ArchitectureTabProps {
+  t: typeof translations.en;
+}
+
+function ArchitectureTab({ t }: ArchitectureTabProps) {
   return (
     <div className="space-y-12">
       {/* System Architecture Diagram */}
       <section className="glass-card rounded-2xl p-8">
-        <h2 className="text-2xl font-bold text-white mb-6">System Architecture</h2>
+        <h2 className="text-2xl font-bold text-white mb-6">{t.systemArchitecture}</h2>
 
         {/* Mermaid-style diagram using divs */}
         <div className="bg-zinc-900 rounded-xl p-8 overflow-x-auto">
@@ -1013,7 +1411,7 @@ function ArchitectureTab() {
 
       {/* Data Flow */}
       <section className="glass-card rounded-2xl p-8">
-        <h2 className="text-2xl font-bold text-white mb-6">Data Flow: Watch Action</h2>
+        <h2 className="text-2xl font-bold text-white mb-6">{t.dataFlowWatch}</h2>
 
         <div className="space-y-4">
           <div className="flex items-center gap-4 p-4 rounded-xl bg-zinc-800/50">
@@ -1073,7 +1471,7 @@ function ArchitectureTab() {
 
       {/* Database Schema */}
       <section className="glass-card rounded-2xl p-8">
-        <h2 className="text-2xl font-bold text-white mb-6">Key Database Tables</h2>
+        <h2 className="text-2xl font-bold text-white mb-6">{t.keyDatabaseTables}</h2>
 
         <div className="grid md:grid-cols-2 gap-6">
           <div className="bg-zinc-900 rounded-xl p-4">
@@ -1122,7 +1520,11 @@ function ArchitectureTab() {
   );
 }
 
-function ResearchTab() {
+interface ResearchTabProps {
+  t: typeof translations.en;
+}
+
+function ResearchTab({ t }: ResearchTabProps) {
   return (
     <div className="space-y-12">
       {/* Research Background */}
@@ -1133,11 +1535,10 @@ function ResearchTab() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
           </span>
-          Research Foundation
+          {t.researchFoundation}
         </h2>
         <p className="text-zinc-400 text-lg mb-6">
-          Our system is built on established research in machine learning and information retrieval.
-          Here are the key papers and concepts that inspired our approach:
+          {t.researchFoundationText}
         </p>
 
         <div className="space-y-4">
@@ -1233,7 +1634,7 @@ function ResearchTab() {
 
       {/* Optimizations */}
       <section className="glass-card rounded-2xl p-8">
-        <h2 className="text-2xl font-bold text-white mb-6">Optimizations & Innovations</h2>
+        <h2 className="text-2xl font-bold text-white mb-6">{t.optimizationsInnovations}</h2>
 
         <div className="grid md:grid-cols-2 gap-6">
           <div className="p-5 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
@@ -1276,7 +1677,7 @@ function ResearchTab() {
 
       {/* Future Work */}
       <section className="glass-card rounded-2xl p-8">
-        <h2 className="text-2xl font-bold text-white mb-6">Future Directions</h2>
+        <h2 className="text-2xl font-bold text-white mb-6">{t.futureDirections}</h2>
 
         <div className="space-y-4">
           <div className="flex items-start gap-4 p-4 rounded-xl bg-zinc-800/30">
@@ -1332,7 +1733,7 @@ function ResearchTab() {
 
       {/* Tech Stack */}
       <section>
-        <h2 className="text-2xl font-bold text-white mb-6">Technology Stack</h2>
+        <h2 className="text-2xl font-bold text-white mb-6">{t.technologyStack}</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { name: 'Next.js 14', desc: 'React Framework' },
