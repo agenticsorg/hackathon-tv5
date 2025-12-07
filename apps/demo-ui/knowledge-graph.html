@@ -812,7 +812,7 @@
                     <div class="flex flex-wrap gap-4 items-center justify-between">
                         <div class="flex flex-wrap gap-4 items-center">
                             <div>
-                                <label class="block text-xs text-gray-400 mb-1">Movie Limit</label>
+                                <label class="block text-xs text-gray-400 mb-1">Movie Limit <span class="text-blue-400" x-text="'(of ' + stats.totalMovies.toLocaleString() + ' available)'"></span></label>
                                 <select
                                     x-model="graphSettings.movieLimit"
                                     @change="loadGraphData()"
@@ -822,6 +822,9 @@
                                     <option value="25">25 movies</option>
                                     <option value="50">50 movies</option>
                                     <option value="100">100 movies</option>
+                                    <option value="250">250 movies</option>
+                                    <option value="500">500 movies</option>
+                                    <option value="1000">1,000 movies</option>
                                 </select>
                             </div>
                             <div>
