@@ -1,0 +1,262 @@
+{
+  "version": "0.1",
+  "profile": "ARW-1",
+  "site": {
+    "name": "TVDB Smart Recommendations",
+    "description": "AI-powered TV and movie discovery that learns your preferences. Solves the 45-minute decision problem.",
+    "logo": "https://thetvdb.com/images/logo.png",
+    "primaryColor": "#1a1a2e"
+  },
+  "capabilities": {
+    "selfLearning": true,
+    "vectorSearch": true,
+    "naturalLanguage": true,
+    "personalization": true,
+    "crossPlatform": true
+  },
+  "actions": [
+    {
+      "id": "semantic_search",
+      "name": "Semantic Content Search",
+      "description": "Natural language search for TV shows and movies. Understands queries like 'something fun for date night' or 'like Breaking Bad but shorter'.",
+      "endpoint": "/api/search",
+      "method": "POST",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Natural language search query"
+          },
+          "userId": {
+            "type": "string",
+            "description": "Optional user ID for personalized results"
+          },
+          "limit": {
+            "type": "integer",
+            "default": 10,
+            "maximum": 50
+          }
+        },
+        "required": ["query"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "title": { "type": "string" },
+                "year": { "type": "integer" },
+                "genres": { "type": "array", "items": { "type": "string" } },
+                "overview": { "type": "string" },
+                "similarity": { "type": "number" },
+                "matchReason": { "type": "string" }
+              }
+            }
+          },
+          "intent": { "type": "object" },
+          "searchTimeMs": { "type": "number" }
+        }
+      }
+    },
+    {
+      "id": "get_recommendations",
+      "name": "Personalized Recommendations",
+      "description": "Get AI-curated recommendations based on watch history, preferences, and current context like mood or available time.",
+      "endpoint": "/api/recommendations",
+      "method": "POST",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "User ID for personalization"
+          },
+          "mood": {
+            "type": "string",
+            "enum": ["relaxing", "exciting", "thoughtful", "funny", "romantic", "scary"],
+            "description": "Current mood for contextual recommendations"
+          },
+          "timeAvailable": {
+            "type": "integer",
+            "description": "Minutes available to watch"
+          },
+          "contentType": {
+            "type": "string",
+            "enum": ["series", "movie", "both"],
+            "default": "both"
+          }
+        },
+        "required": ["userId"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "recommendations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "title": { "type": "string" },
+                "year": { "type": "integer" },
+                "genres": { "type": "array" },
+                "reason": { "type": "string" },
+                "confidence": { "type": "number" }
+              }
+            }
+          },
+          "patternUsed": { "type": "string" },
+          "generatedInMs": { "type": "number" }
+        }
+      }
+    },
+    {
+      "id": "find_similar",
+      "name": "Find Similar Content",
+      "description": "Find TV shows or movies similar to a given title using vector similarity search.",
+      "endpoint": "/api/similar",
+      "method": "GET",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "contentId": {
+            "type": "string",
+            "description": "TVDB ID of the reference content"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title to search for (alternative to contentId)"
+          },
+          "limit": {
+            "type": "integer",
+            "default": 10
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "reference": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "title": { "type": "string" }
+            }
+          },
+          "similar": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "title": { "type": "string" },
+                "similarity": { "type": "number" }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "record_feedback",
+      "name": "Record User Feedback",
+      "description": "Record user feedback to improve future recommendations. The system learns from every interaction.",
+      "endpoint": "/api/feedback",
+      "method": "POST",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "userId": { "type": "string" },
+          "contentId": { "type": "string" },
+          "action": {
+            "type": "string",
+            "enum": ["watched", "completed", "skipped", "rated", "added_watchlist"],
+            "description": "User action on the content"
+          },
+          "rating": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10,
+            "description": "Optional rating (0-10)"
+          },
+          "watchTimeMinutes": {
+            "type": "integer",
+            "description": "How long they watched"
+          },
+          "completionPercent": {
+            "type": "number",
+            "description": "Completion percentage (0-100)"
+          }
+        },
+        "required": ["userId", "contentId", "action"]
+      }
+    },
+    {
+      "id": "get_learning_stats",
+      "name": "Get Learning Statistics",
+      "description": "Get statistics about how the recommendation system has learned and improved.",
+      "endpoint": "/api/stats/learning",
+      "method": "GET",
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "totalPatterns": { "type": "integer" },
+          "avgSuccessRate": { "type": "number" },
+          "totalFeedback": { "type": "integer" },
+          "improvementRate": { "type": "number" }
+        }
+      }
+    }
+  ],
+  "machineViews": [
+    {
+      "pattern": "/content/*",
+      "endpoint": "/api/machine-view/content",
+      "description": "Machine-readable content details for agents"
+    },
+    {
+      "pattern": "/user/*/recommendations",
+      "endpoint": "/api/machine-view/recommendations",
+      "description": "Machine-readable personalized recommendations"
+    }
+  ],
+  "authentication": {
+    "type": "bearer",
+    "description": "JWT token from /api/auth/login"
+  },
+  "rateLimit": {
+    "requests": 100,
+    "window": "1m",
+    "burst": 20
+  },
+  "examples": [
+    {
+      "name": "Find date night content",
+      "action": "semantic_search",
+      "input": {
+        "query": "Something fun and romantic for date night"
+      }
+    },
+    {
+      "name": "Get personalized recommendations",
+      "action": "get_recommendations",
+      "input": {
+        "userId": "user-123",
+        "mood": "exciting",
+        "timeAvailable": 120
+      }
+    },
+    {
+      "name": "Find similar to Breaking Bad",
+      "action": "find_similar",
+      "input": {
+        "title": "Breaking Bad"
+      }
+    }
+  ]
+}

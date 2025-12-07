@@ -109,8 +109,8 @@ export class Repository {
       `INSERT INTO content (
         id, content_type, title, year, overview, genres, rating,
         status, network_id, network_name, original_language, original_country,
-        embedding, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13::vector, NOW())
+        image_url, thumbnail_url, embedding, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15::vector, NOW())
       ON CONFLICT (id) DO UPDATE SET
         title = EXCLUDED.title,
         year = EXCLUDED.year,
@@ -120,6 +120,8 @@ export class Repository {
         status = EXCLUDED.status,
         network_id = EXCLUDED.network_id,
         network_name = EXCLUDED.network_name,
+        image_url = EXCLUDED.image_url,
+        thumbnail_url = EXCLUDED.thumbnail_url,
         embedding = EXCLUDED.embedding,
         updated_at = NOW()`,
       [
@@ -135,6 +137,8 @@ export class Repository {
         embedding.metadata.networkName,
         embedding.metadata.language,
         embedding.metadata.country,
+        embedding.metadata.imageUrl,
+        embedding.metadata.thumbnailUrl,
         vectorStr
       ]
     );
@@ -151,10 +155,12 @@ export class Repository {
           `INSERT INTO content (
             id, content_type, title, year, overview, genres, rating,
             status, network_id, network_name, original_language, original_country,
-            embedding, updated_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13::vector, NOW())
+            image_url, thumbnail_url, embedding, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15::vector, NOW())
           ON CONFLICT (id) DO UPDATE SET
             title = EXCLUDED.title,
+            image_url = EXCLUDED.image_url,
+            thumbnail_url = EXCLUDED.thumbnail_url,
             embedding = EXCLUDED.embedding,
             updated_at = NOW()`,
           [
@@ -170,6 +176,8 @@ export class Repository {
             embedding.metadata.networkName,
             embedding.metadata.language,
             embedding.metadata.country,
+            embedding.metadata.imageUrl,
+            embedding.metadata.thumbnailUrl,
             vectorStr
           ]
         );
@@ -189,7 +197,7 @@ export class Repository {
     const result = await this.pool.query(
       `SELECT id, content_type, title, year, overview, genres, rating,
               status, network_id, network_name, original_language, original_country,
-              embedding, created_at, updated_at
+              image_url, thumbnail_url, embedding, created_at, updated_at
        FROM content WHERE id = $1`,
       [contentId]
     );
@@ -201,7 +209,7 @@ export class Repository {
   async searchContent(query: string, limit: number = 20): Promise<ContentEmbedding[]> {
     const result = await this.pool.query(
       `SELECT id, content_type, title, year, overview, genres, rating,
-              status, network_id, network_name, embedding,
+              status, network_id, network_name, image_url, thumbnail_url, embedding,
               ts_rank(search_vector, plainto_tsquery('english', $1)) as rank
        FROM content
        WHERE search_vector @@ plainto_tsquery('english', $1)
@@ -508,6 +516,8 @@ export class Repository {
         genres: row.genres || [],
         overview: row.overview || '',
         rating: parseFloat(row.rating) || 0,
+        imageUrl: row.image_url,
+        thumbnailUrl: row.thumbnail_url,
         networkId: row.network_id,
         networkName: row.network_name,
         status: row.status,

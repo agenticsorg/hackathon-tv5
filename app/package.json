@@ -1,0 +1,33 @@
+{
+  "name": "tvdb-recommender-ui",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@heroui/react": "^2.8.5",
+    "@heroui/system": "^2.4.23",
+    "@heroui/theme": "^2.4.23",
+    "autoprefixer": "^10.4.22",
+    "framer-motion": "^12.23.25",
+    "next": "^14.2.33",
+    "next-themes": "^0.4.6",
+    "pg": "^8.16.3",
+    "postcss": "^8.5.6",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-force-graph-2d": "^1.29.0",
+    "recharts": "^2.15.4",
+    "tailwindcss": "^3.4.18"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.1",
+    "@types/pg": "^8.15.6",
+    "@types/react": "^18.3.27",
+    "typescript": "^5.9.3"
+  }
+}

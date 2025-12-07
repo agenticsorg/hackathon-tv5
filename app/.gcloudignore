@@ -1,0 +1,7 @@
+.git
+.gitignore
+node_modules
+.next
+.claude-flow
+*.md
+.env*

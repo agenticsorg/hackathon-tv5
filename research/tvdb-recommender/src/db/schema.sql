@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS content (
     original_language VARCHAR(10),
     original_country VARCHAR(10),
     image_url TEXT,
+    thumbnail_url TEXT,
     first_aired DATE,
     last_aired DATE,
 

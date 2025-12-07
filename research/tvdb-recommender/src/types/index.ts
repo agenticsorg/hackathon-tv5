@@ -310,6 +310,8 @@ export interface ContentMetadata {
   genres: string[];
   overview: string;
   rating: number;
+  imageUrl?: string;
+  thumbnailUrl?: string;
   networkId?: number;
   networkName?: string;
   status?: string;
