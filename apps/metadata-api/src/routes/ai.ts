@@ -92,7 +92,7 @@ Your response (keywords only):`;
       });
     }
 
-    const data = await response.json();
+    const data = await response.json() as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
 
     // Extract the generated text from Gemini response
     const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();

@@ -33,7 +33,7 @@ userStorage.set('demo-user', {
  * GET /api/v1/user/:userId
  * Get all user data (preferences, learning, history)
  */
-router.get('/:userId', (req: Request, res: Response) => {
+router.get('/:userId', (req: Request, res: Response): void => {
   const { userId } = req.params;
   const userData = userStorage.get(userId);
 
@@ -46,7 +46,8 @@ router.get('/:userId', (req: Request, res: Response) => {
       updatedAt: new Date().toISOString()
     };
     userStorage.set(userId, newUser);
-    return res.json({ success: true, data: newUser });
+    res.json({ success: true, data: newUser });
+    return;
   }
 
   res.json({ success: true, data: userData });
@@ -106,12 +107,13 @@ router.put('/:userId/learning', (req: Request, res: Response) => {
  * GET /api/v1/user/:userId/history
  * Get watch history
  */
-router.get('/:userId/history', (req: Request, res: Response) => {
+router.get('/:userId/history', (req: Request, res: Response): void => {
   const { userId } = req.params;
   const userData = userStorage.get(userId);
 
   if (!userData) {
-    return res.json({ success: true, data: [] });
+    res.json({ success: true, data: [] });
+    return;
   }
 
   res.json({ success: true, data: userData.history });
@@ -176,12 +178,12 @@ router.delete('/:userId/history', (req: Request, res: Response) => {
  * GET /api/v1/user/:userId/learning/summary
  * Get learning summary with insights
  */
-router.get('/:userId/learning/summary', (req: Request, res: Response) => {
+router.get('/:userId/learning/summary', (req: Request, res: Response): void => {
   const { userId } = req.params;
   const userData = userStorage.get(userId);
 
   if (!userData) {
-    return res.json({
+    res.json({
       success: true,
       data: {
         topMoods: [],
@@ -190,6 +192,7 @@ router.get('/:userId/learning/summary', (req: Request, res: Response) => {
         insights: []
       }
     });
+    return;
   }
 
   const { learning } = userData;

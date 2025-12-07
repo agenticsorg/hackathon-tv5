@@ -141,7 +141,7 @@ router.get(
           graphQuery.offset
         );
 
-        return res.json({
+        res.json({
           movies,
           pagination: {
             limit: graphQuery.limit,
@@ -149,6 +149,7 @@ router.get(
             hasMore: movies.length === graphQuery.limit,
           },
         });
+        return;
       }
 
       const result = await store.queryMovies(graphQuery);
