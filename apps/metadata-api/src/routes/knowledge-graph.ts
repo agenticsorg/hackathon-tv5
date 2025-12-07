@@ -597,6 +597,57 @@ router.post('/feeds/batch', async (req: Request, res: Response): Promise<void> =
 });
 
 // ============================================
+// Diagnostic Endpoint
+// ============================================
+
+/**
+ * GET /api/v1/knowledge-graph/diagnostics
+ * Check connectivity to Firestore and GCS
+ */
+router.get('/diagnostics', async (_req: Request, res: Response): Promise<void> => {
+  const results: {
+    firestore: { connected: boolean; error?: string };
+    gcs: { connected: boolean; error?: string; fileSize?: number };
+  } = {
+    firestore: { connected: false },
+    gcs: { connected: false },
+  };
+
+  // Test Firestore
+  try {
+    const store = getStore();
+    await store.getStats();
+    results.firestore.connected = true;
+  } catch (error) {
+    results.firestore.error = error instanceof Error ? error.message : 'Unknown error';
+  }
+
+  // Test GCS
+  try {
+    const { Storage } = await import('@google-cloud/storage');
+    const storage = new Storage({
+      projectId: process.env.GCP_PROJECT_ID || 'agentics-foundation25lon-1899',
+    });
+    const bucket = storage.bucket('nexus-ummid-datasets');
+    const file = bucket.file('TMDB_movie_dataset_v11.csv');
+    const [metadata] = await file.getMetadata();
+    results.gcs.connected = true;
+    results.gcs.fileSize = parseInt(metadata.size as string, 10);
+  } catch (error) {
+    results.gcs.error = error instanceof Error ? error.message : 'Unknown error';
+  }
+
+  res.json({
+    timestamp: new Date().toISOString(),
+    diagnostics: results,
+    environment: {
+      gcpProject: process.env.GCP_PROJECT_ID || 'agentics-foundation25lon-1899',
+      nodeEnv: process.env.NODE_ENV,
+    },
+  });
+});
+
+// ============================================
 // Ingestion Endpoints
 // ============================================
 
@@ -627,8 +678,14 @@ router.post('/ingest/start', async (req: Request, res: Response): Promise<void> 
       error: result.error,
     });
   } catch (error) {
-    logger.error('Ingestion failed', { error });
-    res.status(500).json({ error: 'Ingestion failed' });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    logger.error('Ingestion failed', { error: errorMessage, stack: errorStack });
+    res.status(500).json({
+      error: 'Ingestion failed',
+      details: errorMessage,
+      stack: process.env.NODE_ENV !== 'production' ? errorStack : undefined,
+    });
   }
 });
 
@@ -652,8 +709,14 @@ router.post('/ingest/quick-test', async (_req: Request, res: Response): Promise<
       error: result.error,
     });
   } catch (error) {
-    logger.error('Quick test failed', { error });
-    res.status(500).json({ error: 'Quick test failed' });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    logger.error('Quick test failed', { error: errorMessage, stack: errorStack });
+    res.status(500).json({
+      error: 'Quick test failed',
+      details: errorMessage,
+      stack: process.env.NODE_ENV !== 'production' ? errorStack : undefined,
+    });
   }
 });
 
