@@ -438,6 +438,52 @@ function mergeAndRankResults(
     });
   }
 
+  // Apply content freshness scoring
+  // Boost newer content based on release date
+  const wantsNew = /\b(new|recent|latest|2024|2023|just released|came out)\b/i.test(query.query);
+  results = results.map(result => {
+    const releaseDate = new Date(result.content.releaseDate);
+    const now = new Date();
+    const daysSinceRelease = Math.floor((now.getTime() - releaseDate.getTime()) / (1000 * 60 * 60 * 24));
+
+    // Calculate recency boost using exponential decay
+    // More aggressive boost if user explicitly wants new content
+    let recencyBoost = 0;
+
+    if (daysSinceRelease < 0) {
+      // Future release - slight boost for anticipation
+      recencyBoost = 0.02;
+    } else if (daysSinceRelease <= 30) {
+      // Less than 1 month - very fresh
+      recencyBoost = wantsNew ? 0.15 : 0.08;
+      result.matchReasons.push('New release');
+    } else if (daysSinceRelease <= 90) {
+      // 1-3 months - still fresh
+      recencyBoost = wantsNew ? 0.10 : 0.05;
+      result.matchReasons.push('Recent release');
+    } else if (daysSinceRelease <= 365) {
+      // Within a year
+      recencyBoost = wantsNew ? 0.05 : 0.02;
+    } else {
+      // Classic content - no penalty, just no boost
+      // (some users specifically want classic content)
+      recencyBoost = 0;
+    }
+
+    // Additional boost for trending recent content
+    if (daysSinceRelease <= 90 && result.content.popularity > 100) {
+      recencyBoost += 0.03;
+      if (!result.matchReasons.includes('Trending')) {
+        result.matchReasons.push('Trending');
+      }
+    }
+
+    return {
+      ...result,
+      relevanceScore: Math.min(1, result.relevanceScore + recencyBoost),
+    };
+  });
+
   // Apply user preference boost
   if (userPreferences?.length) {
     results = results.map(result => {
