@@ -623,6 +623,138 @@ Validates metadata completeness against streaming platform requirements:
 
 ---
 
+## 🧠 Knowledge Graph Explorer
+
+> **🔗 Live Demo:** https://media-knowledge-graph-semanticsearch.netlify.app/knowledge-graph.html
+> **📡 API:** https://nexus-ummid-api-181630922804.us-central1.run.app
+
+A production-ready **Knowledge Graph** system that transforms the TMDB movie dataset (1.33M movies) into a semantic search-enabled hypergraph with AI-powered discovery.
+
+### Key Features
+
+| Feature | Description |
+|---------|-------------|
+| **🔍 Semantic Search** | Natural language movie queries powered by Vertex AI `text-embedding-004` (768-dim vectors) |
+| **📊 Browse Movies** | Filter by genre, sort by popularity/rating/date, pagination support |
+| **🎭 Genre Explorer** | View all genres with movie counts, explore genre relationships |
+| **📡 Platform Feeds** | Generate Netflix IMF, Amazon MEC, and FAST MRSS feeds for any movie |
+| **⚙️ Data Ingestion** | Stream and ingest movies from GCS bucket with optional embeddings |
+| **📈 Real-time Stats** | Dashboard showing movies, genres, keywords, relationships, and platform readiness |
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    Knowledge Graph Pipeline                              │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐              │
+│  │  GCS Bucket  │───▶│  Processor   │───▶│  Firestore   │              │
+│  │  TMDB CSV    │    │  (Parser)    │    │  (Hypergraph)│              │
+│  │  1.33M rows  │    └──────┬───────┘    └──────────────┘              │
+│  └──────────────┘           │                    │                      │
+│                             │                    │                      │
+│                             ▼                    ▼                      │
+│                    ┌──────────────┐    ┌──────────────┐                │
+│                    │  Vertex AI   │    │   REST API   │                │
+│                    │  Embeddings  │    │  (Express)   │                │
+│                    │  768-dim     │    └──────┬───────┘                │
+│                    └──────────────┘           │                         │
+│                                               ▼                         │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐              │
+│  │   Netlify    │◀───│  Demo UI     │◀───│  Cloud Run   │              │
+│  │   (Static)   │    │  (Alpine.js) │    │  (API Host)  │              │
+│  └──────────────┘    └──────────────┘    └──────────────┘              │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Hypergraph Data Model
+
+The knowledge graph uses **n-ary hyperedges** to model complex movie relationships:
+
+```
+Collections:
+├── kg_movies      → Movie nodes (id, title, overview, embedding, etc.)
+├── kg_genres      → Genre nodes (id, name, movieCount)
+├── kg_keywords    → Keyword nodes (id, name, movieCount)
+├── kg_companies   → Production company nodes
+├── kg_countries   → Country nodes
+├── kg_languages   → Language nodes
+└── kg_edges       → Hyperedges (HAS_GENRE, HAS_KEYWORD, PRODUCED_BY, etc.)
+
+Example Hyperedge:
+{
+  "id": "HAS_GENRE:27205-action",
+  "type": "HAS_GENRE",
+  "movieId": "27205",        // Inception
+  "genreId": "action",
+  "primary": true
+}
+```
+
+### API Endpoints (Knowledge Graph)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/knowledge-graph/stats` | GET | Dashboard statistics |
+| `/api/v1/knowledge-graph/movies` | GET | Browse movies with filters |
+| `/api/v1/knowledge-graph/movies/:id` | GET | Get movie details |
+| `/api/v1/knowledge-graph/genres` | GET | List all genres |
+| `/api/v1/knowledge-graph/search/semantic` | GET | Semantic search with embeddings |
+| `/api/v1/knowledge-graph/feeds/netflix/:id` | POST | Generate Netflix IMF package |
+| `/api/v1/knowledge-graph/feeds/amazon/:id` | POST | Generate Amazon MEC feed |
+| `/api/v1/knowledge-graph/feeds/fast/:id` | POST | Generate FAST MRSS feed |
+| `/api/v1/knowledge-graph/ingest/start` | POST | Start data ingestion |
+| `/api/v1/knowledge-graph/data` | DELETE | Clear all data |
+| `/api/v1/knowledge-graph/diagnostics` | GET | Service connectivity check |
+
+### Technical Stack
+
+| Component | Technology |
+|-----------|------------|
+| **Frontend** | Alpine.js + Tailwind CSS (Netlify) |
+| **API** | Express.js + TypeScript (Cloud Run) |
+| **Database** | Firestore Native Mode |
+| **Embeddings** | Vertex AI `text-embedding-004` |
+| **Data Source** | GCS bucket (`gs://nexus-ummid-datasets/TMDB_movie_dataset_v11.csv`) |
+| **CI/CD** | Cloud Build → Artifact Registry → Cloud Run |
+
+### Quick Start (Knowledge Graph)
+
+```bash
+# 1. Open the Knowledge Graph Explorer
+open https://media-knowledge-graph-semanticsearch.netlify.app/knowledge-graph.html
+
+# 2. View dashboard stats
+curl https://nexus-ummid-api-181630922804.us-central1.run.app/api/v1/knowledge-graph/stats
+
+# 3. Semantic search (requires ingested data with embeddings)
+curl "https://nexus-ummid-api-181630922804.us-central1.run.app/api/v1/knowledge-graph/search/semantic?q=sci-fi%20space%20adventure"
+
+# 4. Browse movies
+curl "https://nexus-ummid-api-181630922804.us-central1.run.app/api/v1/knowledge-graph/movies?limit=10&sortBy=popularity"
+
+# 5. Generate Netflix IMF package for a movie
+curl -X POST "https://nexus-ummid-api-181630922804.us-central1.run.app/api/v1/knowledge-graph/feeds/netflix/27205"
+```
+
+### Data Ingestion
+
+The platform supports ingesting the full TMDB dataset (1.33M movies) with optional Vertex AI embeddings:
+
+1. **Navigate to** the "Ingest Data" tab in the UI
+2. **Select** the number of movies to ingest (100 to All)
+3. **Enable** "Generate Vertex AI Embeddings" for semantic search
+4. **Click** "Start Ingestion"
+
+Ingestion creates:
+- Movie nodes with metadata and optional 768-dimensional embeddings
+- Genre, keyword, company, country, and language nodes
+- Hyperedges linking movies to related entities
+
+---
+
 ### 📊 Success Metrics
 
 | Metric | Target | Current Status |
