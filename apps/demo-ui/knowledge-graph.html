@@ -127,6 +127,13 @@
                 >
                     🕸️ Visualize
                 </button>
+                <button
+                    @click="activeTab = 'about'"
+                    :class="activeTab === 'about' ? 'tab-active' : 'text-gray-400 hover:text-white'"
+                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap"
+                >
+                    ℹ️ About
+                </button>
             </div>
         </div>
     </nav>
@@ -949,6 +956,210 @@
                         </button>
                     </div>
                 </template>
+            </section>
+
+            <!-- ABOUT TAB -->
+            <section x-show="activeTab === 'about'" class="fade-in">
+                <!-- Header -->
+                <div class="text-center mb-8">
+                    <div class="inline-block px-4 py-1 bg-red-600/20 border border-red-500/30 rounded-full text-red-400 text-sm font-medium mb-4">
+                        TV5MONDE Hackathon 2024 - Media Distribution Track
+                    </div>
+                    <h2 class="text-3xl font-bold mb-2">Nexus-UMMID Knowledge Graph</h2>
+                    <p class="text-gray-400 max-w-2xl mx-auto">
+                        AI-powered metadata management and distribution pipeline for global content delivery across Netflix, Amazon, and FAST platforms.
+                    </p>
+                </div>
+
+                <!-- Core Technology Components -->
+                <div class="bg-gray-800/50 rounded-xl p-6 mb-6">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <span class="text-purple-400">🧠</span> Core Technology Stack
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-purple-600/10 border border-purple-500/30 rounded-lg p-4">
+                            <div class="text-2xl mb-2">🔗</div>
+                            <h4 class="font-bold text-purple-400">Hypergraph Architecture</h4>
+                            <p class="text-sm text-gray-400 mt-1">Movies, genres, actors, and companies connected through multi-dimensional relationships in Firestore</p>
+                        </div>
+                        <div class="bg-green-600/10 border border-green-500/30 rounded-lg p-4">
+                            <div class="text-2xl mb-2">🤖</div>
+                            <h4 class="font-bold text-green-400">Vertex AI Embeddings</h4>
+                            <p class="text-sm text-gray-400 mt-1">768-dimensional semantic vectors for intelligent content discovery and similarity matching</p>
+                        </div>
+                        <div class="bg-orange-600/10 border border-orange-500/30 rounded-lg p-4">
+                            <div class="text-2xl mb-2">📡</div>
+                            <h4 class="font-bold text-orange-400">Multi-Platform Distribution</h4>
+                            <p class="text-sm text-gray-400 mt-1">Automated validation and feed generation for Netflix IMF, Amazon MEC, and FAST MRSS standards</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- How It Works -->
+                <div class="bg-gray-800/50 rounded-xl p-6 mb-6">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <span class="text-blue-400">⚡</span> How It Works
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="text-center p-4 bg-blue-600/10 border border-blue-500/30 rounded-lg">
+                            <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 text-lg font-bold">1</div>
+                            <h4 class="font-medium mb-1">Ingest</h4>
+                            <p class="text-xs text-gray-400">Import metadata from TMDB dataset stored in GCS bucket</p>
+                        </div>
+                        <div class="text-center p-4 bg-purple-600/10 border border-purple-500/30 rounded-lg">
+                            <div class="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-3 text-lg font-bold">2</div>
+                            <h4 class="font-medium mb-1">Build Graph</h4>
+                            <p class="text-xs text-gray-400">Create nodes and edges connecting movies to genres, companies, countries</p>
+                        </div>
+                        <div class="text-center p-4 bg-green-600/10 border border-green-500/30 rounded-lg">
+                            <div class="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-3 text-lg font-bold">3</div>
+                            <h4 class="font-medium mb-1">AI Enrichment</h4>
+                            <p class="text-xs text-gray-400">Generate semantic embeddings via Vertex AI for intelligent search</p>
+                        </div>
+                        <div class="text-center p-4 bg-orange-600/10 border border-orange-500/30 rounded-lg">
+                            <div class="w-10 h-10 bg-orange-600 rounded-full flex items-center justify-center mx-auto mb-3 text-lg font-bold">4</div>
+                            <h4 class="font-medium mb-1">Distribute</h4>
+                            <p class="text-xs text-gray-400">Validate and export to Netflix, Amazon, and FAST platforms</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Metrics -->
+                <div class="bg-gray-800/50 rounded-xl p-6 mb-6">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <span class="text-yellow-400">📊</span> Live System Metrics
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        <div class="bg-gray-700/50 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-blue-400" x-text="stats.totalMovies.toLocaleString()">0</div>
+                            <div class="text-xs text-gray-400">Movies Indexed</div>
+                        </div>
+                        <div class="bg-gray-700/50 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-yellow-400" x-text="stats.totalGenres">0</div>
+                            <div class="text-xs text-gray-400">Genre Categories</div>
+                        </div>
+                        <div class="bg-gray-700/50 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-purple-400">768</div>
+                            <div class="text-xs text-gray-400">Vector Dimensions</div>
+                        </div>
+                        <div class="bg-gray-700/50 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-green-400" x-text="stats.netflixReady">0</div>
+                            <div class="text-xs text-gray-400">Netflix Ready</div>
+                        </div>
+                        <div class="bg-gray-700/50 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-cyan-400" x-text="stats.amazonReady">0</div>
+                            <div class="text-xs text-gray-400">Amazon Ready</div>
+                        </div>
+                        <div class="bg-gray-700/50 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-orange-400" x-text="stats.fastReady">0</div>
+                            <div class="text-xs text-gray-400">FAST Ready</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Platform Distribution Standards -->
+                <div class="bg-gray-800/50 rounded-xl p-6 mb-6">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <span class="text-red-400">🎯</span> Distribution Platform Standards
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-red-600/10 border border-red-500/30 rounded-lg p-4">
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="text-2xl">🎬</span>
+                                <h4 class="font-bold text-red-400">Netflix IMF</h4>
+                            </div>
+                            <ul class="text-sm text-gray-400 space-y-1">
+                                <li>• Interoperable Master Format</li>
+                                <li>• 50+ character synopsis required</li>
+                                <li>• Runtime validation</li>
+                                <li>• Release date metadata</li>
+                                <li>• 4K/HDR specifications</li>
+                            </ul>
+                        </div>
+                        <div class="bg-blue-600/10 border border-blue-500/30 rounded-lg p-4">
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="text-2xl">📦</span>
+                                <h4 class="font-bold text-blue-400">Amazon MEC</h4>
+                            </div>
+                            <ul class="text-sm text-gray-400 space-y-1">
+                                <li>• Media Exchange Container</li>
+                                <li>• Title and synopsis validation</li>
+                                <li>• Genre classification</li>
+                                <li>• Runtime requirements</li>
+                                <li>• XML/JSON manifest</li>
+                            </ul>
+                        </div>
+                        <div class="bg-green-600/10 border border-green-500/30 rounded-lg p-4">
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="text-2xl">📺</span>
+                                <h4 class="font-bold text-green-400">FAST MRSS</h4>
+                            </div>
+                            <ul class="text-sm text-gray-400 space-y-1">
+                                <li>• Media RSS Feed Standard</li>
+                                <li>• Pluto TV / Tubi compatible</li>
+                                <li>• Thumbnail requirements</li>
+                                <li>• Duration metadata</li>
+                                <li>• Real-time feed updates</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Architecture -->
+                <div class="bg-gray-800/50 rounded-xl p-6 mb-6">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <span class="text-cyan-400">🏗️</span> System Architecture
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-medium text-gray-300 mb-3">Backend Services</h4>
+                            <ul class="text-sm text-gray-400 space-y-2">
+                                <li class="flex items-center gap-2">
+                                    <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                    Cloud Run API (Node.js/TypeScript)
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <span class="w-2 h-2 bg-orange-500 rounded-full"></span>
+                                    Firestore (Knowledge Graph Storage)
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                                    Vertex AI (Embedding Generation)
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <span class="w-2 h-2 bg-purple-500 rounded-full"></span>
+                                    Cloud Storage (Dataset Source)
+                                </li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-gray-300 mb-3">Frontend Stack</h4>
+                            <ul class="text-sm text-gray-400 space-y-2">
+                                <li class="flex items-center gap-2">
+                                    <span class="w-2 h-2 bg-cyan-500 rounded-full"></span>
+                                    Alpine.js (Reactive UI)
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <span class="w-2 h-2 bg-teal-500 rounded-full"></span>
+                                    Tailwind CSS (Styling)
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <span class="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                                    vis.js Network (Graph Visualization)
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <span class="w-2 h-2 bg-pink-500 rounded-full"></span>
+                                    Cloud Storage (Static Hosting)
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="text-center text-gray-500 text-sm">
+                    <p>Built for TV5MONDE Hackathon 2024 | Powered by Google Cloud Platform</p>
+                </div>
             </section>
         </div>
     </main>
