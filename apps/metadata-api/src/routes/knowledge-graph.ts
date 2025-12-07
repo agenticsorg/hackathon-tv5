@@ -776,15 +776,23 @@ router.post('/ingest/test-one', async (_req: Request, res: Response): Promise<vo
 
     // Try storing movie directly
     try {
-      const movieRef = db.collection('kg_movies').doc(processed.movie.id);
-      await movieRef.set(processed.movie, { merge: true });
-      logger.info('Test ingestion - movie stored', { id: processed.movie.id });
+      const movieData = JSON.parse(JSON.stringify(processed.movie)); // Clean copy to see actual data
+      logger.info('Test ingestion - movie data to store', { movieData });
+
+      const movieRef = db.collection('kg_movies').doc(String(processed.movie.id));
+      const writeResult = await movieRef.set(movieData);
+      logger.info('Test ingestion - movie stored', { id: processed.movie.id, writeTime: writeResult.writeTime });
+
+      // Immediate verification
+      const immediateCheck = await movieRef.get();
+      logger.info('Test ingestion - immediate check', { exists: immediateCheck.exists });
     } catch (movieError) {
       logger.error('Test ingestion - movie store failed', { error: movieError });
       res.status(500).json({
         error: 'Movie store failed',
         details: movieError instanceof Error ? movieError.message : 'Unknown',
         movie: { id: processed.movie.id, title: processed.movie.title },
+        movieData: processed.movie,
       });
       return;
     }
@@ -818,9 +826,17 @@ router.post('/ingest/test-one', async (_req: Request, res: Response): Promise<vo
       processed: {
         movieId: processed.movie.id,
         movieTitle: processed.movie.title,
+        movieIdType: typeof processed.movie.id,
         genreCount: processed.genres.length,
         genres: processed.genres.map(g => g.name),
         edgeCount: processed.edges.length,
+      },
+      movieDataSample: {
+        id: processed.movie.id,
+        type: processed.movie.type,
+        title: processed.movie.title,
+        hasEmbedding: !!processed.movie.embedding,
+        fieldCount: Object.keys(processed.movie).length,
       },
       verification: {
         movieExists: verifySnap.exists,
