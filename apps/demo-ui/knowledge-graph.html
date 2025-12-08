@@ -978,131 +978,389 @@
             </section>
 
             <!-- WIDER TEAM OUTPUT TAB -->
-            <section x-show="activeTab === 'team'" class="fade-in">
-                <div class="text-center mb-8">
-                    <h2 class="text-3xl font-bold mb-2">
-                        👥 <span class="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Wider Team Output</span>
+            <section x-show="activeTab === 'team'" class="fade-in" x-data="{ expandedImage: null }">
+                <!-- Investment Hero Header -->
+                <div class="text-center mb-10">
+                    <div class="inline-block px-4 py-1 bg-gradient-to-r from-amber-600/30 to-yellow-600/30 border border-amber-500/50 rounded-full text-amber-300 text-sm font-medium mb-4">
+                        🚀 Investment Opportunity — AI-Powered Media Intelligence Platform
+                    </div>
+                    <h2 class="text-4xl font-bold mb-4">
+                        <span class="bg-gradient-to-r from-amber-400 via-orange-400 to-red-500 bg-clip-text text-transparent">The Future of Media Discovery & Distribution</span>
                     </h2>
-                    <p class="text-gray-400 max-w-3xl mx-auto">
-                        During the hackathon, the participating members of the London Chapter team explored and demonstrated value across various parts of the media discoverability, monetisation, experience and consumption value chain.
+                    <p class="text-xl text-gray-300 max-w-4xl mx-auto mb-6">
+                        A unified platform addressing the <strong class="text-amber-300">$2.4 billion</strong> media metadata crisis through AI-powered discovery, recommendation, and distribution.
                     </p>
+                    <div class="flex flex-wrap justify-center gap-4 mb-6">
+                        <div class="px-6 py-3 bg-green-600/20 border border-green-500/50 rounded-xl">
+                            <div class="text-2xl font-bold text-green-400">40%</div>
+                            <div class="text-xs text-gray-400">Revenue Recovery</div>
+                        </div>
+                        <div class="px-6 py-3 bg-blue-600/20 border border-blue-500/50 rounded-xl">
+                            <div class="text-2xl font-bold text-blue-400">316K QPS</div>
+                            <div class="text-xs text-gray-400">Query Throughput</div>
+                        </div>
+                        <div class="px-6 py-3 bg-purple-600/20 border border-purple-500/50 rounded-xl">
+                            <div class="text-2xl font-bold text-purple-400">&lt;1ms</div>
+                            <div class="text-xs text-gray-400">Latency</div>
+                        </div>
+                        <div class="px-6 py-3 bg-cyan-600/20 border border-cyan-500/50 rounded-xl">
+                            <div class="text-2xl font-bold text-cyan-400">12 sec</div>
+                            <div class="text-xs text-gray-400">User Profiling</div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Team Projects Grid -->
-                <div class="space-y-6">
+                <!-- Platform Vision Banner -->
+                <div class="bg-gradient-to-r from-indigo-900/40 via-purple-900/40 to-pink-900/40 border border-purple-500/30 rounded-2xl p-8 mb-10">
+                    <div class="text-center mb-6">
+                        <h3 class="text-2xl font-bold text-white mb-2">🎯 Integrated Platform Vision</h3>
+                        <p class="text-gray-300 max-w-3xl mx-auto">
+                            Five interconnected AI modules working together to revolutionize how content is discovered, recommended, experienced, and distributed globally.
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap justify-center items-center gap-4 text-sm">
+                        <div class="px-4 py-2 bg-cyan-600/30 border border-cyan-500/50 rounded-lg text-cyan-300">
+                            👁️ Visual Preference Capture
+                        </div>
+                        <div class="text-purple-400 text-xl">→</div>
+                        <div class="px-4 py-2 bg-purple-600/30 border border-purple-500/50 rounded-lg text-purple-300">
+                            🤖 AI Viewing Companion
+                        </div>
+                        <div class="text-purple-400 text-xl">→</div>
+                        <div class="px-4 py-2 bg-orange-600/30 border border-orange-500/50 rounded-lg text-orange-300">
+                            🧠 Semantic Recommendation
+                        </div>
+                        <div class="text-purple-400 text-xl">→</div>
+                        <div class="px-4 py-2 bg-green-600/30 border border-green-500/50 rounded-lg text-green-300">
+                            🔗 Hybrid AI Engine
+                        </div>
+                        <div class="text-purple-400 text-xl">→</div>
+                        <div class="px-4 py-2 bg-pink-600/30 border border-pink-500/50 rounded-lg text-pink-300">
+                            📡 Global Distribution
+                        </div>
+                    </div>
+                </div>
 
-                    <!-- Project 1: User Preferences -->
-                    <div class="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
-                        <div class="flex flex-col lg:flex-row gap-6">
-                            <div class="lg:w-1/3">
-                                <div class="aspect-video bg-gray-900 rounded-lg overflow-hidden">
-                                    <iframe
-                                        src="https://drive.google.com/file/d/1G7MJWRcwoqTjl_mtP82e9eAW5r9f9cFU/preview"
-                                        class="w-full h-full"
-                                        allow="autoplay"
-                                        allowfullscreen
-                                    ></iframe>
-                                </div>
-                            </div>
-                            <div class="lg:w-2/3">
-                                <h3 class="text-xl font-bold mb-2 text-cyan-400">1. Capturing User Preferences in Under 12 Seconds</h3>
-                                <p class="text-gray-300 mb-4">
-                                    A rapid preference capture system that can understand user tastes in just 12 seconds, enabling instant personalization.
-                                </p>
-                                <div class="flex flex-wrap gap-3">
-                                    <a href="https://agentics-hackathon.netlify.app/" target="_blank" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm transition-colors">
-                                        🚀 Try Live Demo
-                                    </a>
-                                    <a href="https://www.linkedin.com/in/bencecsernak/" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors">
-                                        👤 Bence Csernak
-                                    </a>
+                <!-- Module 1: Bence - Visual Preference Capture -->
+                <div class="bg-gray-800/50 rounded-2xl p-6 border border-cyan-500/30 mb-6 hover:border-cyan-400/50 transition-all">
+                    <div class="flex flex-col xl:flex-row gap-6">
+                        <div class="xl:w-3/5">
+                            <div
+                                class="relative rounded-xl overflow-hidden cursor-pointer group"
+                                @click="expandedImage = '../../mondweep/images/Bence.png'"
+                            >
+                                <img
+                                    src="../../mondweep/images/Bence.png"
+                                    alt="AI-Powered Media Discovery Infographic"
+                                    class="w-full h-auto rounded-xl shadow-2xl transition-transform group-hover:scale-[1.02]"
+                                />
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
+                                    <span class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-white text-sm">🔍 Click to expand</span>
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Project 2: AI Assistant -->
-                    <div class="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
-                        <h3 class="text-xl font-bold mb-2 text-purple-400">2. Always-On AI Assistant for Viewing Experience</h3>
-                        <p class="text-gray-300 mb-4">
-                            An always-on AI assistant that sees what you see and interacts with you during your viewing experience, providing contextual information and enhancing engagement.
-                        </p>
-                        <a href="https://www.linkedin.com/in/lorraine-david/" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors inline-block">
-                            👤 Lorraine David
-                        </a>
-                    </div>
-
-                    <!-- Project 3: Semantic Recommender -->
-                    <div class="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
-                        <h3 class="text-xl font-bold mb-2 text-orange-400">3. High-Performance Semantic Recommender System</h3>
-                        <p class="text-gray-300 mb-4">
-                            A semantic recommender system capable of responding to <strong class="text-orange-300">316,000 queries per second</strong> to semantically find your next favourite movie — all retrievals with a latency of <strong class="text-orange-300">less than 1 ms</strong>.
-                        </p>
-                        <a href="https://www.linkedin.com/in/jjohare/" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors inline-block">
-                            👤 Dr John O'Hare
-                        </a>
-                    </div>
-
-                    <!-- Project 4: Hybrid AI Recommendations -->
-                    <div class="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
-                        <h3 class="text-xl font-bold mb-2 text-green-400">4. Smarter Film Recommendations with Hybrid AI</h3>
-                        <p class="text-gray-300 mb-4">
-                            Low latency, low cost CPU-powered recommendations solving the <strong class="text-green-300">'cold start problem'</strong> with hypergraph signals providing recommendations even with sparse user data.
-                        </p>
-                        <a href="https://www.linkedin.com/in/yegor-pomazunov/" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors inline-block">
-                            👤 Yegor Pomazunov
-                        </a>
-                    </div>
-
-                    <!-- Project 5: UMMID Platform -->
-                    <div class="bg-gray-800/50 rounded-xl p-6 border border-purple-500/50 bg-gradient-to-r from-purple-900/20 to-indigo-900/20">
-                        <h3 class="text-xl font-bold mb-2 text-purple-400">5. Unified Movie Metadata Ingestion & Distribution Platform (UMMID)</h3>
-                        <p class="text-gray-300 mb-4">
-                            Solving the global media metadata distribution crisis and the last mile challenge for <strong class="text-purple-300">10x faster content discovery</strong> and preventing <strong class="text-purple-300">40% revenue loss</strong> caused by inadequate metadata management across distribution channels.
-                        </p>
-                        <div class="flex flex-wrap gap-3">
-                            <span class="px-3 py-1 bg-purple-600/30 border border-purple-500/50 rounded-full text-sm text-purple-300">📍 You are here</span>
-                            <a href="https://www.linkedin.com/in/mondweepchakravorty/" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors inline-block">
-                                👤 Mondweep Chakravorty
-                            </a>
+                        <div class="xl:w-2/5 flex flex-col justify-center">
+                            <div class="inline-block px-3 py-1 bg-cyan-600/30 border border-cyan-500/50 rounded-full text-cyan-300 text-xs font-medium mb-3 w-fit">
+                                MODULE 1 — User Onboarding
+                            </div>
+                            <h3 class="text-2xl font-bold mb-3 text-cyan-400">AI-Powered Media Discovery</h3>
+                            <p class="text-gray-300 mb-4 leading-relaxed">
+                                <strong class="text-white">No more endless scrolling.</strong> Users select images that catch their eye, and AI analyzes behavior in real-time — clicks, hovers, and interaction patterns — to understand preferences in just <strong class="text-cyan-300">12 seconds</strong>.
+                            </p>
+                            <ul class="text-sm text-gray-400 space-y-2 mb-4">
+                                <li class="flex items-center gap-2"><span class="text-cyan-400">✓</span> Visual-first preference capture</li>
+                                <li class="flex items-center gap-2"><span class="text-cyan-400">✓</span> Real-time behavioral AI analysis</li>
+                                <li class="flex items-center gap-2"><span class="text-cyan-400">✓</span> Instant personalization without questionnaires</li>
+                            </ul>
+                            <div class="flex flex-wrap gap-3">
+                                <a href="https://agentics-hackathon.netlify.app/" target="_blank" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm transition-colors">
+                                    🚀 Try Live Demo
+                                </a>
+                                <a href="https://www.linkedin.com/in/bencecsernak/" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors">
+                                    👤 Bence Csernak
+                                </a>
+                            </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Project 6: Agent Ready Web -->
-                    <div class="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
-                        <h3 class="text-xl font-bold mb-2 text-red-400">6. Agent Ready Web (ARW)</h3>
-                        <p class="text-gray-300 mb-4">
-                            Infrastructure for efficient agent-web interaction with <strong class="text-red-300">85% token reduction</strong> for 10x faster discovery of content, full observability of agent traffic, and safe agent commercial transactions to monetise content safely and efficiently.
-                        </p>
-                        <a href="https://github.com/nolandubeau/hackathon-tv5" target="_blank" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition-colors inline-block">
-                            🔗 Nolan Dubeau (GitHub)
-                        </a>
+                <!-- Module 2: Lorraine - AI Viewing Companion -->
+                <div class="bg-gray-800/50 rounded-2xl p-6 border border-purple-500/30 mb-6 hover:border-purple-400/50 transition-all">
+                    <div class="flex flex-col xl:flex-row-reverse gap-6">
+                        <div class="xl:w-3/5">
+                            <div
+                                class="relative rounded-xl overflow-hidden cursor-pointer group"
+                                @click="expandedImage = '../../mondweep/images/AI-Viewer-Companion.png'"
+                            >
+                                <img
+                                    src="../../mondweep/images/AI-Viewer-Companion.png"
+                                    alt="AI-Powered Streaming Experience Infographic"
+                                    class="w-full h-auto rounded-xl shadow-2xl transition-transform group-hover:scale-[1.02]"
+                                />
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
+                                    <span class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-white text-sm">🔍 Click to expand</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="xl:w-2/5 flex flex-col justify-center">
+                            <div class="inline-block px-3 py-1 bg-purple-600/30 border border-purple-500/50 rounded-full text-purple-300 text-xs font-medium mb-3 w-fit">
+                                MODULE 2 — Viewing Experience
+                            </div>
+                            <h3 class="text-2xl font-bold mb-3 text-purple-400">Always-On AI Viewing Companion</h3>
+                            <p class="text-gray-300 mb-4 leading-relaxed">
+                                <strong class="text-white">An AI that sees, hears, and understands.</strong> The companion streams video frames to Gemini at 1fps, captures voice via Web Audio API, and provides deep narrative context about every film.
+                            </p>
+                            <ul class="text-sm text-gray-400 space-y-2 mb-4">
+                                <li class="flex items-center gap-2"><span class="text-purple-400">✓</span> Visual awareness with real-time frame analysis</li>
+                                <li class="flex items-center gap-2"><span class="text-purple-400">✓</span> Low-latency voice interaction</li>
+                                <li class="flex items-center gap-2"><span class="text-purple-400">✓</span> Deep narrative context and Q&A</li>
+                            </ul>
+                            <div class="flex flex-wrap gap-3">
+                                <a href="https://www.linkedin.com/in/lorraine-david/" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors">
+                                    👤 Lorraine David
+                                </a>
+                            </div>
+                        </div>
                     </div>
+                </div>
 
+                <!-- Module 3: John - Semantic Recommender -->
+                <div class="bg-gray-800/50 rounded-2xl p-6 border border-orange-500/30 mb-6 hover:border-orange-400/50 transition-all">
+                    <div class="flex flex-col xl:flex-row gap-6">
+                        <div class="xl:w-3/5">
+                            <div
+                                class="relative rounded-xl overflow-hidden cursor-pointer group"
+                                @click="expandedImage = '../../mondweep/images/JohnOHare.jpeg'"
+                            >
+                                <img
+                                    src="../../mondweep/images/JohnOHare.jpeg"
+                                    alt="Semantic Recommender System Infographic"
+                                    class="w-full h-auto rounded-xl shadow-2xl transition-transform group-hover:scale-[1.02]"
+                                />
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
+                                    <span class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-white text-sm">🔍 Click to expand</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="xl:w-2/5 flex flex-col justify-center">
+                            <div class="inline-block px-3 py-1 bg-orange-600/30 border border-orange-500/50 rounded-full text-orange-300 text-xs font-medium mb-3 w-fit">
+                                MODULE 3 — Recommendation Engine
+                            </div>
+                            <h3 class="text-2xl font-bold mb-3 text-orange-400">High-Performance Semantic Recommender</h3>
+                            <p class="text-gray-300 mb-4 leading-relaxed">
+                                <strong class="text-white">Understanding meaning, not just keywords.</strong> A hybrid brain combining semantic analysis with knowledge graph connections, powered by GPU turbo-charge to scan millions of movies instantly.
+                            </p>
+                            <ul class="text-sm text-gray-400 space-y-2 mb-4">
+                                <li class="flex items-center gap-2"><span class="text-orange-400">✓</span> <strong class="text-orange-300">316,000 queries/second</strong> throughput</li>
+                                <li class="flex items-center gap-2"><span class="text-orange-400">✓</span> <strong class="text-orange-300">&lt;1ms latency</strong> for all retrievals</li>
+                                <li class="flex items-center gap-2"><span class="text-orange-400">✓</span> Understands vibe, theme, and mood</li>
+                            </ul>
+                            <div class="flex flex-wrap gap-3">
+                                <a href="https://www.linkedin.com/in/jjohare/" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors">
+                                    👤 Dr John O'Hare
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Module 4: Yegor - Hybrid AI -->
+                <div class="bg-gray-800/50 rounded-2xl p-6 border border-green-500/30 mb-6 hover:border-green-400/50 transition-all">
+                    <div class="flex flex-col xl:flex-row-reverse gap-6">
+                        <div class="xl:w-3/5">
+                            <div
+                                class="relative rounded-xl overflow-hidden cursor-pointer group"
+                                @click="expandedImage = '../../mondweep/images/Yegor.png'"
+                            >
+                                <img
+                                    src="../../mondweep/images/Yegor.png"
+                                    alt="CR-HyperVR Hybrid AI Infographic"
+                                    class="w-full h-auto rounded-xl shadow-2xl transition-transform group-hover:scale-[1.02]"
+                                />
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
+                                    <span class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-white text-sm">🔍 Click to expand</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="xl:w-2/5 flex flex-col justify-center">
+                            <div class="inline-block px-3 py-1 bg-green-600/30 border border-green-500/50 rounded-full text-green-300 text-xs font-medium mb-3 w-fit">
+                                MODULE 4 — Hybrid Intelligence
+                            </div>
+                            <h3 class="text-2xl font-bold mb-3 text-green-400">CR-HyperVR: Smarter Film Recommendations</h3>
+                            <p class="text-gray-300 mb-4 leading-relaxed">
+                                <strong class="text-white">Solving the cold-start problem.</strong> A hybrid recommender blending semantic search with hypergraph signals, using an optimized ONNX model that runs on CPU — no expensive GPUs required.
+                            </p>
+                            <ul class="text-sm text-gray-400 space-y-2 mb-4">
+                                <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Low latency & cost on CPU</li>
+                                <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Works even with sparse user data</li>
+                                <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Score fusion & ranking for perfect results</li>
+                            </ul>
+                            <div class="flex flex-wrap gap-3">
+                                <a href="https://www.linkedin.com/in/yegor-pomazunov/" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors">
+                                    👤 Yegor Pomazunov
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Module 5: Mondweep - Global Distribution -->
+                <div class="bg-gradient-to-r from-pink-900/30 via-purple-900/30 to-indigo-900/30 rounded-2xl p-6 border-2 border-pink-500/50 mb-6 hover:border-pink-400/70 transition-all relative overflow-hidden">
+                    <div class="absolute top-4 right-4 px-3 py-1 bg-pink-600/50 border border-pink-400/50 rounded-full text-pink-200 text-xs font-bold animate-pulse">
+                        📍 YOU ARE HERE
+                    </div>
+                    <div class="flex flex-col xl:flex-row gap-6">
+                        <div class="xl:w-3/5">
+                            <div
+                                class="relative rounded-xl overflow-hidden cursor-pointer group"
+                                @click="expandedImage = '../../mondweep/images/metadata-distribution.png'"
+                            >
+                                <img
+                                    src="../../mondweep/images/metadata-distribution.png"
+                                    alt="Unifying Global Media Distribution Infographic"
+                                    class="w-full h-auto rounded-xl shadow-2xl transition-transform group-hover:scale-[1.02]"
+                                />
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
+                                    <span class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-white text-sm">🔍 Click to expand</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="xl:w-2/5 flex flex-col justify-center">
+                            <div class="inline-block px-3 py-1 bg-pink-600/30 border border-pink-500/50 rounded-full text-pink-300 text-xs font-medium mb-3 w-fit">
+                                MODULE 5 — Global Distribution
+                            </div>
+                            <h3 class="text-2xl font-bold mb-3 text-pink-400">UMMID: Unifying Global Media Distribution</h3>
+                            <p class="text-gray-300 mb-4 leading-relaxed">
+                                <strong class="text-white">Solving the $2.4B metadata crisis.</strong> An AI-powered knowledge graph that ingests, enriches, and distributes compliant metadata feeds to Netflix (IMF), Amazon (MEC), and FAST channels (MRSS).
+                            </p>
+                            <ul class="text-sm text-gray-400 space-y-2 mb-4">
+                                <li class="flex items-center gap-2"><span class="text-pink-400">✓</span> Prevents <strong class="text-pink-300">40% revenue loss</strong> from metadata failures</li>
+                                <li class="flex items-center gap-2"><span class="text-pink-400">✓</span> <strong class="text-pink-300">10x faster</strong> semantic content discovery</li>
+                                <li class="flex items-center gap-2"><span class="text-pink-400">✓</span> <strong class="text-pink-300">85% reduction</strong> in data processing costs</li>
+                            </ul>
+                            <div class="flex flex-wrap gap-3">
+                                <a href="https://www.linkedin.com/in/mondweepchakravorty/" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors">
+                                    👤 Mondweep Chakravorty
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Team Project: Nolan - ARW -->
+                <div class="bg-gray-800/50 rounded-2xl p-6 border border-red-500/30 mb-6 hover:border-red-400/50 transition-all">
+                    <div class="flex flex-col lg:flex-row gap-6">
+                        <div class="lg:w-1/3">
+                            <div class="aspect-video bg-gradient-to-br from-red-900/50 to-orange-900/50 rounded-xl flex items-center justify-center border border-red-500/30">
+                                <div class="text-center p-6">
+                                    <div class="text-6xl mb-4">🌐</div>
+                                    <div class="text-xl font-bold text-red-400">Agent Ready Web</div>
+                                    <div class="text-sm text-gray-400 mt-2">Infrastructure for AI Agents</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="lg:w-2/3 flex flex-col justify-center">
+                            <div class="inline-block px-3 py-1 bg-red-600/30 border border-red-500/50 rounded-full text-red-300 text-xs font-medium mb-3 w-fit">
+                                MODULE 6 — Agent Infrastructure
+                            </div>
+                            <h3 class="text-2xl font-bold mb-3 text-red-400">Agent Ready Web (ARW)</h3>
+                            <p class="text-gray-300 mb-4 leading-relaxed">
+                                <strong class="text-white">Infrastructure for the AI agent economy.</strong> Enabling efficient agent-web interaction with <strong class="text-red-300">85% token reduction</strong>, full observability of agent traffic, and safe commercial transactions.
+                            </p>
+                            <ul class="text-sm text-gray-400 space-y-2 mb-4">
+                                <li class="flex items-center gap-2"><span class="text-red-400">✓</span> 10x faster content discovery for AI agents</li>
+                                <li class="flex items-center gap-2"><span class="text-red-400">✓</span> Full agent traffic observability</li>
+                                <li class="flex items-center gap-2"><span class="text-red-400">✓</span> Safe agent commercial transactions</li>
+                            </ul>
+                            <div class="flex flex-wrap gap-3">
+                                <a href="https://github.com/ARC-Solutions/arc-viewer" target="_blank" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition-colors">
+                                    🔗 GitHub Repository
+                                </a>
+                                <a href="https://github.com/nolandubeau/hackathon-tv5" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors">
+                                    👤 Nolan Dubeau
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Investment CTA -->
+                <div class="bg-gradient-to-r from-amber-900/40 via-orange-900/40 to-red-900/40 border-2 border-amber-500/50 rounded-2xl p-8 mb-8">
+                    <div class="text-center">
+                        <h3 class="text-2xl font-bold text-white mb-4">🎬 Ready to Transform Media Discovery?</h3>
+                        <p class="text-gray-300 max-w-2xl mx-auto mb-6">
+                            Our integrated platform combines AI-powered preference capture, intelligent viewing companions, high-performance recommendations, and global distribution — all built by industry experts passionate about solving real problems.
+                        </p>
+                        <div class="flex flex-wrap justify-center gap-4">
+                            <div class="px-6 py-4 bg-black/30 rounded-xl border border-amber-500/30">
+                                <div class="text-3xl font-bold text-amber-400">$160K+</div>
+                                <div class="text-sm text-gray-400">Annual Revenue Increase per 1M Users</div>
+                            </div>
+                            <div class="px-6 py-4 bg-black/30 rounded-xl border border-green-500/30">
+                                <div class="text-3xl font-bold text-green-400">40%</div>
+                                <div class="text-sm text-gray-400">Revenue Loss Prevention</div>
+                            </div>
+                            <div class="px-6 py-4 bg-black/30 rounded-xl border border-blue-500/30">
+                                <div class="text-3xl font-bold text-blue-400">85%</div>
+                                <div class="text-sm text-gray-400">Cost Reduction</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Team Members -->
-                <div class="mt-8 bg-gray-800/30 rounded-xl p-6 border border-gray-700">
-                    <h3 class="text-lg font-bold mb-4 text-center">🏆 London Chapter Team</h3>
+                <div class="bg-gray-800/30 rounded-2xl p-6 border border-gray-700">
+                    <h3 class="text-lg font-bold mb-4 text-center">🏆 London Chapter Team — TV5MONDE Agentics Foundation</h3>
                     <div class="flex flex-wrap justify-center gap-3">
-                        <a href="https://www.linkedin.com/in/imad-ez-zejjari-data-scientist/" target="_blank" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">
-                            Imad Ezzejajari
-                        </a>
-                        <a href="https://www.linkedin.com/in/yegor-pomazunov/" target="_blank" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">
-                            Yegor Pomazunov
-                        </a>
-                        <a href="https://www.linkedin.com/in/lorraine-david/" target="_blank" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">
-                            Lorraine David
+                        <a href="https://www.linkedin.com/in/mondweepchakravorty/" target="_blank" class="px-4 py-2 bg-gradient-to-r from-pink-600/50 to-purple-600/50 hover:from-pink-600 hover:to-purple-600 rounded-full text-sm transition-all border border-pink-500/50">
+                            Mondweep Chakravorty
                         </a>
                         <a href="https://www.linkedin.com/in/bencecsernak/" target="_blank" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">
                             Bence Csernak
                         </a>
+                        <a href="https://www.linkedin.com/in/lorraine-david/" target="_blank" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">
+                            Lorraine David
+                        </a>
+                        <a href="https://www.linkedin.com/in/jjohare/" target="_blank" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">
+                            Dr John O'Hare
+                        </a>
+                        <a href="https://www.linkedin.com/in/yegor-pomazunov/" target="_blank" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">
+                            Yegor Pomazunov
+                        </a>
                         <a href="https://github.com/nolandubeau/hackathon-tv5" target="_blank" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">
                             Nolan Dubeau
                         </a>
-                        <a href="https://www.linkedin.com/in/mondweepchakravorty/" target="_blank" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">
-                            Mondweep Chakravorty
+                        <a href="https://www.linkedin.com/in/imad-ez-zejjari-data-scientist/" target="_blank" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">
+                            Imad Ezzejajari
                         </a>
+                    </div>
+                </div>
+
+                <!-- Image Modal -->
+                <div
+                    x-show="expandedImage"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0"
+                    x-transition:enter-end="opacity-100"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0"
+                    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm"
+                    @click.self="expandedImage = null"
+                    @keydown.escape.window="expandedImage = null"
+                >
+                    <div class="relative max-w-7xl max-h-[90vh] w-full">
+                        <button
+                            @click="expandedImage = null"
+                            class="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors"
+                        >
+                            <span class="text-lg">✕ Close</span>
+                        </button>
+                        <img
+                            :src="expandedImage"
+                            class="w-full h-auto max-h-[90vh] object-contain rounded-xl shadow-2xl"
+                            alt="Expanded infographic"
+                        />
                     </div>
                 </div>
             </section>
