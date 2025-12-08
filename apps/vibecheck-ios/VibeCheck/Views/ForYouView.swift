@@ -201,17 +201,19 @@ struct ForYouView: View {
             steps: healthManager.stepsToday
         )
 
-        withAnimation(.spring) {
-            currentMood = context.mood
-            vibeContext = context
+        await MainActor.run {
+            withAnimation(.spring) {
+                currentMood = context.mood
+                vibeContext = context
+            }
+
+            logMood(context.mood)
+            refreshRecommendations()
         }
 
-        logMood(context.mood)
-        refreshRecommendations()
-        
-        // SYNC: Publish my vibe and fetch family
-        publishVibeToCloud(mood: context.mood)
-        fetchFamilyVibes()
+        // SYNC: Publish my vibe and fetch family (disabled for now - CloudKit may crash on iOS 26 beta)
+        // publishVibeToCloud(mood: context.mood)
+        // fetchFamilyVibes()
     }
     
     private func publishVibeToCloud(mood: MoodState) {
@@ -250,8 +252,18 @@ struct ForYouView: View {
     }
 
     private func refreshRecommendations() {
-        guard let context = vibeContext else { return }
-        
+        guard let context = vibeContext else {
+            // Use default mood if vibeContext isn't set yet
+            let defaultContext = VibeContext(
+                keywords: ["balanced", "popular"],
+                explanation: "your balanced stats",
+                mood: currentMood ?? .default
+            )
+            let preferences = UserPreferences.default
+            engine.refresh(context: defaultContext, preferences: preferences)
+            return
+        }
+
         let preferences = UserPreferences.default
         engine.refresh(context: context, preferences: preferences)
     }

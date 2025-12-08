@@ -44,7 +44,6 @@ struct VibeRing: View {
             VStack(spacing: 4) {
                 Image(systemName: mood.moodIcon)
                     .font(.system(size: 36, weight: .medium))
-                    .symbolEffect(.bounce, value: mood.recommendationHint)
                     .symbolRenderingMode(.hierarchical)
                     .foregroundStyle(energyGradient)
 
@@ -71,7 +70,7 @@ struct VibeRing: View {
                 animateRing = true
             }
         }
-        .sensoryFeedback(.impact(flexibility: .soft), trigger: mood.recommendationHint)
+        // Removed sensoryFeedback - may have issues on iOS 26 beta
     }
 
     private var energyGradient: LinearGradient {

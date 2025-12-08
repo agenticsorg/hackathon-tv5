@@ -97,6 +97,15 @@ struct SettingsView: View {
                     }
                 }
 
+                // Developer
+                Section("Developer") {
+                    NavigationLink {
+                        BenchmarkView()
+                    } label: {
+                        Label("Performance Benchmark", systemImage: "speedometer")
+                    }
+                }
+
                 // About
                 Section("About") {
                     HStack {

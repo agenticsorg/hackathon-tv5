@@ -30,6 +30,7 @@
 		00000018 /* CloudKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000018 /* CloudKitManager.swift */; };
 		00000016 /* SommelierAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000016 /* SommelierAgent.swift */; };
 		00000017 /* ARWService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000017 /* ARWService.swift */; };
+		00000019 /* BenchmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000019 /* BenchmarkView.swift */; };
 		00000020 /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 10000020 /* HealthKit.framework */; };
 /* End PBXBuildFile section */
 
@@ -57,6 +58,7 @@
 		10000018 /* CloudKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitManager.swift; sourceTree = "<group>"; };
 		10000016 /* SommelierAgent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SommelierAgent.swift; sourceTree = "<group>"; };
 		10000017 /* ARWService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARWService.swift; sourceTree = "<group>"; };
+		10000019 /* BenchmarkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkView.swift; sourceTree = "<group>"; };
 		10000013 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		10000020 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
 		10000100 /* VibeCheck.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VibeCheck.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -145,6 +147,7 @@
 				1000000A /* VibeCheckView.swift */,
 				1000000B /* WatchlistView.swift */,
 				1000000C /* SettingsView.swift */,
+				10000019 /* BenchmarkView.swift */,
 				30000012 /* Components */,
 			);
 			path = Views;
@@ -285,6 +288,7 @@
 				00000018 /* CloudKitManager.swift in Sources */,
 				00000016 /* SommelierAgent.swift in Sources */,
 				00000017 /* ARWService.swift in Sources */,
+				00000019 /* BenchmarkView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

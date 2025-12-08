@@ -64,7 +64,6 @@ struct RecommendationCard: View {
                 // Mood match badge
                 HStack(spacing: 4) {
                     Image(systemName: "waveform.path.ecg")
-                        .symbolEffect(.variableColor.iterative.dimInactiveLayers)
                     Text("Matches your vibe")
                         .font(.caption2)
                         .fontWeight(.medium)

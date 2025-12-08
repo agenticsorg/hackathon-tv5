@@ -4,25 +4,14 @@ struct MoodMeshBackground: View {
     let mood: MoodState
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1/30)) { timeline in
-            if #available(iOS 18.0, *) {
-                MeshGradient(
-                    width: 3,
-                    height: 3,
-                    points: animatedPoints(for: timeline.date),
-                    colors: moodColors
-                )
-                .ignoresSafeArea()
-            } else {
-                // Fallback for iOS 17
-                LinearGradient(
-                    colors: [moodColors.first ?? .blue, moodColors.last ?? .purple],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
-            }
-        }
+        // Simplified gradient - MeshGradient may have issues on iOS 26 beta
+        let colors = moodColors
+        LinearGradient(
+            colors: colors.isEmpty ? [.blue, .purple] : [colors[0], colors[colors.count > 1 ? 1 : 0]],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        .ignoresSafeArea()
     }
 
     private func animatedPoints(for date: Date) -> [SIMD2<Float>] {

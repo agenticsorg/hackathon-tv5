@@ -153,12 +153,3 @@ Apache 2.0 - See [LICENSE](../../LICENSE)
 
 **VibeCheck**: Because what you watch should match how you feel, not what an algorithm wants you to feel.
 **https://gist.github.com/michaeloboyle/b768dd2a80b2dd521d4552d2d8f1e8a1**
-
-The Gist includes the complete implementation plan with:
-
-Goal and background on integrating his recommendation engine
-Detailed architecture with WASM runtime (WasmKit)
-All proposed code changes and components
-Verification plan with test cases
-Timeline estimate (15 days)
-Dependencies needed from him (Rust source code, API specs, benchmarks)

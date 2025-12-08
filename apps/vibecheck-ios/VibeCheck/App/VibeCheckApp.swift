@@ -7,7 +7,8 @@ struct VibeCheckApp: App {
         let schema = Schema([
             WatchHistory.self,
             UserPreferences.self,
-            MoodLog.self
+            MoodLog.self,
+            WatchlistItem.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
