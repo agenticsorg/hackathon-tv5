@@ -4,6 +4,7 @@ import { TrendingSection } from '@/components/TrendingSection';
 import { RecommendationsSection } from '@/components/RecommendationsSection';
 import { SystemArchitecture } from '@/components/SystemArchitecture';
 import { AIMetrics } from '@/components/AIMetrics';
+import { AIMetricsCompact } from '@/components/AIMetricsCompact';
 import { HowItWorks } from '@/components/HowItWorks';
 
 export default function HomePage() {
@@ -49,28 +50,48 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Trending Section */}
-      <section className="py-12 px-4 md:px-8">
-        <h2 className="text-2xl font-bold mb-6">Trending This Week</h2>
-        <Suspense fallback={<ContentSkeleton />}>
-          <TrendingSection />
-        </Suspense>
-      </section>
+      {/* Two-Column Layout: Movies (left) + AI Metrics (right) */}
+      <div className="py-12 px-4 md:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left Column - Movies (70% width on desktop) */}
+          <div className="lg:col-span-8 space-y-12">
+            {/* Trending Section */}
+            <section>
+              <h2 className="text-2xl font-bold mb-6">Trending This Week</h2>
+              <Suspense fallback={<ContentSkeleton />}>
+                <TrendingSection />
+              </Suspense>
+            </section>
 
-      {/* Recommendations Section */}
-      <section className="py-12 px-4 md:px-8 bg-gradient-to-b from-transparent to-gray-900/50">
-        <h2 className="text-2xl font-bold mb-6 text-white">Recommended For You</h2>
-        <Suspense fallback={<ContentSkeleton />}>
-          <RecommendationsSection />
-        </Suspense>
-      </section>
+            {/* Recommendations Section */}
+            <section className="py-8 px-6 rounded-xl bg-gradient-to-b from-transparent to-gray-900/50">
+              <h2 className="text-2xl font-bold mb-6 text-white">Recommended For You</h2>
+              <Suspense fallback={<ContentSkeleton />}>
+                <RecommendationsSection />
+              </Suspense>
+            </section>
+          </div>
 
-      {/* AI System Metrics */}
-      <section className="py-16 px-4 md:px-8 bg-gradient-to-b from-gray-900/50 to-transparent">
-        <Suspense fallback={<MetricsSkeleton />}>
-          <AIMetrics />
-        </Suspense>
-      </section>
+          {/* Right Column - AI Metrics Dashboard (30% width on desktop, sticky) */}
+          <aside className="lg:col-span-4">
+            <div className="lg:sticky lg:top-4 space-y-4">
+              {/* Compact AI Metrics for sidebar */}
+              <div className="hidden lg:block">
+                <Suspense fallback={<CompactMetricsSkeleton />}>
+                  <AIMetricsCompact />
+                </Suspense>
+              </div>
+
+              {/* Mobile: Show above movies on small screens */}
+              <div className="lg:hidden mb-8 bg-gradient-to-b from-gray-900/50 to-transparent p-6 rounded-xl">
+                <Suspense fallback={<MetricsSkeleton />}>
+                  <AIMetrics />
+                </Suspense>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
 
       {/* System Architecture */}
       <section className="py-16 px-4 md:px-8 bg-gradient-to-b from-transparent via-purple-900/5 to-transparent">
@@ -159,6 +180,20 @@ function MetricsSkeleton() {
           <div key={i} className="h-32 bg-gray-800 rounded-lg animate-pulse" />
         ))}
       </div>
+    </div>
+  );
+}
+
+function CompactMetricsSkeleton() {
+  return (
+    <div className="space-y-4">
+      <div className="h-8 bg-gray-800 rounded-lg animate-pulse" />
+      <div className="space-y-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="h-24 bg-gray-800 rounded-lg animate-pulse" />
+        ))}
+      </div>
+      <div className="h-12 bg-gray-800 rounded-lg animate-pulse" />
     </div>
   );
 }

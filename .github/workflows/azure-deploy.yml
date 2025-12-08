@@ -1,0 +1,180 @@
+name: Deploy to Azure
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+
+env:
+  AZURE_RESOURCE_GROUP: omega-production-core-rg
+  AKS_CLUSTER_NAME: omega-production-aks
+  ACR_NAME: omegaproductionacr
+  ENVIRONMENT: ${{ github.event.inputs.environment || 'production' }}
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login to ACR
+        run: |
+          az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Get ACR Login Server
+        id: acr
+        run: |
+          ACR_LOGIN_SERVER=$(az acr show --name ${{ env.ACR_NAME }} --query loginServer -o tsv)
+          echo "login_server=$ACR_LOGIN_SERVER" >> $GITHUB_OUTPUT
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./apps/media-discovery
+          file: ./apps/media-discovery/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.acr.outputs.login_server }}/media-discovery:${{ github.sha }}
+            ${{ steps.acr.outputs.login_server }}/media-discovery:${{ env.ENVIRONMENT }}
+            ${{ steps.acr.outputs.login_server }}/media-discovery:latest
+          cache-from: type=registry,ref=${{ steps.acr.outputs.login_server }}/media-discovery:buildcache
+          cache-to: type=registry,ref=${{ steps.acr.outputs.login_server }}/media-discovery:buildcache,mode=max
+
+      - name: Build and push constellation-server image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./exogenesis-omega
+          file: ./exogenesis-omega/deploy/docker/Dockerfile.constellation
+          push: true
+          tags: |
+            ${{ steps.acr.outputs.login_server }}/constellation-server:${{ github.sha }}
+            ${{ steps.acr.outputs.login_server }}/constellation-server:${{ env.ENVIRONMENT }}
+            ${{ steps.acr.outputs.login_server }}/constellation-server:latest
+          cache-from: type=registry,ref=${{ steps.acr.outputs.login_server }}/constellation-server:buildcache
+          cache-to: type=registry,ref=${{ steps.acr.outputs.login_server }}/constellation-server:buildcache,mode=max
+
+      - name: Build and push federation-worker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./exogenesis-omega
+          file: ./exogenesis-omega/deploy/docker/Dockerfile.federation
+          push: true
+          tags: |
+            ${{ steps.acr.outputs.login_server }}/federation-worker:${{ github.sha }}
+            ${{ steps.acr.outputs.login_server }}/federation-worker:${{ env.ENVIRONMENT }}
+            ${{ steps.acr.outputs.login_server }}/federation-worker:latest
+          cache-from: type=registry,ref=${{ steps.acr.outputs.login_server }}/federation-worker:buildcache
+          cache-to: type=registry,ref=${{ steps.acr.outputs.login_server }}/federation-worker:buildcache,mode=max
+
+  deploy-to-aks:
+    name: Deploy to AKS
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Set AKS context
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: ${{ env.AZURE_RESOURCE_GROUP }}
+          cluster-name: ${{ env.AKS_CLUSTER_NAME }}
+
+      - name: Create namespace if not exists
+        run: |
+          kubectl create namespace omega-system --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy Kubernetes resources
+        run: |
+          kubectl apply -f azure-deployment/kubernetes/ -n omega-system
+
+      - name: Update deployment images
+        run: |
+          ACR_LOGIN_SERVER=$(az acr show --name ${{ env.ACR_NAME }} --query loginServer -o tsv)
+
+          kubectl set image deployment/constellation-server \
+            constellation=${ACR_LOGIN_SERVER}/constellation-server:${{ github.sha }} \
+            -n omega-system
+
+          kubectl set image deployment/media-discovery \
+            frontend=${ACR_LOGIN_SERVER}/media-discovery:${{ github.sha }} \
+            -n omega-system
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/constellation-server -n omega-system --timeout=600s
+          kubectl rollout status deployment/media-discovery -n omega-system --timeout=600s
+
+      - name: Verify deployment
+        run: |
+          kubectl get pods -n omega-system
+          kubectl get svc -n omega-system
+
+      - name: Run smoke tests
+        run: |
+          # Get LoadBalancer IP
+          FRONTEND_IP=$(kubectl get svc media-discovery-service -n omega-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+          if [ -n "$FRONTEND_IP" ]; then
+            echo "Testing frontend at http://$FRONTEND_IP"
+            curl -f -s -o /dev/null -w "%{http_code}" http://$FRONTEND_IP/api/health || exit 1
+            echo "Health check passed!"
+          else
+            echo "LoadBalancer IP not yet assigned"
+          fi
+
+  notify:
+    name: Notify Deployment Status
+    runs-on: ubuntu-latest
+    needs: [build-and-push, deploy-to-aks]
+    if: always()
+
+    steps:
+      - name: Deployment Success
+        if: ${{ needs.deploy-to-aks.result == 'success' }}
+        run: |
+          echo "Deployment to ${{ env.ENVIRONMENT }} successful!"
+
+      - name: Deployment Failed
+        if: ${{ needs.deploy-to-aks.result == 'failure' }}
+        run: |
+          echo "Deployment to ${{ env.ENVIRONMENT }} failed!"
+          exit 1
