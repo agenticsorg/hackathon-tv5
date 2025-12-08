@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
-type TabId = 'intro' | 'features' | 'data' | 'comparison' | 'architecture' | 'research';
+type TabId = 'intro' | 'features' | 'data' | 'ruvector' | 'comparison' | 'architecture' | 'research';
 type Language = 'en' | 'fr';
 
 interface LiveStats {
@@ -41,9 +41,43 @@ const translations = {
     introduction: 'Introduction',
     features: 'Features',
     dataVectors: 'Data & Vectors',
+    ruvector: 'RuVector',
     comparison: 'Comparison',
     architecture: 'Architecture',
     research: 'Research',
+    // RuVector Tab
+    ruvectorTitle: 'RuVector: Your AI Memory',
+    ruvectorSubtitle: 'Think of RuVector as the brain that remembers what you like',
+    whatIsRuVector: 'What is RuVector?',
+    whatIsRuVectorText: 'RuVector is like a super-smart librarian for TV shows and movies. Instead of organizing content by title or genre, it understands the "feeling" and "meaning" of each show.',
+    howRuVectorWorks: 'How Does It Work?',
+    ruvectorStep1Title: 'Every show becomes numbers',
+    ruvectorStep1Desc: 'We convert each movie or series into 384 numbers that capture its essence - the mood, themes, style, and what makes it unique.',
+    ruvectorStep2Title: 'Similar shows are "close" together',
+    ruvectorStep2Desc: 'In this number space, shows that feel similar end up near each other. A dark crime drama will be close to other dark crime dramas.',
+    ruvectorStep3Title: 'Lightning-fast matching',
+    ruvectorStep3Desc: 'When you like something, RuVector instantly finds what\'s nearby in milliseconds, not seconds.',
+    whyItMatters: 'Why Does This Matter?',
+    whyItMattersText: 'Traditional systems use simple tags like "Action" or "Comedy". RuVector understands that a show can feel both exciting AND emotional, modern AND nostalgic. It captures the nuances that make recommendations feel personal.',
+    ruvectorAnalogy: 'A Simple Analogy',
+    ruvectorAnalogyText: 'Imagine you\'re at a party and want to meet people with similar interests. Traditional matching would group everyone by their job title. RuVector would understand that you love indie music, enjoy hiking, and prefer deep conversations - then introduce you to someone who shares those vibes, even if they have a completely different job.',
+    ruvectorSpeed: 'Speed',
+    ruvectorSpeedValue: '3ms searches',
+    ruvectorSpeedDesc: 'Results in the blink of an eye',
+    ruvectorAccuracy: 'Accuracy',
+    ruvectorAccuracyValue: '384 dimensions',
+    ruvectorAccuracyDesc: 'Captures every nuance',
+    ruvectorLearning: 'Learning',
+    ruvectorLearningValue: 'Real-time',
+    ruvectorLearningDesc: 'Gets smarter with every click',
+    underTheHood: 'Under the Hood',
+    underTheHoodText: 'For the technically curious: RuVector uses PostgreSQL with pgvector extension, powered by Rust for blazing speed. It supports multiple distance metrics (cosine, euclidean, hyperbolic) and uses HNSW indexing for sub-linear search complexity.',
+    rustPowered: 'Rust-Powered',
+    rustPoweredDesc: 'Memory-safe, zero-cost abstractions',
+    pgvectorIntegration: 'pgvector Integration',
+    pgvectorDesc: 'Native PostgreSQL vector operations',
+    hnswIndex: 'HNSW Indexing',
+    hnswDesc: 'Approximate nearest neighbor search',
     // Introduction Tab
     theProblem: 'The Problem',
     problemText: 'Traditional recommendation systems are <strong>static</strong>. They rely on pre-computed similarities and user profiles that don\'t adapt in real-time. Users get stuck in "filter bubbles" seeing the same types of content, and the system doesn\'t learn from immediate feedback like skipping a recommendation.',
@@ -179,9 +213,43 @@ const translations = {
     introduction: 'Introduction',
     features: 'Fonctionnalités',
     dataVectors: 'Données & Vecteurs',
+    ruvector: 'RuVector',
     comparison: 'Comparaison',
     architecture: 'Architecture',
     research: 'Recherche',
+    // RuVector Tab
+    ruvectorTitle: 'RuVector : Votre Mémoire IA',
+    ruvectorSubtitle: 'Pensez à RuVector comme le cerveau qui se souvient de vos préférences',
+    whatIsRuVector: 'Qu\'est-ce que RuVector ?',
+    whatIsRuVectorText: 'RuVector est comme un bibliothécaire super-intelligent pour les séries TV et les films. Au lieu d\'organiser le contenu par titre ou genre, il comprend le "ressenti" et le "sens" de chaque émission.',
+    howRuVectorWorks: 'Comment ça fonctionne ?',
+    ruvectorStep1Title: 'Chaque émission devient des nombres',
+    ruvectorStep1Desc: 'Nous convertissons chaque film ou série en 384 nombres qui capturent son essence - l\'ambiance, les thèmes, le style et ce qui le rend unique.',
+    ruvectorStep2Title: 'Les émissions similaires sont "proches"',
+    ruvectorStep2Desc: 'Dans cet espace numérique, les émissions qui se ressemblent finissent proches les unes des autres. Un drame policier sombre sera proche d\'autres drames policiers sombres.',
+    ruvectorStep3Title: 'Correspondance ultra-rapide',
+    ruvectorStep3Desc: 'Quand vous aimez quelque chose, RuVector trouve instantanément ce qui est proche en millisecondes, pas en secondes.',
+    whyItMatters: 'Pourquoi c\'est important ?',
+    whyItMattersText: 'Les systèmes traditionnels utilisent des étiquettes simples comme "Action" ou "Comédie". RuVector comprend qu\'une émission peut être à la fois excitante ET émouvante, moderne ET nostalgique. Il capture les nuances qui rendent les recommandations personnelles.',
+    ruvectorAnalogy: 'Une Analogie Simple',
+    ruvectorAnalogyText: 'Imaginez que vous êtes à une fête et que vous voulez rencontrer des gens avec des intérêts similaires. La correspondance traditionnelle regrouperait tout le monde par intitulé de poste. RuVector comprendrait que vous aimez la musique indie, aimez la randonnée et préférez les conversations profondes - puis vous présenterait quelqu\'un qui partage ces vibrations, même s\'il a un travail complètement différent.',
+    ruvectorSpeed: 'Vitesse',
+    ruvectorSpeedValue: 'Recherches en 3ms',
+    ruvectorSpeedDesc: 'Résultats en un clin d\'œil',
+    ruvectorAccuracy: 'Précision',
+    ruvectorAccuracyValue: '384 dimensions',
+    ruvectorAccuracyDesc: 'Capture chaque nuance',
+    ruvectorLearning: 'Apprentissage',
+    ruvectorLearningValue: 'Temps réel',
+    ruvectorLearningDesc: 'Devient plus intelligent à chaque clic',
+    underTheHood: 'Sous le Capot',
+    underTheHoodText: 'Pour les curieux techniques : RuVector utilise PostgreSQL avec l\'extension pgvector, propulsé par Rust pour une vitesse fulgurante. Il supporte plusieurs métriques de distance (cosinus, euclidienne, hyperbolique) et utilise l\'indexation HNSW pour une complexité de recherche sous-linéaire.',
+    rustPowered: 'Propulsé par Rust',
+    rustPoweredDesc: 'Sécurité mémoire, abstractions sans coût',
+    pgvectorIntegration: 'Intégration pgvector',
+    pgvectorDesc: 'Opérations vectorielles PostgreSQL natives',
+    hnswIndex: 'Indexation HNSW',
+    hnswDesc: 'Recherche approximative du plus proche voisin',
     // Introduction Tab
     theProblem: 'Le Problème',
     problemText: 'Les systèmes de recommandation traditionnels sont <strong>statiques</strong>. Ils reposent sur des similarités pré-calculées et des profils utilisateur qui ne s\'adaptent pas en temps réel. Les utilisateurs restent coincés dans des "bulles de filtre" voyant les mêmes types de contenu, et le système n\'apprend pas des retours immédiats comme le fait de passer une recommandation.',
@@ -391,6 +459,15 @@ export default function AboutPage() {
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+        </svg>
+      ),
+    },
+    {
+      id: 'ruvector',
+      labelKey: 'ruvector',
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
         </svg>
       ),
     },
@@ -649,6 +726,7 @@ export default function AboutPage() {
         {activeTab === 'intro' && <IntroductionTab liveStats={liveStats} animatedStats={animatedStats} t={t} />}
         {activeTab === 'features' && <FeaturesTab t={t} />}
         {activeTab === 'data' && <DataTab liveStats={liveStats} t={t} />}
+        {activeTab === 'ruvector' && <RuVectorTab liveStats={liveStats} t={t} />}
         {activeTab === 'comparison' && <ComparisonTab t={t} />}
         {activeTab === 'architecture' && <ArchitectureTab t={t} />}
         {activeTab === 'research' && <ResearchTab t={t} />}
@@ -995,6 +1073,228 @@ function FeaturesTab({ t }: FeaturesTabProps) {
 interface DataTabProps {
   liveStats: LiveStats | null;
   t: typeof translations.en;
+}
+
+interface RuVectorTabProps {
+  liveStats: LiveStats | null;
+  t: typeof translations.en;
+}
+
+function RuVectorTab({ liveStats, t }: RuVectorTabProps) {
+  return (
+    <div className="space-y-12">
+      {/* Hero Section */}
+      <section className="glass-card rounded-2xl p-8 border border-emerald-500/20">
+        <div className="flex items-center gap-4 mb-6">
+          <span className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 flex items-center justify-center">
+            <svg className="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+          </span>
+          <div>
+            <h2 className="text-3xl font-bold text-white">{t.ruvectorTitle}</h2>
+            <p className="text-emerald-400 text-lg">{t.ruvectorSubtitle}</p>
+          </div>
+        </div>
+      </section>
+
+      {/* What is RuVector */}
+      <section className="glass-card rounded-2xl p-8">
+        <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
+          <span className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
+            <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </span>
+          {t.whatIsRuVector}
+        </h3>
+        <p className="text-zinc-300 text-lg leading-relaxed">
+          {t.whatIsRuVectorText}
+        </p>
+      </section>
+
+      {/* How It Works - Steps */}
+      <section className="glass-card rounded-2xl p-8">
+        <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+          <span className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
+            <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </span>
+          {t.howRuVectorWorks}
+        </h3>
+
+        <div className="space-y-6">
+          {/* Step 1 */}
+          <div className="flex gap-4 items-start">
+            <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-xl">1</div>
+            <div>
+              <h4 className="text-lg font-semibold text-white mb-1">{t.ruvectorStep1Title}</h4>
+              <p className="text-zinc-400">{t.ruvectorStep1Desc}</p>
+            </div>
+          </div>
+
+          {/* Arrow */}
+          <div className="flex justify-center">
+            <svg className="w-6 h-6 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+          </div>
+
+          {/* Step 2 */}
+          <div className="flex gap-4 items-start">
+            <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center text-cyan-400 font-bold text-xl">2</div>
+            <div>
+              <h4 className="text-lg font-semibold text-white mb-1">{t.ruvectorStep2Title}</h4>
+              <p className="text-zinc-400">{t.ruvectorStep2Desc}</p>
+            </div>
+          </div>
+
+          {/* Arrow */}
+          <div className="flex justify-center">
+            <svg className="w-6 h-6 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+          </div>
+
+          {/* Step 3 */}
+          <div className="flex gap-4 items-start">
+            <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400 font-bold text-xl">3</div>
+            <div>
+              <h4 className="text-lg font-semibold text-white mb-1">{t.ruvectorStep3Title}</h4>
+              <p className="text-zinc-400">{t.ruvectorStep3Desc}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Why It Matters */}
+      <section className="glass-card rounded-2xl p-8">
+        <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
+          <span className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
+            <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+            </svg>
+          </span>
+          {t.whyItMatters}
+        </h3>
+        <p className="text-zinc-300 text-lg leading-relaxed">
+          {t.whyItMattersText}
+        </p>
+      </section>
+
+      {/* Simple Analogy */}
+      <section className="glass-card rounded-2xl p-8 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20">
+        <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
+          <span className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center">
+            <svg className="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </span>
+          {t.ruvectorAnalogy}
+        </h3>
+        <p className="text-zinc-300 text-lg leading-relaxed italic">
+          "{t.ruvectorAnalogyText}"
+        </p>
+      </section>
+
+      {/* Stats Cards */}
+      <section className="grid md:grid-cols-3 gap-6">
+        {/* Speed */}
+        <div className="glass-card rounded-2xl p-6 text-center group hover:border-emerald-500/30 transition-all">
+          <div className="w-14 h-14 mx-auto rounded-xl bg-emerald-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <svg className="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <h4 className="text-lg font-semibold text-white mb-1">{t.ruvectorSpeed}</h4>
+          <p className="text-2xl font-bold text-emerald-400 mb-2">{liveStats?.avgLatency || t.ruvectorSpeedValue}</p>
+          <p className="text-sm text-zinc-500">{t.ruvectorSpeedDesc}</p>
+        </div>
+
+        {/* Accuracy */}
+        <div className="glass-card rounded-2xl p-6 text-center group hover:border-cyan-500/30 transition-all">
+          <div className="w-14 h-14 mx-auto rounded-xl bg-cyan-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <svg className="w-7 h-7 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h4 className="text-lg font-semibold text-white mb-1">{t.ruvectorAccuracy}</h4>
+          <p className="text-2xl font-bold text-cyan-400 mb-2">{t.ruvectorAccuracyValue}</p>
+          <p className="text-sm text-zinc-500">{t.ruvectorAccuracyDesc}</p>
+        </div>
+
+        {/* Learning */}
+        <div className="glass-card rounded-2xl p-6 text-center group hover:border-purple-500/30 transition-all">
+          <div className="w-14 h-14 mx-auto rounded-xl bg-purple-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <svg className="w-7 h-7 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+          </div>
+          <h4 className="text-lg font-semibold text-white mb-1">{t.ruvectorLearning}</h4>
+          <p className="text-2xl font-bold text-purple-400 mb-2">{t.ruvectorLearningValue}</p>
+          <p className="text-sm text-zinc-500">{t.ruvectorLearningDesc}</p>
+        </div>
+      </section>
+
+      {/* Under the Hood */}
+      <section className="glass-card rounded-2xl p-8">
+        <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
+          <span className="w-10 h-10 rounded-xl bg-zinc-500/20 flex items-center justify-center">
+            <svg className="w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </span>
+          {t.underTheHood}
+        </h3>
+        <p className="text-zinc-400 text-lg mb-6">
+          {t.underTheHoodText}
+        </p>
+
+        <div className="grid md:grid-cols-3 gap-4">
+          {/* Rust */}
+          <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/20">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                <svg className="w-4 h-4 text-orange-400" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M23.8 14.3l-1.3-.8c0-.2.1-.4.1-.6 0-.2 0-.4-.1-.6l1.3-.8c.1-.1.2-.3.1-.4l-1.2-2c-.1-.2-.3-.2-.4-.2l-1.5.5c-.3-.2-.7-.4-1-.6l-.2-1.6c0-.2-.2-.3-.3-.3h-2.4c-.2 0-.3.1-.3.3l-.2 1.6c-.4.2-.7.4-1 .6l-1.5-.5c-.2-.1-.4 0-.4.2l-1.2 2c-.1.1 0 .3.1.4l1.3.8c0 .2-.1.4-.1.6 0 .2 0 .4.1.6l-1.3.8c-.1.1-.2.3-.1.4l1.2 2c.1.2.3.2.4.2l1.5-.5c.3.2.7.4 1 .6l.2 1.6c0 .2.2.3.3.3h2.4c.2 0 .3-.1.3-.3l.2-1.6c.4-.2.7-.4 1-.6l1.5.5c.2.1.4 0 .4-.2l1.2-2c.1-.1 0-.3-.1-.4zM19 14.5c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5z"/>
+                </svg>
+              </div>
+              <h4 className="font-semibold text-white">{t.rustPowered}</h4>
+            </div>
+            <p className="text-sm text-zinc-500">{t.rustPoweredDesc}</p>
+          </div>
+
+          {/* pgvector */}
+          <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+                </svg>
+              </div>
+              <h4 className="font-semibold text-white">{t.pgvectorIntegration}</h4>
+            </div>
+            <p className="text-sm text-zinc-500">{t.pgvectorDesc}</p>
+          </div>
+
+          {/* HNSW */}
+          <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <h4 className="font-semibold text-white">{t.hnswIndex}</h4>
+            </div>
+            <p className="text-sm text-zinc-500">{t.hnswDesc}</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 }
 
 function DataTab({ liveStats, t }: DataTabProps) {
