@@ -1198,4 +1198,229 @@ router.post(
   }
 );
 
+// ============================================================================
+// DATA EXPORT ENDPOINTS
+// ============================================================================
+
+/**
+ * GET /api/v1/knowledge-graph/export/movies
+ * Export all movies as JSON for backup/migration
+ */
+router.get(
+  '/export/movies',
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { getFirestore } = await import('../db/firestore');
+      const db = getFirestore();
+
+      const format = req.query.format as string || 'json';
+      const includeEmbeddings = req.query.embeddings === 'true';
+
+      logger.info('Starting movie export', { format, includeEmbeddings });
+
+      // Fetch all movies from Firestore
+      const moviesSnapshot = await db.collection('kg_movies').get();
+      const movies: Record<string, unknown>[] = [];
+
+      moviesSnapshot.forEach((doc) => {
+        const data = doc.data();
+        // Optionally exclude embeddings to reduce file size
+        if (!includeEmbeddings && data.embedding) {
+          delete data.embedding;
+        }
+        movies.push({
+          id: doc.id,
+          ...data,
+        });
+      });
+
+      logger.info('Movie export complete', { count: movies.length });
+
+      // Set headers for download
+      const timestamp = new Date().toISOString().split('T')[0];
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="kg-movies-export-${timestamp}.json"`);
+
+      res.json({
+        exportedAt: new Date().toISOString(),
+        totalMovies: movies.length,
+        includesEmbeddings: includeEmbeddings,
+        movies,
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Movie export failed', { error: errorMessage });
+      res.status(500).json({ error: 'Export failed', details: errorMessage });
+    }
+  }
+);
+
+/**
+ * GET /api/v1/knowledge-graph/export/genres
+ * Export all genres as JSON
+ */
+router.get(
+  '/export/genres',
+  async (_req: Request, res: Response): Promise<void> => {
+    try {
+      const { getFirestore } = await import('../db/firestore');
+      const db = getFirestore();
+
+      const genresSnapshot = await db.collection('kg_genres').get();
+      const genres: Record<string, unknown>[] = [];
+
+      genresSnapshot.forEach((doc) => {
+        genres.push({
+          id: doc.id,
+          ...doc.data(),
+        });
+      });
+
+      const timestamp = new Date().toISOString().split('T')[0];
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="kg-genres-export-${timestamp}.json"`);
+
+      res.json({
+        exportedAt: new Date().toISOString(),
+        totalGenres: genres.length,
+        genres,
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Genre export failed', { error: errorMessage });
+      res.status(500).json({ error: 'Export failed', details: errorMessage });
+    }
+  }
+);
+
+/**
+ * GET /api/v1/knowledge-graph/export/edges
+ * Export all graph edges as JSON
+ */
+router.get(
+  '/export/edges',
+  async (_req: Request, res: Response): Promise<void> => {
+    try {
+      const { getFirestore } = await import('../db/firestore');
+      const db = getFirestore();
+
+      const edgesSnapshot = await db.collection('kg_edges').get();
+      const edges: Record<string, unknown>[] = [];
+
+      edgesSnapshot.forEach((doc) => {
+        edges.push({
+          id: doc.id,
+          ...doc.data(),
+        });
+      });
+
+      const timestamp = new Date().toISOString().split('T')[0];
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="kg-edges-export-${timestamp}.json"`);
+
+      res.json({
+        exportedAt: new Date().toISOString(),
+        totalEdges: edges.length,
+        edges,
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Edge export failed', { error: errorMessage });
+      res.status(500).json({ error: 'Export failed', details: errorMessage });
+    }
+  }
+);
+
+/**
+ * GET /api/v1/knowledge-graph/export/full
+ * Export complete knowledge graph (movies, genres, edges) as a single JSON
+ */
+router.get(
+  '/export/full',
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { getFirestore } = await import('../db/firestore');
+      const db = getFirestore();
+
+      const includeEmbeddings = req.query.embeddings === 'true';
+
+      logger.info('Starting full knowledge graph export', { includeEmbeddings });
+
+      // Fetch all collections in parallel
+      const [moviesSnapshot, genresSnapshot, edgesSnapshot, companiesSnapshot, countriesSnapshot] = await Promise.all([
+        db.collection('kg_movies').get(),
+        db.collection('kg_genres').get(),
+        db.collection('kg_edges').get(),
+        db.collection('kg_companies').get(),
+        db.collection('kg_countries').get(),
+      ]);
+
+      const movies: Record<string, unknown>[] = [];
+      moviesSnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (!includeEmbeddings && data.embedding) {
+          delete data.embedding;
+        }
+        movies.push({ id: doc.id, ...data });
+      });
+
+      const genres: Record<string, unknown>[] = [];
+      genresSnapshot.forEach((doc) => {
+        genres.push({ id: doc.id, ...doc.data() });
+      });
+
+      const edges: Record<string, unknown>[] = [];
+      edgesSnapshot.forEach((doc) => {
+        edges.push({ id: doc.id, ...doc.data() });
+      });
+
+      const companies: Record<string, unknown>[] = [];
+      companiesSnapshot.forEach((doc) => {
+        companies.push({ id: doc.id, ...doc.data() });
+      });
+
+      const countries: Record<string, unknown>[] = [];
+      countriesSnapshot.forEach((doc) => {
+        countries.push({ id: doc.id, ...doc.data() });
+      });
+
+      logger.info('Full export complete', {
+        movies: movies.length,
+        genres: genres.length,
+        edges: edges.length,
+        companies: companies.length,
+        countries: countries.length,
+      });
+
+      const timestamp = new Date().toISOString().split('T')[0];
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="knowledge-graph-full-export-${timestamp}.json"`);
+
+      res.json({
+        exportedAt: new Date().toISOString(),
+        version: '1.0',
+        includesEmbeddings: includeEmbeddings,
+        stats: {
+          movies: movies.length,
+          genres: genres.length,
+          edges: edges.length,
+          companies: companies.length,
+          countries: countries.length,
+        },
+        data: {
+          movies,
+          genres,
+          edges,
+          companies,
+          countries,
+        },
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Full export failed', { error: errorMessage });
+      res.status(500).json({ error: 'Export failed', details: errorMessage });
+    }
+  }
+);
+
 export default router;
