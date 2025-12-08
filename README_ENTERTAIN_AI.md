@@ -3,6 +3,8 @@
 Reinventing Media Discovery with AI
 
 🎯 The Challenge
+<img width="800" height="800" alt="Screenshot 2025-12-07 at 4 06 43 PM" src="https://github.com/user-attachments/assets/bf4ac6bf-8d1a-45b2-a5fa-56c7ad8fd5d3" />
+
 
 Every night, millions of people spend 30–45 minutes just deciding what to watch.
 
@@ -15,15 +17,15 @@ Choosing.
 The problem is not content scarcity — it’s decision overload caused by fragmented platforms.
 
 The Vision of the team Ofer, Lanette, Eva, Kara, Danelle, Camila, Juan, Anne
-<img width="623" height="492" alt="Screenshot 2025-12-07 at 3 09 56 PM" src="https://github.com/user-attachments/assets/da45727b-2b8b-4a98-8974-e51f2a098751" />
+<img width="800" height="800" alt="Screenshot 2025-12-07 at 3 09 56 PM" src="https://github.com/user-attachments/assets/da45727b-2b8b-4a98-8974-e51f2a098751" />
 
 "We have infinite choice, but zero clarity." — (Discovery Reimagined Deck) 
 [Discovery_Reimagined.pdf](https://github.com/user-attachments/files/24020789/Discovery_Reimagined.pdf)
 
 
-Discovery_Reimagined
 
 🌀 The Problem: Doom Scrolling
+<img width="800" height="800" alt="Screenshot 2025-12-07 at 4 07 20 PM" src="https://github.com/user-attachments/assets/e8c27311-c864-4714-a180-93a017dabe67" />
 
 Today’s algorithmic systems:
 
@@ -36,8 +38,12 @@ Create burnout and decision fatigue
 Benefit platforms over people
 
 📸 Visual framing the pain:
+<img width="800" height="800" alt="xScreenshot 2025-12-07 at 4 07 20 PM" src="https://github.com/user-attachments/assets/eadde43f-937f-4f3c-b738-7e9ff8cb0589" />
+
 
 🌱 The Shift: Bloom Scrolling
+<img width="800" height="800" alt="Screenshot 2025-12-07 at 4 08 13 PM" src="https://github.com/user-attachments/assets/43d49ae1-0a42-465d-a184-6e0f1428a52b" />
+
 
 We are moving discovery from:
 Reaction → Intention
@@ -51,6 +57,8 @@ We don’t serve feeds.
 We serve people.
 
 🧠 Our Solution: Conversational Discovery
+<img width="800" height="800" alt="Screenshot 2025-12-07 at 4 07 07 PM" src="https://github.com/user-attachments/assets/41b417f0-a750-41e4-b48b-a2fb59ec9247" />
+
 
 Instead of scrolling:
 
@@ -66,6 +74,7 @@ Results appear instantly.
 Discovery_Reimagined
 
 🔁 System Architecture
+
 
 How It Works:
 
@@ -125,6 +134,7 @@ Random ads	Useful ads
 Click behavior	Trust & context
 Passive feed	Active agency
 💡 Ethical Monetization
+<img width="800" height="800" alt="Screenshot 2025-12-07 at 4 06 16 PM" src="https://github.com/user-attachments/assets/5a34cd8c-5392-45ef-ad8e-3b4352084d1a" />
 
 Ads don’t interrupt.
 They integrate.
@@ -141,6 +151,7 @@ We don’t sell attention.
 We enable discovery.
 
 🌍 Community Intelligence
+
 
 Discovery gets better when:
 
