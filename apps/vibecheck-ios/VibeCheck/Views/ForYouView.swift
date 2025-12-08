@@ -219,9 +219,9 @@ struct ForYouView: View {
             id: UUID(),
             userID: "Me", // In real app, use CKCurrentUserDefaultName
             vibeKeyword: mood.recommendationHint,
-            vibeEnergy: mood.energyLevel > 50 ? "High" : "Low",
-            vibeStress: mood.stressLevel > 50 ? "High" : "Low",
-            colorHex: mood.colorHex,
+            vibeEnergy: mood.energy.fillAmount > 0.5 ? "High" : "Low",
+            vibeStress: mood.stress.fillAmount > 0.5 ? "High" : "Low",
+            colorHex: "#6366F1", // Default indigo color
             lastUpdated: Date()
         )
         
@@ -234,7 +234,7 @@ struct ForYouView: View {
     
     private func fetchFamilyVibes() {
         CloudKitManager.shared.fetchFamilyVibes { result in
-            DispatchQueue.main.async(execute: {
+            DispatchQueue.main.async {
                 switch result {
                 case .success(let vibes):
                     withAnimation {
