@@ -425,70 +425,47 @@ export default function AboutPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
-      {/* Header */}
-      <div className="border-b border-zinc-800">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+      {/* Sticky Navigation */}
+      <nav className="sticky top-0 z-50 glass-card border-b border-zinc-800/50 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg feature-icon flex items-center justify-center">
+              <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <span className="font-bold text-white hidden sm:inline">TVDB Smart</span>
+          </Link>
+
+          <div className="flex items-center gap-2 sm:gap-4">
             <Link
               href="/"
-              className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
+              className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              {t.backToApp}
+              Dashboard
             </Link>
-
-            {/* Center - Title */}
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-              </div>
-              <span className="text-white font-semibold hidden sm:inline">{t.aiSystemOverview}</span>
-            </div>
-
-            {/* Right - Navigation Links + Language Toggle */}
-            <div className="flex items-center gap-3">
-              {/* Navigation Links */}
-              <div className="hidden md:flex items-center gap-2">
-                <Link
-                  href="/"
-                  className="px-3 py-1.5 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
-                >
-                  {t.dashboard}
-                </Link>
-                <Link
-                  href="/analytics"
-                  className="px-3 py-1.5 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
-                >
-                  {t.analytics}
-                </Link>
-                <button
-                  onClick={() => setShowSettings(true)}
-                  className="px-3 py-1.5 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors flex items-center gap-1.5"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  {t.settings}
-                </button>
-              </div>
-
-              {/* Language Toggle */}
-              <button
-                onClick={() => setLanguage(language === 'en' ? 'fr' : 'en')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 hover:border-emerald-500/50 transition-colors"
-              >
-                <span className="text-lg">{language === 'en' ? '🇬🇧' : '🇫🇷'}</span>
-                <span className="text-sm font-medium text-white">{language.toUpperCase()}</span>
-              </button>
-            </div>
+            <Link
+              href="/analytics"
+              className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"
+            >
+              Analytics
+            </Link>
+            <Link
+              href="/about"
+              className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20"
+            >
+              About
+            </Link>
+            <button
+              onClick={() => setLanguage(language === 'en' ? 'fr' : 'en')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 hover:border-emerald-500/50 transition-colors"
+            >
+              <span className="text-lg">{language === 'en' ? '🇬🇧' : '🇫🇷'}</span>
+              <span className="text-sm font-medium text-white">{language.toUpperCase()}</span>
+            </button>
           </div>
         </div>
-      </div>
+      </nav>
 
       {/* Settings Modal */}
       {showSettings && (

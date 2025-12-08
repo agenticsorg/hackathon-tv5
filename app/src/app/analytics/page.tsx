@@ -314,7 +314,43 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <main className="min-h-screen p-4 sm:p-6 md:p-12 relative z-10">
+    <main className="min-h-screen relative z-10">
+      {/* Sticky Navigation */}
+      <nav className="sticky top-0 z-50 glass-card border-b border-zinc-800/50 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg feature-icon flex items-center justify-center">
+              <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <span className="font-bold text-white hidden sm:inline">TVDB Smart</span>
+          </Link>
+
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Link
+              href="/"
+              className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"
+            >
+              Dashboard
+            </Link>
+            <Link
+              href="/analytics"
+              className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20"
+            >
+              Analytics
+            </Link>
+            <Link
+              href="/about"
+              className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"
+            >
+              About
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      <div className="p-4 sm:p-6 md:p-12">
       {/* Background effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <div className="glow-orb w-96 h-96 bg-emerald-500 top-20 -left-48 opacity-30" />
@@ -326,14 +362,6 @@ export default function AnalyticsPage() {
       <header className="mb-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="w-10 h-10 rounded-xl glass-card flex items-center justify-center hover:bg-zinc-700 transition-all"
-            >
-              <svg className="w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-            </Link>
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold gradient-text flex items-center gap-3">
                 Analytics Dashboard
@@ -1216,6 +1244,7 @@ export default function AnalyticsPage() {
           </div>
         </div>
       </footer>
+      </div>
     </main>
   );
 }
