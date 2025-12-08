@@ -52,6 +52,14 @@ export interface SemanticSearchQuery {
   intent?: SearchIntent;
   filters?: SearchFilters;
   embedding?: number[];
+  metadata?: {
+    detectedPerson?: string;
+    isTrending?: boolean;
+    isRecent?: boolean;
+    platform?: string;
+    detectedAward?: string;
+    hasSpecificIntent?: boolean;
+  };
 }
 
 // Search intent derived from natural language
@@ -63,6 +71,9 @@ export interface SearchIntent {
   setting?: string[];        // e.g., ["space", "urban"]
   similar_to?: string[];     // e.g., ["Inception", "The Matrix"]
   avoid?: string[];          // e.g., ["gore", "romance"]
+  genres?: string[];         // e.g., ["action", "comedy"]
+  keywords?: string[];       // e.g., ["trending", "person:Tom Hanks"]
+  mediaType?: 'movie' | 'tv' | 'all';
 }
 
 // Search filters
@@ -75,12 +86,30 @@ export interface SearchFilters {
   region?: string;
 }
 
+// Streaming provider info
+export interface StreamingInfo {
+  provider: string;
+  providerLogo: string | null;
+  availabilityType: 'flatrate' | 'rent' | 'buy' | 'free' | 'ads';
+  link?: string;
+}
+
 // Search results with relevance scoring
 export interface SearchResult {
   content: MediaContent;
   relevanceScore: number;
   matchReasons: string[];
   similarityScore?: number;
+  streaming?: {
+    isAvailable: boolean;
+    providers: StreamingInfo[];
+    formattedText: string;
+    badge: {
+      text: string;
+      type: 'subscription' | 'free' | 'rental' | 'purchase' | 'unavailable';
+      color: string;
+    };
+  };
 }
 
 // User preference profile

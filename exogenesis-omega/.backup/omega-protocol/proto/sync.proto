@@ -1,0 +1,74 @@
+syntax = "proto3";
+package omega.sync;
+
+// Sync service for TV <-> Constellation communication
+service OmegaSync {
+  // Push local patterns to constellation
+  rpc PushPatterns(PushRequest) returns (PushResponse);
+
+  // Pull global patterns from constellation
+  rpc PullPatterns(PullRequest) returns (PullResponse);
+
+  // Bidirectional stream for real-time sync
+  rpc StreamSync(stream SyncMessage) returns (stream SyncMessage);
+}
+
+message PushRequest {
+  string device_id = 1;
+  bytes patterns_delta = 2;          // Compressed delta (~1KB)
+  uint64 local_version = 3;
+  repeated PatternQuality qualities = 4;
+}
+
+message PatternQuality {
+  string pattern_id = 1;
+  float success_rate = 2;            // 0.0-1.0
+  uint32 sample_count = 3;
+}
+
+message PushResponse {
+  bool success = 1;
+  uint64 global_version = 2;
+  string message = 3;
+}
+
+message PullRequest {
+  string device_id = 1;
+  uint64 last_sync_version = 2;
+  repeated string content_ids = 3;   // New content to get embeddings for
+}
+
+message PullResponse {
+  bytes global_patterns = 1;         // Compressed (~5KB)
+  uint64 global_version = 2;
+  repeated ContentEmbedding new_content = 3;
+  repeated TrendSignal trends = 4;
+}
+
+message ContentEmbedding {
+  string content_id = 1;
+  bytes embedding = 2;               // Float16[384] = 768 bytes
+  ContentMetadata metadata = 3;
+}
+
+message ContentMetadata {
+  string title = 1;
+  string genre = 2;
+  uint32 year = 3;
+  uint32 duration_min = 4;
+}
+
+message TrendSignal {
+  string content_id = 1;
+  float trending_score = 2;
+  string region = 3;
+}
+
+message SyncMessage {
+  oneof message {
+    PushRequest push_request = 1;
+    PushResponse push_response = 2;
+    PullRequest pull_request = 3;
+    PullResponse pull_response = 4;
+  }
+}

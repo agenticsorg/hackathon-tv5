@@ -2,8 +2,7 @@
 # Optimized for Google Cloud Run deployment
 
 # Stage 1: Dependencies
-FROM node:20-alpine AS deps
-RUN apk add --no-cache libc6-compat
+FROM node:20-slim AS deps
 WORKDIR /app
 
 # Copy package files
@@ -11,7 +10,7 @@ COPY package.json package-lock.json* ./
 RUN npm ci --only=production
 
 # Stage 2: Builder
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 WORKDIR /app
 
 # Copy dependencies
@@ -26,7 +25,7 @@ ENV NODE_ENV production
 RUN npm run build
 
 # Stage 3: Runner
-FROM node:20-alpine AS runner
+FROM node:20-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV production

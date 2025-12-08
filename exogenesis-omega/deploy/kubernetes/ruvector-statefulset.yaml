@@ -1,0 +1,327 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ruvector-postgres
+  namespace: omega-system
+  labels:
+    app: ruvector-postgres
+    component: database
+spec:
+  serviceName: ruvector-postgres
+  replicas: 3  # Raft consensus requires 3+ nodes
+
+  podManagementPolicy: Parallel
+
+  selector:
+    matchLabels:
+      app: ruvector-postgres
+      component: database
+
+  template:
+    metadata:
+      labels:
+        app: ruvector-postgres
+        component: database
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+
+    spec:
+      # Anti-affinity to ensure replicas are on different nodes
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - ruvector-postgres
+              topologyKey: kubernetes.io/hostname
+
+      initContainers:
+        - name: init-postgres
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              chown -R 999:999 /var/lib/postgresql/data
+              chmod 700 /var/lib/postgresql/data
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+
+      containers:
+        - name: ruvector-postgres
+          image: ruvnet/ruvector-postgres:latest
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - name: postgres
+              containerPort: 5432
+              protocol: TCP
+            - name: raft
+              containerPort: 5433
+              protocol: TCP
+            - name: metrics
+              containerPort: 8000
+              protocol: TCP
+
+          env:
+            - name: POSTGRES_DB
+              value: omega
+
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: ruvector-postgres-secret
+                  key: username
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ruvector-postgres-secret
+                  key: password
+
+            # RuVector configuration
+            - name: RUVECTOR_DIMENSIONS
+              value: "384"
+
+            - name: RUVECTOR_METRIC
+              value: "cosine"
+
+            - name: RUVECTOR_HNSW_M
+              value: "32"
+
+            - name: RUVECTOR_HNSW_EF_CONSTRUCTION
+              value: "200"
+
+            - name: RUVECTOR_GNN_ENABLED
+              value: "true"
+
+            - name: RUVECTOR_GNN_LEARNING_RATE
+              value: "0.001"
+
+            - name: RUVECTOR_COMPRESSION
+              value: "adaptive"
+
+            # Raft consensus configuration
+            - name: RUVECTOR_RAFT_ENABLED
+              value: "true"
+
+            - name: RUVECTOR_RAFT_NODE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+
+            - name: RUVECTOR_RAFT_PEERS
+              value: "ruvector-postgres-0.ruvector-postgres:5433,ruvector-postgres-1.ruvector-postgres:5433,ruvector-postgres-2.ruvector-postgres:5433"
+
+            - name: RUVECTOR_RAFT_HEARTBEAT_MS
+              value: "100"
+
+            - name: RUVECTOR_RAFT_ELECTION_TIMEOUT_MS
+              value: "1000"
+
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+
+          # Resource allocation - based on architecture specs
+          resources:
+            requests:
+              cpu: "8"
+              memory: "32Gi"
+              ephemeral-storage: "10Gi"
+            limits:
+              cpu: "16"
+              memory: "64Gi"
+              ephemeral-storage: "20Gi"
+
+          # Volume mounts
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+            - name: postgres-config
+              mountPath: /etc/postgresql
+            - name: postgres-wal
+              mountPath: /var/lib/postgresql/wal
+
+          # Readiness probe
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U omega
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+
+          # Liveness probe
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U omega
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 5
+
+          # Security context
+          securityContext:
+            runAsUser: 999  # postgres user
+            runAsGroup: 999
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+              add:
+                - CHOWN
+                - SETGID
+                - SETUID
+
+      volumes:
+        - name: postgres-config
+          configMap:
+            name: ruvector-postgres-config
+
+      # Termination grace period for clean shutdown
+      terminationGracePeriodSeconds: 120
+
+      # Security context for pod
+      securityContext:
+        fsGroup: 999
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+
+  # Persistent volume claim templates
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-data
+        labels:
+          app: ruvector-postgres
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: fast-ssd  # Use fast NVMe SSD
+        resources:
+          requests:
+            storage: 2Ti  # 2TB per shard (from architecture)
+
+    - metadata:
+        name: postgres-wal
+        labels:
+          app: ruvector-postgres
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: fast-ssd
+        resources:
+          requests:
+            storage: 100Gi  # WAL logs
+
+---
+# Headless service for StatefulSet
+apiVersion: v1
+kind: Service
+metadata:
+  name: ruvector-postgres
+  namespace: omega-system
+  labels:
+    app: ruvector-postgres
+    component: database
+spec:
+  type: ClusterIP
+  clusterIP: None  # Headless service
+  selector:
+    app: ruvector-postgres
+    component: database
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
+    - name: raft
+      port: 5433
+      targetPort: 5433
+      protocol: TCP
+    - name: metrics
+      port: 8000
+      targetPort: 8000
+      protocol: TCP
+
+---
+# Service for primary (read-write)
+apiVersion: v1
+kind: Service
+metadata:
+  name: ruvector-postgres-primary
+  namespace: omega-system
+  labels:
+    app: ruvector-postgres
+    component: database
+    role: primary
+spec:
+  type: ClusterIP
+  selector:
+    app: ruvector-postgres
+    component: database
+    statefulset.kubernetes.io/pod-name: ruvector-postgres-0
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
+
+---
+# ConfigMap for PostgreSQL configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ruvector-postgres-config
+  namespace: omega-system
+data:
+  postgresql.conf: |
+    # RuVector-Postgres Configuration
+
+    # Connection settings
+    max_connections = 1000
+    superuser_reserved_connections = 10
+
+    # Memory settings
+    shared_buffers = 16GB
+    effective_cache_size = 48GB
+    work_mem = 256MB
+    maintenance_work_mem = 2GB
+
+    # WAL settings
+    wal_level = logical
+    max_wal_size = 16GB
+    min_wal_size = 2GB
+    wal_compression = on
+    wal_buffers = 64MB
+
+    # Checkpoint settings
+    checkpoint_completion_target = 0.9
+    checkpoint_timeout = 15min
+
+    # Query planner
+    random_page_cost = 1.1  # SSD
+    effective_io_concurrency = 200
+
+    # Logging
+    log_destination = 'stderr'
+    logging_collector = on
+    log_directory = '/var/log/postgresql'
+    log_filename = 'postgresql-%Y-%m-%d.log'
+    log_min_duration_statement = 1000  # Log slow queries (>1s)
+
+    # RuVector extensions
+    shared_preload_libraries = 'ruvector'

@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 
-const inter = Inter({ subsets: ['latin'] });
+// Use system fonts to avoid network dependency
+const fontClass = 'font-sans';
 
 export const metadata: Metadata = {
   title: 'AI Media Discovery',
@@ -35,7 +35,7 @@ export default function RootLayout({
           href="/llms.txt"
         />
       </head>
-      <body className={inter.className}>
+      <body className={fontClass}>
         <Providers>{children}</Providers>
       </body>
     </html>

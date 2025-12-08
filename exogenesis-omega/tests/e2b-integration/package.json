@@ -1,0 +1,18 @@
+{
+  "name": "exogenesis-omega-e2b-tests",
+  "version": "1.0.0",
+  "description": "E2B integration tests for Exogenesis Omega distributed TV recommendation system",
+  "type": "module",
+  "scripts": {
+    "test": "node run-e2b-tests.js",
+    "generate-data": "node generate-mock-data.js",
+    "test:local": "node run-local-tests.js"
+  },
+  "dependencies": {
+    "@e2b/code-interpreter": "^1.0.4",
+    "e2b": "^1.0.7"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

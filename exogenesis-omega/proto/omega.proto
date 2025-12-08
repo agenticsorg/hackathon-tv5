@@ -1,0 +1,316 @@
+// Omega TV Brain gRPC Service Definitions
+// Protocol Buffers v3
+
+syntax = "proto3";
+
+package omega.tv;
+
+option go_package = "omega/tv";
+
+// ============================================================================
+// Core Services
+// ============================================================================
+
+// TVBrain - Main recommendation engine service
+service TVBrain {
+  // Get personalized recommendations
+  rpc GetRecommendations(RecommendationRequest) returns (RecommendationResponse);
+
+  // Observe a viewing event for learning
+  rpc ObserveEvent(ViewingEvent) returns (ObserveResponse);
+
+  // Query semantic memory
+  rpc QueryMemory(MemoryQuery) returns (MemoryResponse);
+
+  // Sync patterns with constellation
+  rpc SyncPatterns(SyncRequest) returns (SyncResponse);
+
+  // Health check
+  rpc HealthCheck(HealthRequest) returns (HealthResponse);
+}
+
+// Constellation - Cloud coordination service
+service Constellation {
+  // Register a new device
+  rpc RegisterDevice(DeviceRegistration) returns (DeviceResponse);
+
+  // Receive pattern updates from devices
+  rpc PushPatterns(PatternDelta) returns (GlobalPatterns);
+
+  // Get global pattern updates
+  rpc PullPatterns(PullRequest) returns (GlobalPatterns);
+
+  // Cluster status
+  rpc GetClusterStatus(ClusterStatusRequest) returns (ClusterStatus);
+}
+
+// ============================================================================
+// Recommendation Messages
+// ============================================================================
+
+message RecommendationRequest {
+  string user_id = 1;
+  string session_id = 2;
+
+  // Context for recommendations
+  RecommendationContext context = 3;
+
+  // Optional: specific content to base recommendations on
+  repeated int32 content_ids = 4;
+
+  // Pagination
+  int32 limit = 5;
+  int32 offset = 6;
+}
+
+message RecommendationContext {
+  // User's current mood/intent
+  string mood = 1;
+
+  // Time context
+  TimeOfDay time_of_day = 2;
+  DayType day_type = 3;
+
+  // Viewing context
+  ViewingContext viewing_context = 4;
+
+  // Optional: streaming services available
+  repeated string available_services = 5;
+
+  // Device type
+  string device_type = 6;
+}
+
+enum TimeOfDay {
+  TIME_UNKNOWN = 0;
+  MORNING = 1;
+  AFTERNOON = 2;
+  EVENING = 3;
+  LATE_NIGHT = 4;
+}
+
+enum DayType {
+  DAY_UNKNOWN = 0;
+  WEEKDAY = 1;
+  WEEKEND = 2;
+  HOLIDAY = 3;
+}
+
+enum ViewingContext {
+  CONTEXT_UNKNOWN = 0;
+  SOLO = 1;
+  COUPLE = 2;
+  FAMILY = 3;
+  FRIENDS = 4;
+}
+
+message RecommendationResponse {
+  bool success = 1;
+  repeated Recommendation recommendations = 2;
+
+  // Metadata
+  int64 latency_ms = 3;
+  string model_version = 4;
+}
+
+message Recommendation {
+  int32 content_id = 1;
+  string content_type = 2; // "movie" or "tv"
+  string title = 3;
+
+  // Scores
+  float relevance_score = 4;
+  float confidence = 5;
+
+  // Explanation
+  repeated string reasons = 6;
+  string explanation = 7;
+
+  // Streaming availability
+  repeated StreamingProvider providers = 8;
+}
+
+message StreamingProvider {
+  int32 provider_id = 1;
+  string name = 2;
+  string logo_path = 3;
+  string availability_type = 4; // flatrate, rent, buy, free
+}
+
+// ============================================================================
+// Viewing Event Messages
+// ============================================================================
+
+message ViewingEvent {
+  string event_id = 1;
+  string session_id = 2;
+  string user_id = 3;
+
+  // Content info
+  string content_id = 4;
+  string content_type = 5;
+  string genre = 6;
+
+  // Engagement metrics
+  float watch_percentage = 7;
+  float engagement_score = 8;
+
+  // Timestamp
+  int64 timestamp_unix = 9;
+
+  // Additional metadata
+  map<string, string> metadata = 10;
+}
+
+message ObserveResponse {
+  bool success = 1;
+  string event_id = 2;
+
+  // Learning feedback
+  float reward_signal = 3;
+  string critique = 4;
+}
+
+// ============================================================================
+// Memory Query Messages
+// ============================================================================
+
+message MemoryQuery {
+  string query_text = 1;
+
+  // Optional: filter by tier
+  MemoryTier tier = 2;
+
+  // Pagination
+  int32 limit = 3;
+
+  // Minimum similarity threshold
+  float min_similarity = 4;
+}
+
+enum MemoryTier {
+  TIER_ANY = 0;
+  EPISODIC = 1;
+  SEMANTIC = 2;
+  PROCEDURAL = 3;
+}
+
+message MemoryResponse {
+  bool success = 1;
+  repeated MemoryEntry memories = 2;
+  int64 query_time_ms = 3;
+}
+
+message MemoryEntry {
+  string memory_id = 1;
+  MemoryTier tier = 2;
+  string content = 3;
+  float similarity = 4;
+  float importance = 5;
+  int64 created_at_unix = 6;
+  map<string, string> metadata = 7;
+}
+
+// ============================================================================
+// Sync Messages
+// ============================================================================
+
+message SyncRequest {
+  string device_id = 1;
+  PatternDelta delta = 2;
+}
+
+message PatternDelta {
+  string device_id = 1;
+  repeated PatternEntry patterns = 2;
+  uint64 version = 3;
+  int64 timestamp_unix = 4;
+}
+
+message PatternEntry {
+  string name = 1;
+  repeated float embedding = 2; // 384-dim vector
+  uint64 usage_count = 3;
+  float success_rate = 4;
+}
+
+message SyncResponse {
+  bool success = 1;
+  GlobalPatterns global_patterns = 2;
+  int32 patterns_pushed = 3;
+  int32 patterns_received = 4;
+}
+
+message GlobalPatterns {
+  uint64 version = 1;
+  repeated PatternEntry patterns = 2;
+  int64 last_updated_unix = 3;
+}
+
+message PullRequest {
+  string device_id = 1;
+  uint64 last_version = 2;
+}
+
+// ============================================================================
+// Device Registration Messages
+// ============================================================================
+
+message DeviceRegistration {
+  string device_id = 1;
+  string device_name = 2;
+  string device_type = 3;
+  string platform = 4;
+  string app_version = 5;
+}
+
+message DeviceResponse {
+  bool success = 1;
+  string device_id = 2;
+  string auth_token = 3;
+  int64 registered_at_unix = 4;
+}
+
+// ============================================================================
+// Health & Status Messages
+// ============================================================================
+
+message HealthRequest {
+  bool include_details = 1;
+}
+
+message HealthResponse {
+  bool healthy = 1;
+  string status = 2;
+
+  // Component health
+  bool agentdb_healthy = 3;
+  bool memory_healthy = 4;
+  bool loops_healthy = 5;
+
+  // Metrics
+  uint64 uptime_seconds = 6;
+  uint64 requests_served = 7;
+  float avg_latency_ms = 8;
+}
+
+message ClusterStatusRequest {
+  // Empty for now
+}
+
+message ClusterStatus {
+  int32 total_devices = 1;
+  int32 active_devices = 2;
+  uint64 global_pattern_version = 3;
+  int64 last_sync_unix = 4;
+
+  repeated DeviceSummary devices = 5;
+}
+
+message DeviceSummary {
+  string device_id = 1;
+  string device_name = 2;
+  bool is_online = 3;
+  int64 last_seen_unix = 4;
+  int32 patterns_contributed = 5;
+}

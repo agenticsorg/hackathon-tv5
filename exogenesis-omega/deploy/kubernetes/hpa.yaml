@@ -1,0 +1,173 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: constellation-server-hpa
+  namespace: omega-system
+  labels:
+    app: constellation
+    component: server
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: constellation-server
+
+  # Scale between 5 and 20 replicas per shard
+  minReplicas: 5
+  maxReplicas: 20
+
+  # Scaling behavior
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300  # 5 minutes
+      policies:
+        - type: Percent
+          value: 50  # Scale down max 50% at a time
+          periodSeconds: 60
+        - type: Pods
+          value: 2  # Or max 2 pods at a time
+          periodSeconds: 60
+      selectPolicy: Min  # Use the most conservative policy
+
+    scaleUp:
+      stabilizationWindowSeconds: 60  # 1 minute
+      policies:
+        - type: Percent
+          value: 100  # Scale up max 100% at a time
+          periodSeconds: 30
+        - type: Pods
+          value: 4  # Or max 4 pods at a time
+          periodSeconds: 30
+      selectPolicy: Max  # Use the most aggressive policy
+
+  # Metrics to scale on
+  metrics:
+    # CPU utilization
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70  # Target 70% CPU
+
+    # Memory utilization
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 75  # Target 75% memory
+
+    # Custom metric: Sync requests per second
+    - type: Pods
+      pods:
+        metric:
+          name: constellation_sync_requests_per_second
+        target:
+          type: AverageValue
+          averageValue: "100"  # 100 sync requests/sec per pod
+
+    # Custom metric: gRPC connection count
+    - type: Pods
+      pods:
+        metric:
+          name: constellation_grpc_connections
+        target:
+          type: AverageValue
+          averageValue: "5000"  # 5000 concurrent connections per pod
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ruvector-postgres-read-hpa
+  namespace: omega-system
+  labels:
+    app: ruvector-postgres
+    component: database
+    role: read-replica
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: ruvector-postgres-read
+
+  # Scale read replicas between 2 and 10
+  minReplicas: 2
+  maxReplicas: 10
+
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 600  # 10 minutes (databases are expensive to scale)
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 180  # Add/remove 1 replica every 3 minutes
+      selectPolicy: Min
+
+    scaleUp:
+      stabilizationWindowSeconds: 180  # 3 minutes
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 60
+      selectPolicy: Max
+
+  metrics:
+    # CPU utilization
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
+
+    # Database connections
+    - type: Pods
+      pods:
+        metric:
+          name: postgres_active_connections
+        target:
+          type: AverageValue
+          averageValue: "800"  # 800 connections per replica
+
+---
+# Custom Metrics API setup (if using Prometheus Adapter)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-adapter-config
+  namespace: omega-system
+data:
+  config.yaml: |
+    rules:
+      # Constellation sync requests per second
+      - seriesQuery: 'constellation_sync_requests_total'
+        resources:
+          overrides:
+            namespace: {resource: "namespace"}
+            pod: {resource: "pod"}
+        name:
+          matches: "^(.*)_total$"
+          as: "${1}_per_second"
+        metricsQuery: 'rate(<<.Series>>{<<.LabelMatchers>>}[1m])'
+
+      # Constellation gRPC connections
+      - seriesQuery: 'constellation_grpc_connections_active'
+        resources:
+          overrides:
+            namespace: {resource: "namespace"}
+            pod: {resource: "pod"}
+        name:
+          as: "constellation_grpc_connections"
+        metricsQuery: 'avg_over_time(<<.Series>>{<<.LabelMatchers>>}[1m])'
+
+      # PostgreSQL active connections
+      - seriesQuery: 'postgres_connections_active'
+        resources:
+          overrides:
+            namespace: {resource: "namespace"}
+            pod: {resource: "pod"}
+        name:
+          as: "postgres_active_connections"
+        metricsQuery: 'avg_over_time(<<.Series>>{<<.LabelMatchers>>}[1m])'

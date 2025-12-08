@@ -1,0 +1,361 @@
+# Default values for omega-constellation
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# ============================================================
+# Global Configuration
+# ============================================================
+global:
+  environment: development
+  region: us-east-1
+
+# ============================================================
+# Constellation Server Configuration
+# ============================================================
+constellation:
+  # Replica count per shard
+  replicaCount: 10
+
+  image:
+    repository: exogenesis/omega-constellation
+    tag: "v0.1.0"
+    pullPolicy: IfNotPresent
+    # Image built with omega-* crates from crates.io:
+    # - omega-core (types)
+    # - omega-agentdb (SIMD vector DB)
+    # - omega-memory (12-tier memory)
+    # - omega-loops (7 temporal loops)
+    # - omega-runtime (orchestration)
+    # - omega-persistence (SQLite)
+
+  imagePullSecrets: []
+
+  # Shard configuration
+  shard:
+    id: 1
+    region: us-east-1
+    maxDevices: 4000000  # 4M TVs per shard
+
+  # Service configuration
+  service:
+    type: LoadBalancer
+    annotations: {}
+    grpc:
+      port: 50051
+      nodePort: null
+    http:
+      port: 8080
+      nodePort: null
+    metrics:
+      port: 9090
+      nodePort: null
+
+  # Resource limits (based on architecture specs)
+  resources:
+    requests:
+      cpu: "8"
+      memory: 32Gi
+      ephemeral-storage: 10Gi
+    limits:
+      cpu: "16"
+      memory: 64Gi
+      ephemeral-storage: 20Gi
+
+  # Autoscaling
+  autoscaling:
+    enabled: true
+    minReplicas: 5
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 75
+    customMetrics:
+      - name: constellation_sync_requests_per_second
+        targetAverageValue: 100
+      - name: constellation_grpc_connections
+        targetAverageValue: 5000
+
+  # Pod Disruption Budget
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 70%
+
+  # Security context
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+
+  # Node affinity
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                    - constellation
+            topologyKey: kubernetes.io/hostname
+
+  # Tolerations
+  tolerations: []
+
+  # Node selector
+  nodeSelector: {}
+
+# ============================================================
+# RuVector-Postgres Configuration
+# ============================================================
+ruvectorPostgres:
+  enabled: true
+
+  image:
+    repository: ruvnet/ruvector-postgres
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  # Cluster configuration
+  replicas: 3  # Raft consensus
+
+  # RuVector settings (384-dim for MiniLM embeddings)
+  ruvector:
+    dimensions: 384  # MiniLM embedding size (vs 4096 for full models)
+    metric: cosine
+    hnsw:
+      m: 32
+      efConstruction: 200
+    gnn:
+      enabled: true
+      learningRate: 0.001
+    compression: adaptive
+
+  # Raft consensus
+  raft:
+    enabled: true
+    heartbeatMs: 100
+    electionTimeoutMs: 1000
+
+  # Database credentials (use external secret in production)
+  auth:
+    database: omega
+    username: omega
+    password: ""  # Must be set or use existingSecret
+    existingSecret: ""
+    existingSecretPasswordKey: password
+
+  # Storage
+  persistence:
+    enabled: true
+    storageClass: fast-ssd
+    data:
+      size: 2Ti
+    wal:
+      size: 100Gi
+
+  # Resource limits
+  resources:
+    requests:
+      cpu: "8"
+      memory: 32Gi
+    limits:
+      cpu: "16"
+      memory: 64Gi
+
+  # PostgreSQL configuration
+  postgresql:
+    maxConnections: 1000
+    sharedBuffers: 16GB
+    effectiveCacheSize: 48GB
+    workMem: 256MB
+    maintenanceWorkMem: 2GB
+    walLevel: logical
+    maxWalSize: 16GB
+    minWalSize: 2GB
+
+  # Service
+  service:
+    type: ClusterIP
+    port: 5432
+
+  # Pod Disruption Budget
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 2  # Maintain Raft quorum
+
+# ============================================================
+# Federation Worker Configuration
+# ============================================================
+federation:
+  enabled: true
+
+  image:
+    repository: omega/federation-worker
+    tag: "v0.1.0"
+    pullPolicy: IfNotPresent
+
+  # CronJob schedule (hourly)
+  schedule: "0 * * * *"
+
+  # Job configuration
+  job:
+    backoffLimit: 3
+    activeDeadlineSeconds: 3000  # 50 minutes
+    ttlSecondsAfterFinished: 86400  # 24 hours
+
+  # Federation settings
+  config:
+    aggregationIntervalSecs: 3600
+    minQualityThreshold: 0.8
+    trendDecayRate: 0.95
+
+  resources:
+    requests:
+      cpu: "4"
+      memory: 16Gi
+    limits:
+      cpu: "8"
+      memory: 32Gi
+
+# ============================================================
+# Monitoring Configuration
+# ============================================================
+monitoring:
+  enabled: true
+
+  prometheus:
+    enabled: true
+    scrapeInterval: 15s
+    retention: 30d
+
+    # ServiceMonitor for Prometheus Operator
+    serviceMonitor:
+      enabled: false
+      interval: 15s
+
+  grafana:
+    enabled: true
+    adminPassword: ""  # Generate or use existingSecret
+
+    dashboards:
+      enabled: true
+
+      # Pre-configured dashboards
+      omegaOverview: true
+      constellationMetrics: true
+      databaseMetrics: true
+      federationMetrics: true
+
+# ============================================================
+# Network Policies
+# ============================================================
+networkPolicy:
+  enabled: true
+
+  # Ingress rules
+  ingress:
+    enabled: true
+    allowedSources:
+      - podSelector: {}
+      - namespaceSelector: {}
+
+  # Egress rules
+  egress:
+    enabled: true
+    allowDNS: true
+    allowInternet: true
+
+# ============================================================
+# TLS Configuration
+# ============================================================
+tls:
+  enabled: false
+
+  # Use cert-manager
+  certManager:
+    enabled: false
+    issuer: letsencrypt-prod
+
+  # Or provide existing certificate
+  existingSecret: ""
+  certificateKey: tls.crt
+  privateKeyKey: tls.key
+
+# ============================================================
+# Service Account
+# ============================================================
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# ============================================================
+# RBAC
+# ============================================================
+rbac:
+  create: true
+
+# ============================================================
+# ConfigMaps and Secrets
+# ============================================================
+config:
+  # Sync protocol
+  sync:
+    intervalMinSecs: 300
+    intervalMaxSecs: 900
+    batchSize: 100
+    compressionLevel: 3
+
+  # Pattern quality
+  pattern:
+    minQuality: 0.7
+    minSampleCount: 3
+    maxPatternsPerDevice: 10000
+
+  # Rate limiting
+  rateLimit:
+    perDevicePerMinute: 1
+    burst: 3
+
+  # Logging
+  logging:
+    level: info
+    format: json
+
+# ============================================================
+# External Secrets (use external-secrets operator)
+# ============================================================
+externalSecrets:
+  enabled: false
+  backend: vault  # vault, aws-secrets-manager, gcp-secret-manager, etc.
+  vaultPath: secret/omega
+
+# ============================================================
+# Backup Configuration
+# ============================================================
+backup:
+  enabled: false
+
+  # Velero backup
+  velero:
+    enabled: false
+    schedule: "0 2 * * *"  # Daily at 2 AM
+    retention: 30d
+
+  # PostgreSQL backup
+  postgres:
+    enabled: false
+    schedule: "0 */6 * * *"  # Every 6 hours
+    retention: 7d
+    storageClass: standard
+
+# ============================================================
+# Testing
+# ============================================================
+tests:
+  enabled: true
+
+  # Connection test
+  connectionTest:
+    image: busybox:1.36

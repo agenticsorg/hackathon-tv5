@@ -1,0 +1,49 @@
+[package]
+name = "omega-tv-sync"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Delta sync protocol for Exogenesis Omega (TV ↔ Constellation)"
+
+[dependencies]
+# Omega ecosystem
+omega-core = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true }
+async-trait = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+bincode = { workspace = true }
+
+# Networking
+reqwest = { workspace = true }
+hyper = { workspace = true }
+
+# Compression
+zstd = { workspace = true }
+
+# Utilities
+uuid = { workspace = true }
+chrono = { workspace = true }
+bytes = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+
+[dev-dependencies]
+mockall = { workspace = true }
+tokio = { workspace = true, features = ["test-util"] }
+
+[lib]
+name = "omega_tv_sync"
+path = "src/lib.rs"

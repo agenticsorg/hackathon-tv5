@@ -1,0 +1,243 @@
+# Docker Compose for Production Cluster
+# RuVector-Postgres with Raft (3 nodes) + Constellation servers
+
+version: '3.9'
+
+services:
+  # ============================================================
+  # RuVector-Postgres Cluster (Raft Consensus)
+  # ============================================================
+
+  ruvector-primary:
+    image: ruvnet/ruvector-postgres:latest
+    container_name: omega-ruvector-primary
+    environment:
+      POSTGRES_DB: omega
+      POSTGRES_USER: omega
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      RUVECTOR_DIMENSIONS: 384
+      RUVECTOR_METRIC: cosine
+      RUVECTOR_HNSW_M: 32
+      RUVECTOR_HNSW_EF_CONSTRUCTION: 200
+      RUVECTOR_GNN_ENABLED: "true"
+      RUVECTOR_GNN_LEARNING_RATE: 0.001
+      RUVECTOR_COMPRESSION: adaptive
+      # Raft configuration
+      RUVECTOR_RAFT_ENABLED: "true"
+      RUVECTOR_RAFT_NODE_ID: 1
+      RUVECTOR_RAFT_PEERS: ruvector-replica1:5433,ruvector-replica2:5434
+      RUVECTOR_RAFT_HEARTBEAT_MS: 100
+      RUVECTOR_RAFT_ELECTION_TIMEOUT_MS: 1000
+    ports:
+      - "5432:5432"
+    volumes:
+      - ruvector_primary_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: '16'
+          memory: 64G
+        reservations:
+          cpus: '8'
+          memory: 32G
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U omega && curl -f http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - omega-prod
+
+  ruvector-replica1:
+    image: ruvnet/ruvector-postgres:latest
+    container_name: omega-ruvector-replica1
+    environment:
+      POSTGRES_DB: omega
+      POSTGRES_USER: omega
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      RUVECTOR_DIMENSIONS: 384
+      RUVECTOR_METRIC: cosine
+      RUVECTOR_HNSW_M: 32
+      RUVECTOR_HNSW_EF_CONSTRUCTION: 200
+      RUVECTOR_GNN_ENABLED: "true"
+      RUVECTOR_GNN_LEARNING_RATE: 0.001
+      RUVECTOR_COMPRESSION: adaptive
+      # Raft configuration
+      RUVECTOR_RAFT_ENABLED: "true"
+      RUVECTOR_RAFT_NODE_ID: 2
+      RUVECTOR_RAFT_PEERS: ruvector-primary:5432,ruvector-replica2:5434
+      RUVECTOR_RAFT_HEARTBEAT_MS: 100
+      RUVECTOR_RAFT_ELECTION_TIMEOUT_MS: 1000
+    ports:
+      - "5433:5432"
+    volumes:
+      - ruvector_replica1_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: '16'
+          memory: 64G
+        reservations:
+          cpus: '8'
+          memory: 32G
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U omega && curl -f http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - omega-prod
+
+  ruvector-replica2:
+    image: ruvnet/ruvector-postgres:latest
+    container_name: omega-ruvector-replica2
+    environment:
+      POSTGRES_DB: omega
+      POSTGRES_USER: omega
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      RUVECTOR_DIMENSIONS: 384
+      RUVECTOR_METRIC: cosine
+      RUVECTOR_HNSW_M: 32
+      RUVECTOR_HNSW_EF_CONSTRUCTION: 200
+      RUVECTOR_GNN_ENABLED: "true"
+      RUVECTOR_GNN_LEARNING_RATE: 0.001
+      RUVECTOR_COMPRESSION: adaptive
+      # Raft configuration
+      RUVECTOR_RAFT_ENABLED: "true"
+      RUVECTOR_RAFT_NODE_ID: 3
+      RUVECTOR_RAFT_PEERS: ruvector-primary:5432,ruvector-replica1:5433
+      RUVECTOR_RAFT_HEARTBEAT_MS: 100
+      RUVECTOR_RAFT_ELECTION_TIMEOUT_MS: 1000
+    ports:
+      - "5434:5432"
+    volumes:
+      - ruvector_replica2_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: '16'
+          memory: 64G
+        reservations:
+          cpus: '8'
+          memory: 32G
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U omega && curl -f http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - omega-prod
+
+  # ============================================================
+  # Constellation Servers (10 replicas per shard)
+  # ============================================================
+
+  constellation:
+    image: omega/constellation-server:${VERSION:-latest}
+    environment:
+      SHARD_ID: ${SHARD_ID:-1}
+      POSTGRES_URL: postgres://omega:${POSTGRES_PASSWORD}@ruvector-primary:5432/omega
+      POSTGRES_READ_URLS: postgres://omega:${POSTGRES_PASSWORD}@ruvector-replica1:5432/omega,postgres://omega:${POSTGRES_PASSWORD}@ruvector-replica2:5432/omega
+      GRPC_ADDR: 0.0.0.0:50051
+      REST_ADDR: 0.0.0.0:8080
+      METRICS_ADDR: 0.0.0.0:9090
+      MAX_DEVICES: 4000000
+      REGION: ${REGION:-us-east-1}
+      RUST_LOG: ${LOG_LEVEL:-info}
+    ports:
+      - "50051-50060:50051"
+      - "8080-8089:8080"
+      - "9090-9099:9090"
+    depends_on:
+      ruvector-primary:
+        condition: service_healthy
+      ruvector-replica1:
+        condition: service_healthy
+      ruvector-replica2:
+        condition: service_healthy
+    deploy:
+      mode: replicated
+      replicas: 10
+      resources:
+        limits:
+          cpus: '8'
+          memory: 32G
+        reservations:
+          cpus: '4'
+          memory: 16G
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/constellation-server", "health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+    networks:
+      - omega-prod
+
+  # ============================================================
+  # Federation Worker
+  # ============================================================
+
+  federation-worker:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/Dockerfile.federation
+    image: omega/federation-worker:${VERSION:-latest}
+    container_name: omega-federation
+    environment:
+      POSTGRES_URLS: postgres://omega:${POSTGRES_PASSWORD}@ruvector-primary:5432/omega,postgres://omega:${POSTGRES_PASSWORD}@ruvector-replica1:5432/omega,postgres://omega:${POSTGRES_PASSWORD}@ruvector-replica2:5432/omega
+      AGGREGATION_INTERVAL_SECS: 3600  # 1 hour
+      MIN_QUALITY_THRESHOLD: 0.8
+      TREND_DECAY_RATE: 0.95
+      METRICS_ADDR: 0.0.0.0:9091
+      RUST_LOG: ${LOG_LEVEL:-info}
+    ports:
+      - "9101:9091"
+    depends_on:
+      ruvector-primary:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 16G
+        reservations:
+          cpus: '2'
+          memory: 8G
+    networks:
+      - omega-prod
+
+  # ============================================================
+  # HAProxy Load Balancer (gRPC)
+  # ============================================================
+
+  haproxy:
+    image: haproxy:2.8-alpine
+    container_name: omega-haproxy
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - "50051:50051"  # gRPC frontend
+      - "8404:8404"    # HAProxy stats
+    depends_on:
+      - constellation
+    networks:
+      - omega-prod
+
+volumes:
+  ruvector_primary_data:
+    driver: local
+  ruvector_replica1_data:
+    driver: local
+  ruvector_replica2_data:
+    driver: local
+
+networks:
+  omega-prod:
+    driver: overlay
+    attachable: true

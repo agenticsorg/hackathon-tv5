@@ -1,0 +1,72 @@
+[package]
+name = "omega-sdk"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "SDK for TV manufacturers to integrate Exogenesis Omega recommendations"
+repository = "https://github.com/exogenesis-omega/omega-sdk"
+keywords = ["tv", "recommendations", "edge-computing", "ml", "ffi"]
+categories = ["multimedia", "api-bindings", "embedded"]
+
+[lib]
+# Build both cdylib (for C FFI) and rlib (for Rust consumers)
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# Async runtime
+tokio = { workspace = true, features = ["full"] }
+
+# Serialization
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+# FFI helpers
+once_cell = "1.19"
+
+# Error handling
+thiserror = { workspace = true }
+
+# TODO: Add when implementing actual brain functionality
+# omega-brain = { workspace = true }
+# omega-sync = { workspace = true }
+# omega-protocol = { workspace = true }
+# ruvector = "0.2"           # Local vector database
+# ort = "2.0"                # ONNX Runtime
+# agentdb-core = "0.1"       # Memory systems
+
+[dev-dependencies]
+# Testing
+tokio-test = "0.4"
+
+[build-dependencies]
+# TODO: Add cbindgen for automatic C header generation
+# cbindgen = "0.26"
+
+[features]
+default = []
+
+# Enable WebAssembly target
+wasm = []
+
+# Enable verbose logging for debugging
+debug-logging = []
+
+# Profile for release builds with FFI
+[profile.release]
+opt-level = 3           # Maximum optimization
+lto = true              # Link-time optimization
+codegen-units = 1       # Better optimization
+strip = true            # Strip symbols
+panic = "abort"         # Smaller binary size
+
+# Profile for embedded/TV targets with size optimization
+[profile.release-small]
+inherits = "release"
+opt-level = "z"         # Optimize for size
+strip = true
+
+[package.metadata.docs.rs]
+# Documentation features
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

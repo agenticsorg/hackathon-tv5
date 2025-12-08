@@ -1,0 +1,174 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: constellation-server-pdb
+  namespace: omega-system
+  labels:
+    app: constellation
+    component: server
+spec:
+  # Ensure at least 70% of constellation pods are available during disruptions
+  minAvailable: 70%
+
+  selector:
+    matchLabels:
+      app: constellation
+      component: server
+
+  # Unhealthy pod eviction policy
+  unhealthyPodEvictionPolicy: IfHealthyBudget
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: ruvector-postgres-pdb
+  namespace: omega-system
+  labels:
+    app: ruvector-postgres
+    component: database
+spec:
+  # For Raft consensus, we need at least 2 out of 3 nodes (quorum)
+  minAvailable: 2
+
+  selector:
+    matchLabels:
+      app: ruvector-postgres
+      component: database
+
+  unhealthyPodEvictionPolicy: AlwaysAllow
+
+---
+# NetworkPolicy to restrict traffic
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: constellation-network-policy
+  namespace: omega-system
+spec:
+  podSelector:
+    matchLabels:
+      app: constellation
+
+  policyTypes:
+    - Ingress
+    - Egress
+
+  # Ingress rules
+  ingress:
+    # Allow gRPC from anywhere (TV devices)
+    - from:
+        - podSelector: {}
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 50051
+
+    # Allow HTTP from monitoring
+    - from:
+        - podSelector:
+            matchLabels:
+              app: prometheus
+      ports:
+        - protocol: TCP
+          port: 8080
+        - protocol: TCP
+          port: 9090
+
+  # Egress rules
+  egress:
+    # Allow DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+
+    # Allow PostgreSQL
+    - to:
+        - podSelector:
+            matchLabels:
+              app: ruvector-postgres
+      ports:
+        - protocol: TCP
+          port: 5432
+
+    # Allow internet (for external APIs, monitoring)
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ruvector-postgres-network-policy
+  namespace: omega-system
+spec:
+  podSelector:
+    matchLabels:
+      app: ruvector-postgres
+
+  policyTypes:
+    - Ingress
+    - Egress
+
+  ingress:
+    # Allow PostgreSQL from constellation servers
+    - from:
+        - podSelector:
+            matchLabels:
+              app: constellation
+      ports:
+        - protocol: TCP
+          port: 5432
+
+    # Allow PostgreSQL from federation worker
+    - from:
+        - podSelector:
+            matchLabels:
+              app: federation
+      ports:
+        - protocol: TCP
+          port: 5432
+
+    # Allow Raft between postgres nodes
+    - from:
+        - podSelector:
+            matchLabels:
+              app: ruvector-postgres
+      ports:
+        - protocol: TCP
+          port: 5433
+
+    # Allow metrics from Prometheus
+    - from:
+        - podSelector:
+            matchLabels:
+              app: prometheus
+      ports:
+        - protocol: TCP
+          port: 8000
+
+  egress:
+    # Allow DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+
+    # Allow Raft between postgres nodes
+    - to:
+        - podSelector:
+            matchLabels:
+              app: ruvector-postgres
+      ports:
+        - protocol: TCP
+          port: 5433

@@ -1,0 +1,116 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/omega-tv-brain",  # TV-side integration (re-enabled)
+    "crates/omega-tv-sync",   # Delta sync protocol (ready)
+    "crates/omega-tv-sdk",    # C FFI for manufacturers (re-enabled)
+    "crates/omega-constellation",
+    "services/constellation-server",
+    "services/federation-worker",
+    "tools/omega-cli",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+license = "MIT"
+authors = ["Exogenesis Omega Team"]
+repository = "https://github.com/exogenesis/omega"
+
+[workspace.dependencies]
+# === EXISTING OMEGA CRATES (from crates.io) ===
+omega-core = "1.0"
+omega-agentdb = "1.0"
+omega-memory = "1.0"
+omega-loops = "1.0"
+omega-runtime = "1.0"
+omega-persistence = "1.0"
+omega-meta-sona = "1.0"
+
+# === INTERNAL TV-SPECIFIC CRATES ===
+omega-tv-brain = { path = "crates/omega-tv-brain" }
+omega-tv-sync = { path = "crates/omega-tv-sync" }
+omega-tv-sdk = { path = "crates/omega-tv-sdk" }
+omega-constellation = { path = "crates/omega-constellation" }
+
+# === ASYNC RUNTIME ===
+tokio = { version = "1.35", features = ["full"] }
+tokio-util = "0.7"
+futures = "0.3"
+async-trait = "0.1"
+
+# === SERIALIZATION ===
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+bincode = "1.3"
+
+# === ONNX RUNTIME ===
+ort = { version = "2.0.0-rc.10", features = ["load-dynamic"] }
+
+# === DATABASE ===
+# NOTE: Using sqlx 0.8 with only postgres features to avoid sqlite conflict with omega-persistence's rusqlite
+sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio", "postgres", "uuid", "chrono", "json"] }
+
+# === NETWORKING - HTTP/REST ===
+axum = { version = "0.7", features = ["macros"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["trace", "cors"] }
+hyper = "1.1"
+reqwest = { version = "0.11", features = ["json"], default-features = false }
+
+# === NETWORKING - gRPC ===
+tonic = { version = "0.11", features = ["transport", "tls"] }
+tonic-build = "0.11"
+prost = "0.12"
+prost-types = "0.12"
+
+# === NETWORKING - QUIC ===
+quinn = "0.11"
+rustls = "0.22"
+
+# === COMPRESSION ===
+zstd = "0.13"
+lz4 = "1.24"
+
+# === ERROR HANDLING ===
+thiserror = "1.0"
+anyhow = "1.0"
+
+# === LOGGING AND TRACING ===
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+tracing-appender = "0.2"
+
+# === METRICS ===
+metrics = "0.22"
+metrics-exporter-prometheus = "0.14"
+
+# === CONFIGURATION ===
+config = "0.14"
+dotenv = "0.15"
+
+# === UTILITIES ===
+uuid = { version = "1.6", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+rand = "0.8"
+bytes = "1.5"
+dashmap = "5.5"
+parking_lot = "0.12"
+
+# === CLI TOOLS ===
+clap = { version = "4.4", features = ["derive", "env"] }
+
+# === TESTING ===
+mockall = "0.12"
+proptest = "1.4"
+criterion = "0.5"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = true
+
+[profile.bench]
+inherits = "release"

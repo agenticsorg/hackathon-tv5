@@ -1,0 +1,47 @@
+steps:
+  # Step 1: Create the secret
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args:
+      - 'apply'
+      - '-f'
+      - 'k8s/secret.yaml'
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=media-discovery-cluster'
+
+  # Step 2: Deploy the application
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args:
+      - 'apply'
+      - '-f'
+      - 'k8s/deployment.yaml'
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=media-discovery-cluster'
+
+  # Step 3: Wait for rollout to complete
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args:
+      - 'rollout'
+      - 'status'
+      - 'deployment/media-discovery'
+      - '--timeout=5m'
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=media-discovery-cluster'
+
+  # Step 4: Get the external IP
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args:
+      - 'get'
+      - 'service'
+      - 'media-discovery'
+      - '-o'
+      - 'jsonpath={.status.loadBalancer.ingress[0].ip}'
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=media-discovery-cluster'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+timeout: 600s

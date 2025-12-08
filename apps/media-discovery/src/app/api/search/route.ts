@@ -3,11 +3,13 @@
  * POST /api/search
  *
  * Accepts natural language queries and returns semantically matched content
+ * Rate limited to 100 requests/min per client (as per ARW manifest)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { semanticSearch, parseSearchQuery, explainRecommendation } from '@/lib/natural-language-search';
+import { applyRateLimit, getRateLimitHeaders } from '@/lib/rate-limit';
 
 // Request schema
 const SearchRequestSchema = z.object({
@@ -24,15 +26,26 @@ const SearchRequestSchema = z.object({
   preferences: z.array(z.number()).optional(), // User's preferred genre IDs
   explain: z.boolean().optional(), // Whether to include AI explanations
   limit: z.number().min(1).max(50).optional(),
+  region: z.string().optional(), // Region for streaming availability
+  includeStreaming: z.boolean().optional(), // Whether to include streaming data
 });
 
 export async function POST(request: NextRequest) {
+  // Check rate limit
+  const rateLimitResponse = applyRateLimit(request, 'search');
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const body = await request.json();
-    const { query, filters, preferences, explain, limit = 20 } = SearchRequestSchema.parse(body);
+    const { query, filters, preferences, explain, limit = 20, region, includeStreaming } = SearchRequestSchema.parse(body);
 
-    // Perform semantic search
-    const results = await semanticSearch(query, preferences);
+    // Perform semantic search with streaming availability
+    const results = await semanticSearch(query, preferences, {
+      includeStreaming: includeStreaming ?? true,
+      region: region || 'US',
+    });
 
     // Apply limit
     const limitedResults = results.slice(0, limit);
@@ -55,12 +68,17 @@ export async function POST(request: NextRequest) {
     // Parse query to return intent (for debugging/UI)
     const parsedQuery = await parseSearchQuery(query);
 
+    // Get rate limit headers
+    const rateLimitHeaders = getRateLimitHeaders(request, 'search');
+
     return NextResponse.json({
       success: true,
       query: query,
       intent: parsedQuery.intent,
       results: finalResults,
       totalResults: results.length,
+    }, {
+      headers: rateLimitHeaders,
     });
   } catch (error) {
     console.error('Search error:', error);
@@ -81,8 +99,15 @@ export async function POST(request: NextRequest) {
 
 // GET endpoint for simple text searches
 export async function GET(request: NextRequest) {
+  // Check rate limit
+  const rateLimitResponse = applyRateLimit(request, 'search');
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const searchParams = request.nextUrl.searchParams;
   const query = searchParams.get('q');
+  const region = searchParams.get('region') || 'US';
 
   if (!query) {
     return NextResponse.json(
@@ -92,13 +117,21 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const results = await semanticSearch(query);
+    const results = await semanticSearch(query, undefined, {
+      includeStreaming: true,
+      region,
+    });
+
+    // Get rate limit headers
+    const rateLimitHeaders = getRateLimitHeaders(request, 'search');
 
     return NextResponse.json({
       success: true,
       query,
       results: results.slice(0, 20),
       totalResults: results.length,
+    }, {
+      headers: rateLimitHeaders,
     });
   } catch (error) {
     console.error('Search error:', error);

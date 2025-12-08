@@ -1,0 +1,59 @@
+apiVersion: v2
+name: omega-constellation
+description: Exogenesis Omega - Distributed TV Recommendation System
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+
+keywords:
+  - tv
+  - recommendations
+  - distributed
+  - edge-computing
+  - ruvector
+  - rust
+
+home: https://github.com/omega/exogenesis-omega
+sources:
+  - https://github.com/omega/exogenesis-omega
+
+maintainers:
+  - name: Exogenesis Team
+    email: team@exogenesis-omega.io
+
+# Icon (base64 encoded SVG or URL)
+icon: https://exogenesis-omega.io/logo.svg
+
+# Dependencies
+dependencies:
+  # Optional: PostgreSQL operator for automated DB management
+  # - name: postgres-operator
+  #   version: "1.10.0"
+  #   repository: https://opensource.zalando.com/postgres-operator/charts/postgres-operator
+  #   condition: postgresql.operator.enabled
+
+annotations:
+  category: AI/ML
+  licenses: MIT
+
+  # Artifact Hub annotations
+  artifacthub.io/displayName: Omega Constellation
+  artifacthub.io/keywords: |
+    - tv recommendations
+    - edge computing
+    - distributed systems
+    - vector database
+  artifacthub.io/links: |
+    - name: Documentation
+      url: https://docs.exogenesis-omega.io
+    - name: Architecture
+      url: https://github.com/omega/exogenesis-omega/blob/main/ARCHITECTURE.md
+  artifacthub.io/maintainers: |
+    - name: Exogenesis Team
+      email: team@exogenesis-omega.io
+  artifacthub.io/recommendations: |
+    - url: https://artifacthub.io/packages/helm/ruvector/ruvector-postgres
+
+  # Security scanning
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/prerelease: "true"

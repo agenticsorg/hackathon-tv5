@@ -1,0 +1,50 @@
+[package]
+name = "omega-brain"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+# Internal
+omega-protocol = { workspace = true }
+
+# Vector database
+# Note: RuVector integration will be added in Phase 1 implementation
+# ruvector = { workspace = true }
+
+# ONNX runtime
+ort = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+bincode = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+
+# Metrics
+metrics = { workspace = true }
+
+# Utilities
+uuid = { workspace = true }
+chrono = { workspace = true }
+parking_lot = { workspace = true }
+dashmap = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }
+criterion = { workspace = true }
+proptest = { workspace = true }
+
+[[bench]]
+name = "recommendation_latency"
+harness = false
