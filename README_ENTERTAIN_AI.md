@@ -70,7 +70,7 @@ We serve people.
 <img width="600" height="600" alt="Screenshot 2025-12-07 at 4 07 07 PM" src="https://github.com/user-attachments/assets/41b417f0-a750-41e4-b48b-a2fb59ec9247" />
 
 
-Instead of scrolling:
+Instead of scrolling:https://aura-agent-production.up.railway.app/
 
 You talk.
 The AI understands.
