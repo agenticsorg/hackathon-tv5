@@ -16,3 +16,5 @@ verify_*.sh
 
 # OS generated
 .DS_Store
+.build/
+Package.resolved

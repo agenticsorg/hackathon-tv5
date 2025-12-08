@@ -136,13 +136,22 @@ export async function semanticSearch(
   query: string,
   userPreferences?: number[]
 ): Promise<SearchResult[]> {
-  // Parse the natural language query
-  const semanticQuery = await parseSearchQuery(query);
+  // Parse the natural language query (with fallback)
+  let semanticQuery: SemanticSearchQuery;
+  try {
+    semanticQuery = await parseSearchQuery(query);
+  } catch (error) {
+    console.warn('AI parsing failed, using basic query:', error);
+    semanticQuery = { query };
+  }
 
-  // Parallel search strategies
+  // Parallel search strategies with graceful degradation
   const [tmdbResults, vectorResults] = await Promise.all([
     performTMDBSearch(semanticQuery),
-    performVectorSearch(semanticQuery),
+    performVectorSearch(semanticQuery).catch(err => {
+      console.warn('Vector search failed, continuing with TMDB only:', err);
+      return [];
+    }),
   ]);
 
   // Merge and rank results
