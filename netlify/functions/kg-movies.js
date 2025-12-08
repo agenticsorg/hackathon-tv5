@@ -11,7 +11,11 @@ let cachedData = null;
 function loadData() {
   if (cachedData) return cachedData;
 
-  const dataPath = path.join(__dirname, '../../mondweep/media-hackathion-knowledge-graph-full-export-2025-12-08.json');
+  // Try embeddings file first, fall back to regular export
+  const embeddingsPath = path.join(__dirname, '../../mondweep/knowledge-graph-with-embeddings.json');
+  const regularPath = path.join(__dirname, '../../mondweep/media-hackathion-knowledge-graph-full-export-2025-12-08.json');
+
+  const dataPath = fs.existsSync(embeddingsPath) ? embeddingsPath : regularPath;
   const rawData = fs.readFileSync(dataPath, 'utf8');
   cachedData = JSON.parse(rawData);
   return cachedData;

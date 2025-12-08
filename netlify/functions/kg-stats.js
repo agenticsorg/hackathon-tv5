@@ -12,7 +12,11 @@ let cachedData = null;
 function loadData() {
   if (cachedData) return cachedData;
 
-  const dataPath = path.join(__dirname, '../../mondweep/media-hackathion-knowledge-graph-full-export-2025-12-08.json');
+  // Try embeddings file first, fall back to regular export
+  const embeddingsPath = path.join(__dirname, '../../mondweep/knowledge-graph-with-embeddings.json');
+  const regularPath = path.join(__dirname, '../../mondweep/media-hackathion-knowledge-graph-full-export-2025-12-08.json');
+
+  const dataPath = fs.existsSync(embeddingsPath) ? embeddingsPath : regularPath;
   const rawData = fs.readFileSync(dataPath, 'utf8');
   cachedData = JSON.parse(rawData);
   return cachedData;
@@ -33,14 +37,12 @@ exports.handler = async (event, context) => {
   try {
     const data = loadData();
     const movies = data.data.movies || [];
+    const genres = data.data.genres || [];
 
     // Calculate platform readiness counts
     let readyForNetflix = 0;
     let readyForAmazon = 0;
     let readyForFAST = 0;
-
-    // Extract unique genres from movies
-    const genreSet = new Set();
 
     movies.forEach(movie => {
       if (movie.platformReadiness) {
@@ -48,20 +50,16 @@ exports.handler = async (event, context) => {
         if (movie.platformReadiness.amazon) readyForAmazon++;
         if (movie.platformReadiness.fast) readyForFAST++;
       }
-      // Extract genres if they exist
-      if (movie.genres) {
-        movie.genres.forEach(g => genreSet.add(JSON.stringify(g)));
-      }
     });
 
     const stats = {
       totalMovies: movies.length,
-      totalGenres: data.stats.genres || genreSet.size || 18,
-      totalCompanies: data.stats.companies || 0,
-      totalCountries: data.stats.countries || 0,
+      totalGenres: genres.length || data.stats?.genres || 18,
+      totalCompanies: data.stats?.companies || 0,
+      totalCountries: data.stats?.countries || 0,
       totalLanguages: 0,
       totalKeywords: 0,
-      totalEdges: data.stats.edges || 0,
+      totalEdges: data.stats?.edges || 0,
       readyForNetflix,
       readyForAmazon,
       readyForFAST,
