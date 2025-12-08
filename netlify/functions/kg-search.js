@@ -208,8 +208,8 @@ exports.handler = async (event, context) => {
     const data = loadData();
     const movies = data.data.movies || [];
 
-    // Check if we can do semantic search (prefer Gemini, fall back to OpenAI)
-    const geminiKey = process.env.GOOGLE_GEMINI_API_KEY;
+    // Check if we can do semantic search
+    const geminiKey = process.env.GEMINI_API_KEY;
     const canDoSemantic = hasEmbeddings && geminiKey;
 
     let results;
