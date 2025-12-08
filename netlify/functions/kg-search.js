@@ -106,17 +106,18 @@ async function semanticSearch(movies, query, limit, apiKey) {
     .slice(0, limit);
 
   return scored.map(movie => ({
-    movie: {
-      id: movie.id,
-      title: movie.title,
-      overview: movie.overview,
-      posterPath: movie.posterPath,
-      releaseDate: movie.releaseDate,
-      voteAverage: movie.voteAverage,
-      popularity: movie.popularity,
-      runtime: movie.runtime,
-      platformReadiness: movie.platformReadiness,
-    },
+    // Flat structure for frontend compatibility
+    id: movie.id,
+    title: movie.title,
+    overview: movie.overview,
+    posterPath: movie.posterPath,
+    releaseDate: movie.releaseDate,
+    year: movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : null,
+    voteAverage: movie.voteAverage,
+    popularity: movie.popularity,
+    runtime: movie.runtime,
+    platformReadiness: movie.platformReadiness,
+    genres: movie.genres,
     similarity: movie.similarity,
   }));
 }
@@ -157,17 +158,18 @@ function textSearch(movies, query, limit) {
     .slice(0, limit);
 
   return scored.map(movie => ({
-    movie: {
-      id: movie.id,
-      title: movie.title,
-      overview: movie.overview,
-      posterPath: movie.posterPath,
-      releaseDate: movie.releaseDate,
-      voteAverage: movie.voteAverage,
-      popularity: movie.popularity,
-      runtime: movie.runtime,
-      platformReadiness: movie.platformReadiness,
-    },
+    // Flat structure for frontend compatibility
+    id: movie.id,
+    title: movie.title,
+    overview: movie.overview,
+    posterPath: movie.posterPath,
+    releaseDate: movie.releaseDate,
+    year: movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : null,
+    voteAverage: movie.voteAverage,
+    popularity: movie.popularity,
+    runtime: movie.runtime,
+    platformReadiness: movie.platformReadiness,
+    genres: movie.genres,
     similarity: Math.min(movie.searchScore / 20, 1),
   }));
 }

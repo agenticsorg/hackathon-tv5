@@ -72,8 +72,8 @@ exports.handler = async (event, context) => {
     const paginatedMovies = movies.slice(offset, offset + limit);
     const hasMore = offset + limit < total;
 
-    // Map to expected format (nodes)
-    const nodes = paginatedMovies.map(movie => ({
+    // Map to expected format
+    const movieResults = paginatedMovies.map(movie => ({
       ...movie,
       type: 'movie',
     }));
@@ -82,11 +82,17 @@ exports.handler = async (event, context) => {
       statusCode: 200,
       headers,
       body: JSON.stringify({
-        nodes,
+        movies: movieResults,
         total,
         limit,
         offset,
         hasMore,
+        pagination: {
+          total,
+          limit,
+          offset,
+          hasMore,
+        },
       }),
     };
   } catch (error) {

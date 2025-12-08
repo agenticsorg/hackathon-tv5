@@ -49,6 +49,11 @@
   to = "/.netlify/functions/kg-search"
   status = 200
 
+[[redirects]]
+  from = "/api/v1/knowledge-graph/edges"
+  to = "/.netlify/functions/kg-edges"
+  status = 200
+
 # Fallback for SPA - must be LAST
 [[redirects]]
   from = "/*"
