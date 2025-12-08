@@ -14,6 +14,9 @@ struct MediaItem: Identifiable, Codable, Hashable {
     let backdropPath: String?
     let rating: Double?
     let isRewatch: Bool
+    
+    // The Movie Sommelier's Note
+    var sommelierRationale: String? = nil
 
     var posterURL: URL? {
         guard let path = posterPath else { return nil }

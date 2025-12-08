@@ -72,8 +72,8 @@ class RecommendationEngine {
             // Feel-good, familiar, rewatchable content
             return item.tone.contains("feel-good") ||
                    item.tone.contains("heartwarming") ||
-                   item.isRewatch ||
-                   (item.genres.contains("comedy") && item.intensity < 0.5)
+                   (item.isRewatch && item.rating ?? 0 > 7.5) ||
+                   (item.genres.contains("comedy") && item.intensity < 0.6)
 
         case "gentle":
             // Low intensity, not stressful
@@ -91,13 +91,14 @@ class RecommendationEngine {
         case "engaging":
             // Moderate intensity, interesting but not exhausting
             return item.intensity >= 0.4 &&
-                   item.intensity < 0.7 &&
-                   !item.tone.contains("slow")
+                   item.intensity < 0.8 &&
+                   (item.genres.contains("drama") || item.genres.contains("sci-fi") || item.genres.contains("history"))
 
         case "exciting":
             // High energy, action-packed
             return item.genres.contains("action") ||
                    item.genres.contains("adventure") ||
+                   item.genres.contains("sci-fi") ||
                    item.tone.contains("exciting") ||
                    item.intensity >= 0.7
 
@@ -106,6 +107,7 @@ class RecommendationEngine {
             return item.tone.contains("slow") ||
                    item.tone.contains("calm") ||
                    item.genres.contains("documentary") ||
+                   (item.genres.contains("animation") && item.intensity < 0.4) ||
                    item.intensity < 0.3
 
         default: // "balanced"
@@ -166,33 +168,47 @@ class RecommendationEngine {
     func refresh(context: VibeContext, preferences: UserPreferences) {
         // Use the smart keywords from VibePredictor
         let query = context.keywords.joined(separator: " ") + " " + context.explanation
-        refresh(query: query, mood: context.mood, preferences: preferences)
+        refresh(query: query, mood: context.mood, preferences: preferences, context: context)
     }
 
-    private func refresh(query: String, mood: MoodState, preferences: UserPreferences) {
+    private func refresh(query: String, mood: MoodState, preferences: UserPreferences, context: VibeContext? = nil) {
         isLoading = true
         
         Task {
             // 1. Get local Rule-Based recommendations (fast, safety net)
             let ruleRecs = generateRecommendations(mood: mood, preferences: preferences)
             
-            // 2. Get Semantic Vector recommendations (The Sommelier)
-            // Filter catalog first by hard constraints to avoid searching things we can't watch? 
-            // Actually, better to search all then filter.
+            // 2. Get Semantic Vector recommendations (The Sommelier - Local)
             let semanticRecs = VectorEmbeddingService.shared.search(
                 query: query,
                 in: catalog
             )
             
+            // 2b. Get Remote ARW recommendations (The Media Discovery Backend)
+            var arwRecs: [MediaItem] = []
+            do {
+                arwRecs = try await ARWService.shared.search(query: query)
+            } catch {
+                print("ARW Search failed (backend likely offline): \(error)")
+                // Continue gracefully
+            }
+            
+            // Combine Semantic Recs: ARW first (remote/richer), then Local
+            let combinedSemantic = arwRecs + semanticRecs
+            
             // 3. Filter semantic recs by preferences (subscriptions, excluded genres)
-            let filteredSemantic = semanticRecs.filter { item in
+            let filteredSemantic = combinedSemantic.filter { item in
                 // Exclude avoided genres/titles
                 if item.genres.contains(where: { preferences.avoidGenres.contains($0) }) { return false }
                 if preferences.avoidTitles.contains(item.id) { return false }
                 
-                // Platform check
+                // Platform check (skip for ARW items as they might not have platform data yet, or we assume they are discoverable)
+                // For local items, check platforms. For ARW, we might want to check if the platform info is available.
+                // Current ARWService mocks platform as ["arw"]. We can let that pass or check against user subs.
+                // Implementing permissive check for "arw" platform or matching subs.
                 if !preferences.subscriptions.isEmpty {
-                     if !item.platforms.contains(where: { preferences.subscriptions.contains($0) }) { return false }
+                     let isARW = item.platforms.contains("arw")
+                     if !isARW && !item.platforms.contains(where: { preferences.subscriptions.contains($0) }) { return false }
                 }
                 return true
             }
@@ -220,8 +236,25 @@ class RecommendationEngine {
                 }
             }
             
+            // Prepare final list on background thread to avoid capturing mutable 'merged' var in MainActor closure
+            var topCandidates = Array(merged.prefix(10))
+            
+            // Generate rationales on background thread (assuming Agent is thread-safe) or just prepare loop
+            // Use the passed context or create a fallback one
+            let agentContext = context ?? VibeContext(
+                keywords: [], 
+                explanation: mood.moodDescription.lowercased(), 
+                mood: mood
+            )
+            
+            for i in 0..<topCandidates.count {
+                topCandidates[i].sommelierRationale = SommelierAgent.shared.rationale(for: topCandidates[i], context: agentContext)
+            }
+            
+            let finalRecs = topCandidates
+            
             await MainActor.run {
-                self.recommendations = Array(merged.prefix(10))
+                self.recommendations = finalRecs
                 self.isLoading = false
             }
         }

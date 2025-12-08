@@ -27,6 +27,9 @@
 		00000012 /* VibeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000012 /* VibeWidget.swift */; };
 		00000014 /* VibePredictor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000014 /* VibePredictor.swift */; };
 		00000015 /* VectorEmbeddingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000015 /* VectorEmbeddingService.swift */; };
+		00000018 /* CloudKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000018 /* CloudKitManager.swift */; };
+		00000016 /* SommelierAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000016 /* SommelierAgent.swift */; };
+		00000017 /* ARWService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000017 /* ARWService.swift */; };
 		00000020 /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 10000020 /* HealthKit.framework */; };
 /* End PBXBuildFile section */
 
@@ -51,6 +54,9 @@
 		10000012 /* VibeWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VibeWidget.swift; sourceTree = "<group>"; };
 		10000014 /* VibePredictor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VibePredictor.swift; sourceTree = "<group>"; };
 		10000015 /* VectorEmbeddingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VectorEmbeddingService.swift; sourceTree = "<group>"; };
+		10000018 /* CloudKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitManager.swift; sourceTree = "<group>"; };
+		10000016 /* SommelierAgent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SommelierAgent.swift; sourceTree = "<group>"; };
+		10000017 /* ARWService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARWService.swift; sourceTree = "<group>"; };
 		10000013 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		10000020 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
 		10000100 /* VibeCheck.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VibeCheck.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -114,6 +120,7 @@
 			children = (
 				10000005 /* HealthKitManager.swift */,
 				10000006 /* LocalStore.swift */,
+				10000018 /* CloudKitManager.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -125,6 +132,8 @@
 				10000008 /* RecommendationEngine.swift */,
 				10000014 /* VibePredictor.swift */,
 				10000015 /* VectorEmbeddingService.swift */,
+				10000016 /* SommelierAgent.swift */,
+				10000017 /* ARWService.swift */,
 			);
 			path = Engine;
 			sourceTree = "<group>";
@@ -273,6 +282,9 @@
 				00000012 /* VibeWidget.swift in Sources */,
 				00000014 /* VibePredictor.swift in Sources */,
 				00000015 /* VectorEmbeddingService.swift in Sources */,
+				00000018 /* CloudKitManager.swift in Sources */,
+				00000016 /* SommelierAgent.swift in Sources */,
+				00000017 /* ARWService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

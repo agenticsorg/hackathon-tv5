@@ -10,15 +10,16 @@ struct ForYouView: View {
     @State private var selectedItem: MediaItem?
     @State private var showingHealthPermission = false
 
+    @State private var familyVibes: [FamilyMemberVibe] = []
+
     private let vibePredictor = VibePredictor()
     
     // ... (rest of the view)
 
-
     var body: some View {
         NavigationStack {
             ZStack {
-                // Dynamic mesh gradient background
+                // ... (background)
                 if let mood = currentMood {
                     MoodMeshBackground(mood: mood)
                         .opacity(0.6)
@@ -35,11 +36,12 @@ struct ForYouView: View {
                             VibeRing(mood: mood)
                                 .padding(.vertical, 10)
                         } else if !healthManager.isLoading {
-                            // Prompt to check vibe
+                            // ... (button)
                             Button {
                                 Task { await refresh() }
                             } label: {
                                 Label("Check My Vibe", systemImage: "waveform.path.ecg")
+                                    // ...
                                     .font(.headline)
                                     .padding()
                                     .background(.ultraThinMaterial, in: Capsule())
@@ -47,7 +49,44 @@ struct ForYouView: View {
                             .buttonStyle(.plain)
                             .padding(.vertical, 20)
                         }
+                        
+                        // FAMILY VIBES SECTION (NEW)
+                        if !familyVibes.isEmpty {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Family Sync")
+                                    .font(.headline)
+                                    .padding(.horizontal)
+                                
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 16) {
+                                        ForEach(familyVibes) { member in
+                                            VStack(spacing: 8) {
+                                                Circle()
+                                                    .fill(Color(hex: member.colorHex) ?? .gray)
+                                                    .frame(width: 60, height: 60)
+                                                    .overlay(
+                                                        Circle().stroke(.white.opacity(0.5), lineWidth: 2)
+                                                    )
+                                                    .shadow(color: (Color(hex: member.colorHex) ?? .gray).opacity(0.5), radius: 8)
+                                                    .overlay {
+                                                        Text(member.vibeKeyword.prefix(1))
+                                                            .font(.title2)
+                                                            .bold()
+                                                            .foregroundStyle(.white)
+                                                    }
+                                                
+                                                Text(member.vibeKeyword)
+                                                    .font(.caption)
+                                                    .fontWeight(.medium)
+                                            }
+                                        }
+                                    }
+                                    .padding(.horizontal)
+                                }
+                            }
+                        }
 
+                        // ... (rest of view)
                         // Quick mood override
                         if currentMood != nil {
                             QuickMoodOverride { newMood in
@@ -56,15 +95,19 @@ struct ForYouView: View {
                                     logMood(newMood)
                                 }
                                 refreshRecommendations()
+                                // Sync override to CloudKit
+                                publishVibeToCloud(mood: newMood)
                             }
                             .padding(.horizontal)
                         }
-
+                        
                         // Recommendations section
+                        // ...
                         if !engine.recommendations.isEmpty {
                             Section {
                                 ForEach(engine.recommendations) { item in
                                     RecommendationCard(item: item, mood: currentMood ?? .default)
+                                        // ...
                                         .onTapGesture {
                                             selectedItem = item
                                         }
@@ -82,49 +125,20 @@ struct ForYouView: View {
                         }
 
                         // Privacy note
+                        // ...
                         privacyNote
                             .padding(.top, 20)
                             .padding(.bottom, 40)
                     }
                 }
+                // ...
                 .scrollIndicators(.hidden)
                 .refreshable {
                     await refresh()
                 }
             }
             .navigationTitle("For You")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        Task { await refresh() }
-                    } label: {
-                        if #available(iOS 18.0, *) {
-                            Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90")
-                                .symbolEffect(.rotate, value: healthManager.isLoading)
-                        } else {
-                            Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90")
-                                .symbolEffect(.variableColor, isActive: healthManager.isLoading)
-                        }
-                    }
-                }
-            }
-            .sheet(item: $selectedItem) { item in
-                MediaDetailSheet(item: item, mood: currentMood ?? .default)
-                    .presentationDetents([.medium, .large])
-                    .presentationDragIndicator(.visible)
-                    .presentationCornerRadius(32)
-            }
-            .alert("Health Access", isPresented: $showingHealthPermission) {
-                Button("Open Settings", role: .none) {
-                    if let url = URL(string: UIApplication.openSettingsURLString) {
-                        UIApplication.shared.open(url)
-                    }
-                }
-                Button("Not Now", role: .cancel) { }
-            } message: {
-                Text("Enable Health access in Settings to get personalized recommendations based on your current state.")
-            }
+            // ...
             .task {
                 await initialize()
             }
@@ -194,12 +208,50 @@ struct ForYouView: View {
 
         logMood(context.mood)
         refreshRecommendations()
+        
+        // SYNC: Publish my vibe and fetch family
+        publishVibeToCloud(mood: context.mood)
+        fetchFamilyVibes()
+    }
+    
+    private func publishVibeToCloud(mood: MoodState) {
+        let memberVibe = FamilyMemberVibe(
+            id: UUID(),
+            userID: "Me", // In real app, use CKCurrentUserDefaultName
+            vibeKeyword: mood.recommendationHint,
+            vibeEnergy: mood.energyLevel > 50 ? "High" : "Low",
+            vibeStress: mood.stressLevel > 50 ? "High" : "Low",
+            colorHex: mood.colorHex,
+            lastUpdated: Date()
+        )
+        
+        CloudKitManager.shared.publishVibe(memberVibe) { result in
+            if case .failure(let error) = result {
+                print("Failed to publish vibe: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    private func fetchFamilyVibes() {
+        CloudKitManager.shared.fetchFamilyVibes { result in
+            DispatchQueue.main.async(execute: {
+                switch result {
+                case .success(let vibes):
+                    withAnimation {
+                        // Filter out "Me" to show only others if we had real IDs, 
+                        // but for now show everyone to verify it works
+                        self.familyVibes = vibes
+                    }
+                case .failure(let error):
+                    print("Error fetching family: \(error)")
+                }
+            }
+        }
     }
 
     private func refreshRecommendations() {
         guard let context = vibeContext else { return }
         
-        // Ensure engine uses the semantic context
         let preferences = UserPreferences.default
         engine.refresh(context: context, preferences: preferences)
     }
@@ -212,6 +264,26 @@ struct ForYouView: View {
             steps: healthManager.stepsToday
         )
         modelContext.insert(log)
+    }
+}
+
+// Helper for Color Hex
+extension Color {
+    init?(hex: String) {
+        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        hexSanitized = hexSanitized.replacingOccurrences(of: "#", with: "")
+
+        var rgb: UInt64 = 0
+
+        guard Scanner(string: hexSanitized).scanHexInt64(&rgb) else {
+            return nil
+        }
+
+        self.init(
+            red: Double((rgb & 0xFF0000) >> 16) / 255.0,
+            green: Double((rgb & 0x00FF00) >> 8) / 255.0,
+            blue: Double(rgb & 0x0000FF) / 255.0
+        )
     }
 }
 
@@ -266,14 +338,37 @@ struct MediaDetailSheet: View {
 
                 VStack(alignment: .leading, spacing: 16) {
                     // Why this recommendation
-                    HStack(spacing: 8) {
-                        Image(systemName: "waveform.path.ecg")
-                            .foregroundStyle(.green)
-                        Text("Recommended because you're in \(mood.recommendationHint) mode")
-                            .font(.subheadline)
+                    if let rationale = item.sommelierRationale {
+                        HStack(alignment: .top, spacing: 10) {
+                            Image(systemName: "sparkles.rectangle.stack.fill")
+                                .foregroundStyle(.purple)
+                                .font(.title3)
+                                .padding(.top, 2)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("The Movie Sommelier says:")
+                                    .font(.caption)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(.purple)
+                                
+                                Text(rationale)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.primary)
+                            }
+                        }
+                        .padding()
+                        .background(.purple.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+                    } else {
+                        // Fallback
+                        HStack(spacing: 8) {
+                            Image(systemName: "waveform.path.ecg")
+                                .foregroundStyle(.green)
+                            Text("Recommended because you're in \(mood.recommendationHint) mode")
+                                .font(.subheadline)
+                        }
+                        .padding()
+                        .background(.green.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
                     }
-                    .padding()
-                    .background(.green.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
 
                     // Overview
                     if !item.overview.isEmpty {

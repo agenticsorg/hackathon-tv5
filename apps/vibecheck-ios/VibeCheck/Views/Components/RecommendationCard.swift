@@ -11,20 +11,48 @@ struct RecommendationCard: View {
             // Hero image area
             ZStack(alignment: .bottomLeading) {
                 // Poster/backdrop
-                Rectangle()
-                    .fill(
-                        LinearGradient(
-                            colors: genreColors,
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .overlay {
-                        // Genre icon
+                ZStack {
+                    if let url = item.backdropURL ?? item.posterURL {
+                        AsyncImage(url: url) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .transition(.opacity)
+                            default:
+                                // Loading or error state: show gradient
+                                Rectangle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: genreColors,
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                            }
+                        }
+                    } else {
+                        // No logic fallback
+                        Rectangle()
+                            .fill(
+                                LinearGradient(
+                                    colors: genreColors,
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                    }
+                }
+                .overlay {
+                    // Genre icon (only show if no image, or maybe always? 
+                    // Let's hide it if we have an image to reduce clutter, or keep it subtle)
+                    if item.backdropPath == nil && item.posterPath == nil {
                         Image(systemName: genreIcon)
                             .font(.system(size: 50))
                             .foregroundStyle(.white.opacity(0.3))
                     }
+                }
 
                 // Gradient overlay
                 LinearGradient(
@@ -90,6 +118,23 @@ struct RecommendationCard: View {
                                 .background(.quaternary, in: Capsule())
                         }
                     }
+                }
+                
+                // Sommelier Rationale
+                if let rationale = item.sommelierRationale {
+                    HStack(alignment: .top, spacing: 6) {
+                        Image(systemName: "sparkles.rectangle.stack.fill") // Or a better "Sommelier" icon
+                            .foregroundStyle(.purple)
+                            .font(.caption)
+                            .padding(.top, 2)
+                        
+                        Text(rationale)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(.top, 4)
                 }
             }
             .padding()

@@ -67,14 +67,12 @@ class VibePredictor {
         // 4. Construct Explanation
         let explanation: String
         if reasons.isEmpty {
-            explanation = "matches your balanced vibe"
+            explanation = "you're in a solid, balanced flow"
         } else {
-            explanation = "because " + reasons.joined(separator: " and ")
+            explanation = reasons.joined(separator: " and ")
         }
         
         // 5. Create MoodState proxy for UI compatibility
-        // In a real agent, we wouldn't map back to this rigid struct, 
-        // but for now we keep compatibility with the rest of the app.
         let mood = MoodState(energy: energy, stress: stress)
         
         return VibeContext(

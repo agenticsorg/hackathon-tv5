@@ -1,0 +1,18 @@
+# Xcode user-specific files
+*.xcuserstate
+xcuserdata/
+
+# Build logs
+build*.txt
+build*.log
+*.log
+
+# Test scripts (local only)
+test_*.sh
+verify_*.sh
+
+# Test runners (compiled)
+*TestRunner
+
+# OS generated
+.DS_Store
