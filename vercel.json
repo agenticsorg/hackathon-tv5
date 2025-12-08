@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "cd web-ui && npm run build",
+  "devCommand": "cd web-ui && npm run dev",
+  "installCommand": "cd web-ui && npm install",
+  "framework": "nextjs",
+  "outputDirectory": "web-ui/.next",
+  "git": {
+    "deploymentEnabled": {
+      "main": false,
+      "claude/load-hackathon-package-01NEZJPLgegUYBSzN1hBmLTg": true
+    }
+  }
+}

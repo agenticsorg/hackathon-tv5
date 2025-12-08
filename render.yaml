@@ -1,0 +1,40 @@
+services:
+  # Python FastAPI Backend
+  - type: web
+    name: entertainai-api
+    env: python
+    region: oregon
+    plan: free
+    branch: claude/load-hackathon-package-01NEZJPLgegUYBSzN1hBmLTg
+    rootDir: api
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: PORT
+        generateValue: true
+
+  # Next.js Frontend
+  - type: web
+    name: entertainai-ui
+    env: node
+    region: oregon
+    plan: free
+    branch: claude/load-hackathon-package-01NEZJPLgegUYBSzN1hBmLTg
+    rootDir: web-ui
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 18.17.0
+      - key: PYTHON_API_URL
+        fromService:
+          type: web
+          name: entertainai-api
+          property: url
+      - key: NEXT_PUBLIC_APP_NAME
+        value: EntertainAI
+      - key: NEXT_PUBLIC_APP_VERSION
+        value: 1.0.0

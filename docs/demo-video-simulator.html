@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EntertainAI Demo Video Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #000;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .simulator-container {
+            max-width: 1920px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            z-index: 1000;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .controls button {
+            background: #FF0000;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .controls button:hover {
+            background: #cc0000;
+            transform: scale(1.05);
+        }
+
+        .controls button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: scale(1);
+        }
+
+        .timeline {
+            background: #222;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .scene {
+            width: 100%;
+            height: 100vh;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            position: relative;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .scene.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .voiceover {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px 40px;
+            border-radius: 8px;
+            max-width: 800px;
+            text-align: center;
+            font-size: 18px;
+            line-height: 1.6;
+            border: 2px solid #FF0000;
+        }
+
+        .scene-title {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            font-size: 14px;
+            color: #999;
+            font-family: 'Courier New', monospace;
+        }
+
+        .ui-mockup {
+            background: #0F0F0F;
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 1200px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(255, 0, 0, 0.3);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .logo .ai {
+            color: #FF0000;
+        }
+
+        .search-section {
+            margin: 40px 0;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 20px;
+            background: #272727;
+            border: 2px solid #444;
+            border-radius: 8px;
+            color: white;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .search-button {
+            background: #FF0000;
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .agent-activity {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .agent-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+            opacity: 0;
+            animation: agentAppear 0.5s ease-in forwards;
+        }
+
+        @keyframes agentAppear {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .agent-item:nth-child(1) { animation-delay: 0s; }
+        .agent-item:nth-child(2) { animation-delay: 0.2s; }
+        .agent-item:nth-child(3) { animation-delay: 0.4s; }
+        .agent-item:nth-child(4) { animation-delay: 0.6s; }
+        .agent-item:nth-child(5) { animation-delay: 0.8s; }
+        .agent-item:nth-child(6) { animation-delay: 1.0s; }
+        .agent-item:nth-child(7) { animation-delay: 1.2s; }
+        .agent-item:nth-child(8) { animation-delay: 1.4s; }
+
+        .agent-name {
+            flex: 1;
+            font-size: 16px;
+        }
+
+        .agent-badge {
+            background: #00ff00;
+            color: #000;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .agent-status {
+            color: #00ff00;
+            font-size: 14px;
+        }
+
+        .progress-bar {
+            width: 200px;
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #FF0000;
+            animation: fillProgress 1.5s ease-in-out forwards;
+        }
+
+        @keyframes fillProgress {
+            from { width: 0%; }
+            to { width: 100%; }
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+            margin-top: 30px;
+            opacity: 0;
+            animation: fadeIn 1s ease-in forwards;
+        }
+
+        .result-card {
+            background: #1a1a1a;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+
+        .result-card:hover {
+            transform: translateY(-8px);
+        }
+
+        .card-image {
+            width: 100%;
+            height: 160px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+        }
+
+        .card-content {
+            padding: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .card-confidence {
+            color: #00ff00;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .card-reasoning {
+            color: #999;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .comparison-table {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .comparison-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+            gap: 20px;
+            padding: 15px;
+            border-bottom: 1px solid #333;
+        }
+
+        .comparison-row:first-child {
+            font-weight: 700;
+            color: #FF0000;
+        }
+
+        .check {
+            color: #00ff00;
+        }
+
+        .cross {
+            color: #ff0000;
+        }
+
+        .score {
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .highlight {
+            color: #FF0000;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="simulator-container">
+        <!-- Scene 1: Opening (0:00-0:10) -->
+        <div class="scene active" data-duration="10">
+            <div class="scene-title">00:00 - 00:10 | Opening Shot</div>
+            <div class="ui-mockup">
+                <div class="header">
+                    <div class="logo">Entertain<span class="ai">AI</span></div>
+                    <div style="color: #666;">👤</div>
+                </div>
+                <div style="text-align: center; margin: 60px 0;">
+                    <h1 style="font-size: 48px; margin-bottom: 20px;">
+                        What's the <span class="highlight">plan</span> tonight?
+                    </h1>
+                    <p style="color: #999; font-size: 18px;">
+                        The first platform that shows you how AI works AND protects your privacy
+                    </p>
+                </div>
+                <div class="search-section">
+                    <input class="search-input" placeholder="Search for movies, shows, or describe what you want..." />
+                    <button class="search-button">Search with Privacy-First AI</button>
+                </div>
+            </div>
+            <div class="voiceover">
+                "Spending 45 minutes deciding what to watch? You're not alone. But here's the real problem: every platform treats you like a product, collecting every detail about your viewing habits. Meet EntertainAI—the first platform that actually respects your privacy."
+            </div>
+        </div>
+
+        <!-- Scene 2: The Problem (0:10-0:30) -->
+        <div class="scene" data-duration="20">
+            <div class="scene-title">00:10 - 00:30 | The Problem</div>
+            <div class="ui-mockup">
+                <div style="text-align: center; margin-bottom: 40px;">
+                    <h2 style="font-size: 36px; margin-bottom: 20px;">The Black Box Problem</h2>
+                </div>
+                <div class="comparison-table">
+                    <div class="comparison-row">
+                        <div>Feature</div>
+                        <div>Other Platforms</div>
+                        <div>EntertainAI</div>
+                    </div>
+                    <div class="comparison-row">
+                        <div>AI Transparency</div>
+                        <div><span class="cross">❌</span> Black Box</div>
+                        <div><span class="check">✅</span> 8 Visible Agents</div>
+                    </div>
+                    <div class="comparison-row">
+                        <div>Watch History Storage</div>
+                        <div><span class="cross">❌</span> All on Server</div>
+                        <div><span class="check">✅</span> Stays on Device</div>
+                    </div>
+                    <div class="comparison-row">
+                        <div>Privacy Score</div>
+                        <div><span class="score">2-5/10</span></div>
+                        <div><span class="score" style="color: #00ff00;">9.5/10</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="voiceover">
+                "Other platforms have slick interfaces with social features—but they're black boxes. They know everything about you, yet you don't know how they make decisions. We chose a different path: show you exactly how our AI works, keep your data private, and still deliver results in under 3 seconds."
+            </div>
+        </div>
+
+        <!-- Scene 3: Strategic Questions (0:30-0:45) -->
+        <div class="scene" data-duration="15">
+            <div class="scene-title">00:30 - 00:45 | Strategic Questions</div>
+            <div class="ui-mockup">
+                <div class="search-section">
+                    <h3 style="margin-bottom: 20px; font-size: 24px;">Just tell us what you want...</h3>
+                    <input class="search-input" value="action movies with strong female leads" style="border-color: #FF0000;" />
+                    <button class="search-button">Find My Perfect Match</button>
+                </div>
+                <div style="margin-top: 40px; text-align: center; color: #999;">
+                    <p style="font-size: 16px;">
+                        💡 We don't need your complete watch history.<br/>
+                        Just your current mood and what you're looking for.
+                    </p>
+                </div>
+            </div>
+            <div class="voiceover">
+                "Instead of collecting your complete watch history, we ask you to describe what you want. That's it. Six seconds to understand your context, not 45 minutes scrolling through endless options."
+            </div>
+        </div>
+
+        <!-- Scene 4: Agent Visualization (0:45-1:10) -->
+        <div class="scene" data-duration="25">
+            <div class="scene-title">00:45 - 01:10 | Agent Activity (Our Killer Feature)</div>
+            <div class="ui-mockup">
+                <h3 style="margin-bottom: 20px; font-size: 24px;">🤖 8 AI Agents Collaborating in Real-Time</h3>
+                <div class="agent-activity">
+                    <div class="agent-item">
+                        <div class="agent-name">1. StrategicContextAgent</div>
+                        <div class="progress-bar"><div class="progress-fill"></div></div>
+                        <div class="agent-status">✓ Complete</div>
+                    </div>
+                    <div class="agent-item">
+                        <div class="agent-name">2. PersonalizationAgent</div>
+                        <div class="agent-badge">ON-DEVICE</div>
+                        <div class="progress-bar"><div class="progress-fill"></div></div>
+                        <div class="agent-status">✓ Complete</div>
+                    </div>
+                    <div class="agent-item">
+                        <div class="agent-name">3. ResearchAgent</div>
+                        <div class="progress-bar"><div class="progress-fill"></div></div>
+                        <div class="agent-status">✓ Complete</div>
+                    </div>
+                    <div class="agent-item">
+                        <div class="agent-name">4. ReviewAggregationAgent</div>
+                        <div class="progress-bar"><div class="progress-fill"></div></div>
+                        <div class="agent-status">✓ Complete</div>
+                    </div>
+                    <div class="agent-item">
+                        <div class="agent-name">5. TrendAnalysisAgent</div>
+                        <div class="progress-bar"><div class="progress-fill"></div></div>
+                        <div class="agent-status">✓ Complete</div>
+                    </div>
+                    <div class="agent-item">
+                        <div class="agent-name">6. MoodDetectionAgent</div>
+                        <div class="agent-badge">ON-DEVICE</div>
+                        <div class="progress-bar"><div class="progress-fill"></div></div>
+                        <div class="agent-status">✓ Complete</div>
+                    </div>
+                    <div class="agent-item">
+                        <div class="agent-name">7. ContentFilterAgent</div>
+                        <div class="progress-bar"><div class="progress-fill"></div></div>
+                        <div class="agent-status">✓ Complete</div>
+                    </div>
+                    <div class="agent-item">
+                        <div class="agent-name">8. AnalysisAgent</div>
+                        <div class="agent-badge">ON-DEVICE</div>
+                        <div class="progress-bar"><div class="progress-fill"></div></div>
+                        <div class="agent-status">✓ Complete</div>
+                    </div>
+                </div>
+            </div>
+            <div class="voiceover">
+                "Here's what makes us different: you can actually SEE our AI working. Eight specialized agents collaborate in real-time. Three agents run entirely on YOUR device for privacy: PersonalizationAgent, MoodDetectionAgent, and AnalysisAgent. Your watch history never leaves your device. No other platform can say that."
+            </div>
+        </div>
+
+        <!-- Scene 5: Results (1:10-1:30) -->
+        <div class="scene" data-duration="20">
+            <div class="scene-title">01:10 - 01:30 | Results with Reasoning</div>
+            <div class="ui-mockup">
+                <h3 style="margin-bottom: 20px; font-size: 24px;">
+                    🎯 AI Recommendations for "action movies with strong female leads"
+                </h3>
+                <p style="color: #00ff00; margin-bottom: 20px;">⏱️ Found 8 matches in 2.8 seconds</p>
+                <div class="results-grid">
+                    <div class="result-card">
+                        <div class="card-image">🎬</div>
+                        <div class="card-content">
+                            <div class="card-title">The Last of Us</div>
+                            <div class="card-confidence">✅ Very High Confidence</div>
+                            <div class="card-reasoning">
+                                Based on your preference for character-driven action with strong female protagonists
+                            </div>
+                        </div>
+                    </div>
+                    <div class="result-card">
+                        <div class="card-image">🎭</div>
+                        <div class="card-content">
+                            <div class="card-title">Atomic Blonde</div>
+                            <div class="card-confidence">✅ Very High Confidence</div>
+                            <div class="card-reasoning">
+                                Action thriller featuring a powerful female lead in a spy setting
+                            </div>
+                        </div>
+                    </div>
+                    <div class="result-card">
+                        <div class="card-image">⚔️</div>
+                        <div class="card-content">
+                            <div class="card-title">The Witcher</div>
+                            <div class="card-confidence">✅ High Confidence</div>
+                            <div class="card-reasoning">
+                                Fantasy action with multiple strong female characters driving the plot
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="voiceover">
+                "In under three seconds, we deliver personalized recommendations. But unlike match percentages that feel precise but are arbitrary, we tell you exactly WHY we recommended each title. Transparent. Honest. Fast."
+            </div>
+        </div>
+
+        <!-- Scene 6: Privacy Comparison (1:30-1:50) -->
+        <div class="scene" data-duration="20">
+            <div class="scene-title">01:30 - 01:50 | Privacy Comparison</div>
+            <div class="ui-mockup">
+                <h3 style="margin-bottom: 30px; font-size: 32px; text-align: center;">
+                    🔒 Privacy Score Comparison
+                </h3>
+                <div class="comparison-table">
+                    <div class="comparison-row">
+                        <div>Platform</div>
+                        <div>Watch History</div>
+                        <div>On-Device AI</div>
+                        <div>Privacy Score</div>
+                    </div>
+                    <div class="comparison-row">
+                        <div>TikTok</div>
+                        <div><span class="cross">❌</span> All Stored</div>
+                        <div><span class="cross">❌</span> None</div>
+                        <div><span class="score" style="color: #ff0000;">2/10</span></div>
+                    </div>
+                    <div class="comparison-row">
+                        <div>Netflix</div>
+                        <div><span class="cross">❌</span> All Stored</div>
+                        <div><span class="cross">❌</span> None</div>
+                        <div><span class="score" style="color: #ff6600;">5/10</span></div>
+                    </div>
+                    <div class="comparison-row">
+                        <div>YouTube</div>
+                        <div><span class="cross">❌</span> All Stored</div>
+                        <div><span class="cross">❌</span> None</div>
+                        <div><span class="score" style="color: #ff3300;">3/10</span></div>
+                    </div>
+                    <div class="comparison-row" style="border-bottom: none; background: rgba(0, 255, 0, 0.1);">
+                        <div><strong>EntertainAI</strong></div>
+                        <div><span class="check">✅</span> ZERO Stored</div>
+                        <div><span class="check">✅</span> 3 Agents</div>
+                        <div><span class="score" style="color: #00ff00; font-size: 24px;">9.5/10</span></div>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 30px;">
+                    <p style="font-size: 20px; color: #00ff00; font-weight: 700;">
+                        90% Better Privacy Than Any Competitor
+                    </p>
+                </div>
+            </div>
+            <div class="voiceover">
+                "TikTok, Netflix, YouTube—they all store your complete psychological profile on their servers. We store ZERO personal data. Your watch history? Stays on your device. Your preferences? Processed locally. Your privacy? Actually protected. That's a 90% improvement over every major platform."
+            </div>
+        </div>
+
+        <!-- Scene 7: Closing (1:50-2:00) -->
+        <div class="scene" data-duration="10">
+            <div class="scene-title">01:50 - 02:00 | Closing</div>
+            <div style="text-align: center;">
+                <div style="font-size: 72px; font-weight: 700; margin-bottom: 20px;">
+                    Entertain<span class="highlight">AI</span>
+                </div>
+                <div style="font-size: 32px; margin-bottom: 40px; color: #999;">
+                    Privacy-First Entertainment Discovery
+                </div>
+                <div style="font-size: 20px; color: #666; line-height: 1.8;">
+                    <div>🔒 <span class="highlight">9.5/10</span> Privacy Score</div>
+                    <div>🤖 <span class="highlight">8</span> Transparent Agents</div>
+                    <div>⚡ <span class="highlight">&lt;3s</span> Response Time</div>
+                    <div style="margin-top: 30px; font-size: 24px; color: #fff;">
+                        The Future of Ethical AI
+                    </div>
+                </div>
+            </div>
+            <div class="voiceover">
+                "EntertainAI. Privacy-first entertainment discovery powered by transparent multi-agent AI. Because the future isn't about prettier interfaces that spy on you—it's about AI you can see, trust, and control. That's the future we're building."
+            </div>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+        <button id="prevBtn" disabled>⏮ Previous</button>
+        <button id="playBtn">▶ Play</button>
+        <button id="nextBtn">Next ⏭</button>
+        <div class="timeline">
+            <span id="currentTime">00:00</span> / <span id="totalTime">02:00</span>
+        </div>
+        <button id="resetBtn">🔄 Reset</button>
+    </div>
+
+    <script>
+        let currentScene = 0;
+        let isPlaying = false;
+        let playTimer = null;
+        let timeElapsed = 0;
+        const scenes = document.querySelectorAll('.scene');
+        const totalDuration = Array.from(scenes).reduce((sum, scene) =>
+            sum + parseInt(scene.dataset.duration), 0
+        );
+
+        const playBtn = document.getElementById('playBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const currentTimeEl = document.getElementById('currentTime');
+        const totalTimeEl = document.getElementById('totalTime');
+
+        totalTimeEl.textContent = formatTime(totalDuration);
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function showScene(index) {
+            scenes.forEach((scene, i) => {
+                scene.classList.toggle('active', i === index);
+            });
+            prevBtn.disabled = index === 0;
+            nextBtn.disabled = index === scenes.length - 1;
+        }
+
+        function play() {
+            if (isPlaying) {
+                pause();
+                return;
+            }
+
+            isPlaying = true;
+            playBtn.textContent = '⏸ Pause';
+
+            const sceneDuration = parseInt(scenes[currentScene].dataset.duration);
+            let sceneTime = 0;
+
+            playTimer = setInterval(() => {
+                sceneTime++;
+                timeElapsed++;
+                currentTimeEl.textContent = formatTime(timeElapsed);
+
+                if (sceneTime >= sceneDuration) {
+                    if (currentScene < scenes.length - 1) {
+                        currentScene++;
+                        showScene(currentScene);
+                        sceneTime = 0;
+                    } else {
+                        pause();
+                    }
+                }
+            }, 1000);
+        }
+
+        function pause() {
+            isPlaying = false;
+            playBtn.textContent = '▶ Play';
+            if (playTimer) {
+                clearInterval(playTimer);
+                playTimer = null;
+            }
+        }
+
+        function next() {
+            pause();
+            if (currentScene < scenes.length - 1) {
+                const currentDuration = parseInt(scenes[currentScene].dataset.duration);
+                timeElapsed += currentDuration;
+                currentScene++;
+                showScene(currentScene);
+                currentTimeEl.textContent = formatTime(timeElapsed);
+            }
+        }
+
+        function prev() {
+            pause();
+            if (currentScene > 0) {
+                currentScene--;
+                const prevDuration = parseInt(scenes[currentScene].dataset.duration);
+                timeElapsed -= prevDuration;
+                showScene(currentScene);
+                currentTimeEl.textContent = formatTime(timeElapsed);
+            }
+        }
+
+        function reset() {
+            pause();
+            currentScene = 0;
+            timeElapsed = 0;
+            showScene(0);
+            currentTimeEl.textContent = '00:00';
+        }
+
+        playBtn.addEventListener('click', play);
+        nextBtn.addEventListener('click', next);
+        prevBtn.addEventListener('click', prev);
+        resetBtn.addEventListener('click', reset);
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                play();
+            } else if (e.code === 'ArrowRight') {
+                next();
+            } else if (e.code === 'ArrowLeft') {
+                prev();
+            } else if (e.code === 'KeyR') {
+                reset();
+            }
+        });
+
+        // Initialize
+        showScene(0);
+    </script>
+</body>
+</html>

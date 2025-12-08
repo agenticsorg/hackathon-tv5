@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Discovery System Flow</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 40px;
+            background: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        svg {
+            width: 100%;
+            height: auto;
+        }
+
+        .node {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .node:hover {
+            filter: brightness(0.9);
+        }
+
+        .node rect {
+            rx: 15;
+            ry: 15;
+        }
+
+        .competitive {
+            fill: #ffeb3b;
+            stroke: #333;
+            stroke-width: 3;
+        }
+
+        .normal {
+            fill: #fff;
+            stroke: #333;
+            stroke-width: 3;
+        }
+
+        .arrow {
+            stroke: #666;
+            stroke-width: 2;
+            fill: none;
+            marker-end: url(#arrowhead);
+        }
+
+        .node-text {
+            font-size: 14px;
+            font-weight: 500;
+            fill: #000;
+            text-anchor: middle;
+            pointer-events: none;
+        }
+
+        .legend {
+            font-size: 14px;
+        }
+
+        .legend-box {
+            rx: 8;
+            ry: 8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Multi-Agent Content Discovery System Flow</h1>
+
+        <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+            <!-- Define arrowhead marker -->
+            <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                    <polygon points="0 0, 10 3, 0 6" fill="#666" />
+                </marker>
+            </defs>
+
+            <!-- LEFT COLUMN -->
+
+            <!-- N1: Generic/Session Strategic questioning (yellow) -->
+            <g class="node" id="n1">
+                <rect class="competitive" x="50" y="50" width="200" height="80" />
+                <text class="node-text" x="150" y="85">Generic / Session</text>
+                <text class="node-text" x="150" y="105">Strategic questioning</text>
+            </g>
+
+            <!-- N2: Persona (white) -->
+            <g class="node" id="n2">
+                <rect class="normal" x="50" y="180" width="200" height="80" />
+                <text class="node-text" x="150" y="215">Persona</text>
+                <text class="node-text" x="150" y="235">(Profile updated)</text>
+            </g>
+
+            <!-- N3: Vectorized watch history (white) -->
+            <g class="node" id="n3">
+                <rect class="normal" x="50" y="310" width="200" height="80" />
+                <text class="node-text" x="150" y="345">Vectorized watch</text>
+                <text class="node-text" x="150" y="365">history</text>
+            </g>
+
+            <!-- N4: Content aligned Ads (yellow) - left of Persona -->
+            <g class="node" id="n4">
+                <rect class="competitive" x="50" y="440" width="200" height="80" />
+                <text class="node-text" x="150" y="475">Content aligned</text>
+                <text class="node-text" x="150" y="495">Ads</text>
+            </g>
+
+            <!-- CENTER COLUMN -->
+
+            <!-- N10: Parent guidance (yellow) - top middle-right -->
+            <g class="node" id="n10">
+                <rect class="competitive" x="450" y="50" width="200" height="80" />
+                <text class="node-text" x="550" y="90">Parent guidance</text>
+            </g>
+
+            <!-- N5: Filtered content (white) -->
+            <g class="node" id="n5">
+                <rect class="normal" x="450" y="180" width="200" height="80" />
+                <text class="node-text" x="550" y="220">Filtered content</text>
+            </g>
+
+            <!-- N6: Welcome! Smart recommendations (yellow) -->
+            <g class="node" id="n6">
+                <rect class="competitive" x="450" y="310" width="200" height="80" />
+                <text class="node-text" x="550" y="345">Welcome!</text>
+                <text class="node-text" x="550" y="365">Smart recommendations</text>
+            </g>
+
+            <!-- N7: Content Watched (white) -->
+            <g class="node" id="n7">
+                <rect class="normal" x="450" y="440" width="200" height="80" />
+                <text class="node-text" x="550" y="480">Content Watched</text>
+            </g>
+
+            <!-- N8: Completed/Rated (white) - bottom-left of N7 -->
+            <g class="node" id="n8">
+                <rect class="normal" x="300" y="570" width="200" height="80" />
+                <text class="node-text" x="400" y="605">Completed /</text>
+                <text class="node-text" x="400" y="625">Rated</text>
+            </g>
+
+            <!-- N9: Recommend/Share (yellow) - bottom-right of N7 -->
+            <g class="node" id="n9">
+                <rect class="competitive" x="600" y="570" width="200" height="80" />
+                <text class="node-text" x="700" y="605">Recommend /</text>
+                <text class="node-text" x="700" y="625">Share</text>
+            </g>
+
+            <!-- RIGHT COLUMN -->
+
+            <!-- N11: Connect/follow/Groups (yellow) -->
+            <g class="node" id="n11">
+                <rect class="competitive" x="850" y="180" width="200" height="80" />
+                <text class="node-text" x="950" y="210">Connect / follow /</text>
+                <text class="node-text" x="950" y="230">Groups</text>
+            </g>
+
+            <!-- N12: Influence Stats (yellow) -->
+            <g class="node" id="n12">
+                <rect class="competitive" x="850" y="310" width="200" height="80" />
+                <text class="node-text" x="950" y="350">Influence Stats</text>
+            </g>
+
+            <!-- EDGES (Arrows) -->
+
+            <!-- N1 → N2 -->
+            <path class="arrow" d="M 150 130 L 150 180" />
+
+            <!-- N2 → N1 (curved back) -->
+            <path class="arrow" d="M 100 180 Q 30 155 100 130" />
+
+            <!-- N3 → N2 -->
+            <path class="arrow" d="M 150 310 L 150 260" />
+
+            <!-- N2 → N4 -->
+            <path class="arrow" d="M 150 260 L 150 440" />
+
+            <!-- N2 → N6 -->
+            <path class="arrow" d="M 250 220 L 450 350" />
+
+            <!-- N10 → N5 -->
+            <path class="arrow" d="M 550 130 L 550 180" />
+
+            <!-- N11 → N5 -->
+            <path class="arrow" d="M 850 220 L 650 220" />
+
+            <!-- N5 → N6 -->
+            <path class="arrow" d="M 550 260 L 550 310" />
+
+            <!-- N6 → N7 -->
+            <path class="arrow" d="M 550 390 L 550 440" />
+
+            <!-- N7 → N8 -->
+            <path class="arrow" d="M 500 520 L 450 570" />
+
+            <!-- N7 → N9 -->
+            <path class="arrow" d="M 600 520 L 650 570" />
+
+            <!-- N8 → N3 -->
+            <path class="arrow" d="M 300 610 L 250 350" />
+
+            <!-- N9 → N11 -->
+            <path class="arrow" d="M 800 610 L 900 260" />
+
+            <!-- N11 → N12 -->
+            <path class="arrow" d="M 950 260 L 950 310" />
+
+            <!-- LEGEND -->
+            <g class="legend">
+                <rect class="legend-box competitive" x="900" y="700" width="150" height="40" />
+                <text x="975" y="725" style="font-size: 12px; text-anchor: middle; fill: #000;">
+                    = Competitive advantage
+                </text>
+            </g>
+        </svg>
+
+        <div style="margin-top: 30px; padding: 20px; background: #f9f9f9; border-radius: 8px;">
+            <h3>System Flow Description</h3>
+            <p><strong>Yellow nodes</strong> represent competitive advantages and differentiators that make this system unique.</p>
+            <p><strong>White nodes</strong> represent core system components that enable the recommendation pipeline.</p>
+
+            <h4>Key Feedback Loops:</h4>
+            <ul>
+                <li><strong>Learning Loop:</strong> Content Watched → Rated → Watch history → Persona → Recommendations</li>
+                <li><strong>Refinement Loop:</strong> Persona ↔ Strategic questioning (bidirectional)</li>
+                <li><strong>Social Loop:</strong> Share → Groups → Filtered content → Recommendations</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

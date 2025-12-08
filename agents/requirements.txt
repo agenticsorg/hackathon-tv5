@@ -1,0 +1,36 @@
+# Multi-Agent Systems Requirements
+# For Agentics TV5 Hackathon - Multi-Agent Systems Track
+
+# Core Python (no external dependencies needed for basic example)
+# Python 3.11+ includes asyncio in stdlib
+
+# Optional: For production systems with real APIs
+
+# HTTP client for API calls
+# httpx>=0.27.0
+
+# Google ADK for multi-agent frameworks
+google-adk>=1.20.0
+
+# Vertex AI for cloud deployment
+google-cloud-aiplatform>=1.129.0
+
+# AgentDB for state management
+# agentdb (installed via npx)
+
+# Data processing
+# pandas>=2.2.0
+# numpy>=2.3.0
+
+# Configuration management
+# python-dotenv>=1.2.0
+
+# Logging and monitoring
+# structlog>=24.1.0
+
+# Testing
+# pytest>=8.0.0
+# pytest-asyncio>=0.23.0
+
+Note: The basic entertainment_discovery.py demo requires only Python 3.11+ stdlib
+      Install additional packages as needed for your specific use case
