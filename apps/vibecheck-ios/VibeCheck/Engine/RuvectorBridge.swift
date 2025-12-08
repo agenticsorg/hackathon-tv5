@@ -8,6 +8,7 @@
 
 import Foundation
 import WasmKit
+import WasmKitWASI
 
 /// Bridge between VibeCheck and Ruvector WASM recommendation engine
 ///
@@ -81,10 +82,13 @@ class RuvectorBridge {
             // Parse WASM module using WasmKit's parseWasm function
             self.wasmModule = try parseWasm(bytes: wasmBytes)
 
-            // Create empty imports (WASI functions would go here if needed)
-            let imports = Imports()
+            // Create WASI bridge to provide system imports (fd_write, random_get, etc.)
+            // ruvector.wasm requires WASI for I/O and random number generation
+            let wasi = try WASIBridgeToHost()
+            var imports = Imports()
+            wasi.link(to: &imports, store: store!)
 
-            // Instantiate module
+            // Instantiate module with WASI imports
             self.wasmInstance = try wasmModule!.instantiate(store: store!, imports: imports)
 
             // Record exported functions for debugging
