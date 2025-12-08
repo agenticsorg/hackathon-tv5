@@ -1,0 +1,10 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', '${_IMAGE}', '.']
+images:
+  - '${_IMAGE}'
+substitutions:
+  # Default to Artifact Registry in-region; override _IMAGE if needed
+  _IMAGE: '${_REGION}-docker.pkg.dev/$PROJECT_ID/embedding-service/api:latest'
+options:
+  logging: CLOUD_LOGGING_ONLY
