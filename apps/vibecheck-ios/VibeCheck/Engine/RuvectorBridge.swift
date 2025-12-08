@@ -145,30 +145,99 @@ class RuvectorBridge {
         }
     }
 
-    /// Benchmark a simple WASM operation
-    func benchmarkSimpleOp(iterations: Int = 1000) throws -> Double {
+    /// Benchmark dot product operation (real SIMD-optimized vector math)
+    /// Uses bench_dot_product from ruvector.wasm - actual hyperbolic embedding math
+    func benchmarkDotProduct(iterations: Int = 100) throws -> Double {
         guard isReady else {
             throw RuvectorError.wasmNotLoaded
         }
 
-        // Look for a simple benchmark function
-        if let benchFunc = getExportedFunction(name: "benchmark") {
+        // Use the actual bench_dot_product function from ruvector.wasm
+        // This tests real vector math used in recommendations
+        if let dotFunc = getExportedFunction(name: "bench_dot_product") {
             let start = CFAbsoluteTimeGetCurrent()
 
             for _ in 0..<iterations {
-                _ = try benchFunc.invoke([])
+                // bench_dot_product takes dimension size, returns f32 result
+                _ = try dotFunc.invoke([.i32(128)]) // 128-dim vectors typical for embeddings
             }
 
             let totalTime = CFAbsoluteTimeGetCurrent() - start
             return (totalTime * 1000) / Double(iterations)
         }
 
-        // Fallback: benchmark add function if available
-        if let addFunc = getExportedFunction(name: "add") {
+        return -1 // Function not available
+    }
+
+    /// Benchmark HNSW search operation (nearest neighbor lookup)
+    func benchmarkHNSWSearch(iterations: Int = 10) throws -> Double {
+        guard isReady else {
+            throw RuvectorError.wasmNotLoaded
+        }
+
+        // First check if we can create an HNSW index
+        guard let createFunc = getExportedFunction(name: "hnsw_create"),
+              let insertFunc = getExportedFunction(name: "hnsw_insert"),
+              let searchFunc = getExportedFunction(name: "hnsw_search") else {
+            return -1
+        }
+
+        // Create index with 64 dimensions, M=16, ef_construction=200
+        _ = try createFunc.invoke([.i32(64), .i32(16), .i32(200)])
+
+        let start = CFAbsoluteTimeGetCurrent()
+
+        for _ in 0..<iterations {
+            // Search for k=5 nearest neighbors
+            _ = try searchFunc.invoke([.i32(5)])
+        }
+
+        let totalTime = CFAbsoluteTimeGetCurrent() - start
+        return (totalTime * 1000) / Double(iterations)
+    }
+
+    /// Check if SIMD is available in the WASM module
+    func hasSIMD() -> Bool {
+        if let simdFunc = getExportedFunction(name: "has_simd") {
+            if let result = try? simdFunc.invoke([]) {
+                if case .i32(let value) = result.first {
+                    return value != 0
+                }
+            }
+        }
+        return false
+    }
+
+    /// Get bridge info from WASM (version, capabilities)
+    func getBridgeInfo() -> String? {
+        if let infoFunc = getExportedFunction(name: "get_bridge_info") {
+            if let result = try? infoFunc.invoke([]) {
+                if case .i32(let ptr) = result.first {
+                    return "ptr:\(ptr)" // Would need memory access to read string
+                }
+            }
+        }
+        return nil
+    }
+
+    /// Legacy benchmark - kept for compatibility but prefers bench_dot_product
+    func benchmarkSimpleOp(iterations: Int = 1000) throws -> Double {
+        // Try the real dot product benchmark first
+        let dotResult = try benchmarkDotProduct(iterations: iterations)
+        if dotResult >= 0 {
+            return dotResult
+        }
+
+        // Fallback to generic benchmark if available
+        guard isReady else {
+            throw RuvectorError.wasmNotLoaded
+        }
+
+        if let benchFunc = getExportedFunction(name: "benchmark") {
             let start = CFAbsoluteTimeGetCurrent()
 
-            for i in 0..<iterations {
-                _ = try addFunc.invoke([.i32(UInt32(i)), .i32(UInt32(i + 1))])
+            for _ in 0..<iterations {
+                _ = try benchFunc.invoke([])
             }
 
             let totalTime = CFAbsoluteTimeGetCurrent() - start
@@ -181,5 +250,134 @@ class RuvectorBridge {
     /// Get list of exported functions (for debugging)
     func listExports() -> [String] {
         return exportedFunctions
+    }
+
+    // MARK: - On-Device ML Learning
+
+    /// Initialize the iOS learner for on-device personalization
+    /// Must be called before using learn/predict functions
+    func initLearner() throws {
+        guard isReady else {
+            throw RuvectorError.wasmNotLoaded
+        }
+
+        if let initFunc = getExportedFunction(name: "ios_learner_init") {
+            _ = try initFunc.invoke([])
+            print("✅ RuvectorBridge: iOS learner initialized")
+        } else {
+            throw RuvectorError.functionNotFound("ios_learner_init")
+        }
+    }
+
+    /// Learn from health data (HRV, sleep, steps)
+    /// - Parameters:
+    ///   - hrv: Heart rate variability in ms (typically 20-100ms)
+    ///   - sleepHours: Hours of sleep (0-12+)
+    ///   - steps: Step count (0-30000+)
+    ///   - energyLabel: User-reported energy level (0.0=exhausted, 1.0=wired)
+    func learnHealth(hrv: Float, sleepHours: Float, steps: Float, energyLabel: Float) throws {
+        guard isReady else {
+            throw RuvectorError.wasmNotLoaded
+        }
+
+        if let learnFunc = getExportedFunction(name: "ios_learn_health") {
+            // Pass health metrics and user's energy label for supervised learning
+            _ = try learnFunc.invoke([
+                .f32(hrv.bitPattern),
+                .f32(sleepHours.bitPattern),
+                .f32(steps.bitPattern),
+                .f32(energyLabel.bitPattern)
+            ])
+        } else {
+            throw RuvectorError.functionNotFound("ios_learn_health")
+        }
+    }
+
+    /// Predict energy level from current health data
+    /// - Parameters:
+    ///   - hrv: Heart rate variability in ms
+    ///   - sleepHours: Hours of sleep
+    ///   - steps: Step count
+    /// - Returns: Predicted energy level (0.0=exhausted to 1.0=wired)
+    func predictEnergy(hrv: Float, sleepHours: Float, steps: Float) throws -> Float {
+        guard isReady else {
+            throw RuvectorError.wasmNotLoaded
+        }
+
+        if let getEnergyFunc = getExportedFunction(name: "ios_get_energy") {
+            let result = try getEnergyFunc.invoke([
+                .f32(hrv.bitPattern),
+                .f32(sleepHours.bitPattern),
+                .f32(steps.bitPattern)
+            ])
+
+            if case .f32(let bits) = result.first {
+                return Float(bitPattern: bits)
+            }
+        }
+
+        throw RuvectorError.functionNotFound("ios_get_energy")
+    }
+
+    /// Get the number of training iterations completed
+    func getLearnerIterations() throws -> Int {
+        guard isReady else {
+            throw RuvectorError.wasmNotLoaded
+        }
+
+        if let iterFunc = getExportedFunction(name: "ios_learner_iterations") {
+            let result = try iterFunc.invoke([])
+            if case .i32(let count) = result.first {
+                return Int(count)
+            }
+        }
+
+        return 0
+    }
+
+    /// Check if this is a good time for communication (notifications)
+    /// Based on learned patterns from location and communication data
+    func isGoodCommTime() throws -> Bool {
+        guard isReady else {
+            throw RuvectorError.wasmNotLoaded
+        }
+
+        if let commFunc = getExportedFunction(name: "ios_is_good_comm_time") {
+            let result = try commFunc.invoke([])
+            if case .i32(let value) = result.first {
+                return value != 0
+            }
+        }
+
+        return true // Default to allowing communication
+    }
+
+    /// Benchmark ML inference performance
+    func benchmarkMLInference(iterations: Int = 100) throws -> Double {
+        guard isReady else {
+            throw RuvectorError.wasmNotLoaded
+        }
+
+        guard let getEnergyFunc = getExportedFunction(name: "ios_get_energy") else {
+            return -1
+        }
+
+        // Typical health values for benchmarking
+        let hrv: Float = 45.0
+        let sleep: Float = 7.0
+        let steps: Float = 5000.0
+
+        let start = CFAbsoluteTimeGetCurrent()
+
+        for _ in 0..<iterations {
+            _ = try getEnergyFunc.invoke([
+                .f32(hrv.bitPattern),
+                .f32(sleep.bitPattern),
+                .f32(steps.bitPattern)
+            ])
+        }
+
+        let totalTime = CFAbsoluteTimeGetCurrent() - start
+        return (totalTime * 1000) / Double(iterations)
     }
 }

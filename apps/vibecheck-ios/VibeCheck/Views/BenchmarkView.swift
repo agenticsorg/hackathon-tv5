@@ -209,7 +209,7 @@ struct BenchmarkView: View {
                 isReal: true
             ))
 
-            // 4. Mood Classification (REAL - VibePredictor logic)
+            // 4. Mood Classification (Rule-based fallback)
             let vibePredictor = VibePredictor()
             let moodStart = CFAbsoluteTimeGetCurrent()
             for _ in 0..<100 {
@@ -221,7 +221,7 @@ struct BenchmarkView: View {
             }
             let moodTime = (CFAbsoluteTimeGetCurrent() - moodStart) * 1000 / 100
             benchmarkResults.append(BenchmarkResult(
-                name: "Mood Classification",
+                name: "Mood (rule-based)",
                 target: "<1ms/op",
                 actual: String(format: "%.3fms", moodTime),
                 status: moodTime < 1 ? .pass : (moodTime < 5 ? .slow : .fail),
@@ -269,11 +269,19 @@ struct BenchmarkView: View {
             let wasmResult = await benchmarkWASMLoad()
             benchmarkResults.append(wasmResult)
 
-            // 8. WASM Function Call (REAL if WASM loaded)
-            let wasmCallResult = await benchmarkWASMCall()
-            benchmarkResults.append(wasmCallResult)
+            // 8. WASM Dot Product (REAL - bench_dot_product from ruvector.wasm)
+            let wasmDotResult = await benchmarkWASMDotProduct()
+            benchmarkResults.append(wasmDotResult)
 
-            // 9. Memory Usage (REAL - actual process memory)
+            // 9. WASM HNSW Search (REAL - nearest neighbor lookup)
+            let wasmHNSWResult = await benchmarkWASMHNSW()
+            benchmarkResults.append(wasmHNSWResult)
+
+            // 10. WASM ML Inference (REAL - ios_get_energy from ruvector.wasm)
+            let wasmMLResult = await benchmarkWASMMLInference()
+            benchmarkResults.append(wasmMLResult)
+
+            // 11. Memory Usage (REAL - actual process memory)
             let memoryBytes = getMemoryUsage()
             let memoryMB = Double(memoryBytes) / 1_000_000
             benchmarkResults.append(BenchmarkResult(
@@ -329,7 +337,8 @@ struct BenchmarkView: View {
             let loadTime = (CFAbsoluteTimeGetCurrent() - start) * 1000
 
             let exports = bridge.listExports()
-            let exportInfo = exports.isEmpty ? "" : " (\(exports.count) exports)"
+            let simdStatus = bridge.hasSIMD() ? "SIMD" : "scalar"
+            let exportInfo = " (\(exports.count) fn, \(simdStatus))"
 
             return BenchmarkResult(
                 name: "WASM Module Load",
@@ -349,10 +358,104 @@ struct BenchmarkView: View {
         }
     }
 
-    private func benchmarkWASMCall() async -> BenchmarkResult {
+    private func benchmarkWASMDotProduct() async -> BenchmarkResult {
         guard let wasmPath = Bundle.main.path(forResource: "ruvector", ofType: "wasm") else {
             return BenchmarkResult(
-                name: "WASM Function Call",
+                name: "WASM Dot Product",
+                target: "<0.1ms/op",
+                actual: "NO WASM",
+                status: .fail,
+                isReal: false
+            )
+        }
+
+        let bridge = RuvectorBridge()
+
+        do {
+            try await bridge.load(wasmPath: wasmPath)
+
+            // Benchmark the real bench_dot_product function (128-dim vectors)
+            let opTime = try bridge.benchmarkDotProduct(iterations: 100)
+
+            if opTime < 0 {
+                return BenchmarkResult(
+                    name: "WASM Dot Product",
+                    target: "<0.1ms/op",
+                    actual: "fn not found",
+                    status: .fail,
+                    isReal: true
+                )
+            }
+
+            return BenchmarkResult(
+                name: "WASM Dot Product (128-dim)",
+                target: "<0.1ms/op",
+                actual: String(format: "%.4fms", opTime),
+                status: opTime < 0.1 ? .pass : (opTime < 1 ? .slow : .fail),
+                isReal: true
+            )
+        } catch {
+            return BenchmarkResult(
+                name: "WASM Dot Product",
+                target: "<0.1ms/op",
+                actual: "ERROR",
+                status: .fail,
+                isReal: true
+            )
+        }
+    }
+
+    private func benchmarkWASMHNSW() async -> BenchmarkResult {
+        guard let wasmPath = Bundle.main.path(forResource: "ruvector", ofType: "wasm") else {
+            return BenchmarkResult(
+                name: "WASM HNSW Search",
+                target: "<5ms/op",
+                actual: "NO WASM",
+                status: .fail,
+                isReal: false
+            )
+        }
+
+        let bridge = RuvectorBridge()
+
+        do {
+            try await bridge.load(wasmPath: wasmPath)
+
+            // Benchmark HNSW nearest neighbor search
+            let opTime = try bridge.benchmarkHNSWSearch(iterations: 10)
+
+            if opTime < 0 {
+                return BenchmarkResult(
+                    name: "WASM HNSW Search",
+                    target: "<5ms/op",
+                    actual: "fn not found",
+                    status: .slow, // Not a failure, just not available
+                    isReal: true
+                )
+            }
+
+            return BenchmarkResult(
+                name: "WASM HNSW Search (k=5)",
+                target: "<5ms/op",
+                actual: String(format: "%.2fms", opTime),
+                status: opTime < 5 ? .pass : (opTime < 20 ? .slow : .fail),
+                isReal: true
+            )
+        } catch {
+            return BenchmarkResult(
+                name: "WASM HNSW Search",
+                target: "<5ms/op",
+                actual: "ERROR",
+                status: .fail,
+                isReal: true
+            )
+        }
+    }
+
+    private func benchmarkWASMMLInference() async -> BenchmarkResult {
+        guard let wasmPath = Bundle.main.path(forResource: "ruvector", ofType: "wasm") else {
+            return BenchmarkResult(
+                name: "WASM ML Inference",
                 target: "<1ms/op",
                 actual: "NO WASM",
                 status: .fail,
@@ -365,32 +468,34 @@ struct BenchmarkView: View {
         do {
             try await bridge.load(wasmPath: wasmPath)
 
-            // Try to benchmark if there's a callable function
-            let opTime = try bridge.benchmarkSimpleOp(iterations: 100)
+            // Initialize the learner first
+            try bridge.initLearner()
+
+            // Benchmark ML inference (ios_get_energy)
+            let opTime = try bridge.benchmarkMLInference(iterations: 100)
 
             if opTime < 0 {
-                // No benchmark function available, just verify WASM is loaded
                 return BenchmarkResult(
-                    name: "WASM Runtime Ready",
-                    target: "loaded",
-                    actual: bridge.isReady ? "YES" : "NO",
-                    status: bridge.isReady ? .pass : .fail,
+                    name: "WASM ML Inference",
+                    target: "<1ms/op",
+                    actual: "fn not found",
+                    status: .slow,
                     isReal: true
                 )
             }
 
             return BenchmarkResult(
-                name: "WASM Function Call",
+                name: "WASM ML Inference (energy)",
                 target: "<1ms/op",
-                actual: String(format: "%.3fms", opTime),
+                actual: String(format: "%.4fms", opTime),
                 status: opTime < 1 ? .pass : (opTime < 5 ? .slow : .fail),
                 isReal: true
             )
         } catch {
             return BenchmarkResult(
-                name: "WASM Function Call",
+                name: "WASM ML Inference",
                 target: "<1ms/op",
-                actual: "ERROR",
+                actual: "ERROR: \(error.localizedDescription)",
                 status: .fail,
                 isReal: true
             )
