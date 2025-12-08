@@ -26,6 +26,7 @@ export function createApp(): Express {
     'http://localhost:3000',
     'http://localhost:5173',
     'https://emotistream-web-727540765498.europe-west1.run.app',
+    'https://emotistream-web-530247135934.us-central1.run.app',
   ];
   const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || defaultOrigins;
 
