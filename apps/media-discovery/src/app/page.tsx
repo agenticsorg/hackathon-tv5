@@ -2,19 +2,27 @@ import { Suspense } from 'react';
 import { SearchBar } from '@/components/SearchBar';
 import { TrendingSection } from '@/components/TrendingSection';
 import { RecommendationsSection } from '@/components/RecommendationsSection';
+import { SystemArchitecture } from '@/components/SystemArchitecture';
+import { AIMetrics } from '@/components/AIMetrics';
+import { HowItWorks } from '@/components/HowItWorks';
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-900 to-black">
       {/* Hero Section */}
-      <section className="relative py-20 px-4 text-center bg-gradient-to-b from-blue-600/10 to-transparent">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">
-          AI Media Discovery
-        </h1>
-        <p className="text-lg md:text-xl text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
-          Describe what you want to watch in plain English. Our AI understands
-          your mood and finds the perfect match.
-        </p>
+      <section className="relative py-20 px-4 text-center bg-gradient-to-b from-purple-900/20 via-blue-900/10 to-transparent">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent" />
+        <div className="relative z-10">
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
+            AI Media Discovery
+          </h1>
+          <p className="text-lg md:text-xl text-gray-300 mb-4 max-w-3xl mx-auto">
+            Powered by <span className="font-semibold text-purple-400">Exogenesis Omega</span> — a distributed AI system serving 40M+ devices
+          </p>
+          <p className="text-base text-gray-400 mb-8 max-w-2xl mx-auto">
+            Describe what you want to watch in plain English. Our AI understands your mood and finds the perfect match using federated learning across millions of smart TVs.
+          </p>
+        </div>
 
         {/* Search Bar */}
         <div className="max-w-2xl mx-auto">
@@ -50,35 +58,73 @@ export default function HomePage() {
       </section>
 
       {/* Recommendations Section */}
-      <section className="py-12 px-4 md:px-8 bg-gray-50 dark:bg-gray-900/50">
-        <h2 className="text-2xl font-bold mb-6">Recommended For You</h2>
+      <section className="py-12 px-4 md:px-8 bg-gradient-to-b from-transparent to-gray-900/50">
+        <h2 className="text-2xl font-bold mb-6 text-white">Recommended For You</h2>
         <Suspense fallback={<ContentSkeleton />}>
           <RecommendationsSection />
         </Suspense>
       </section>
 
+      {/* AI System Metrics */}
+      <section className="py-16 px-4 md:px-8 bg-gradient-to-b from-gray-900/50 to-transparent">
+        <Suspense fallback={<MetricsSkeleton />}>
+          <AIMetrics />
+        </Suspense>
+      </section>
+
+      {/* System Architecture */}
+      <section className="py-16 px-4 md:px-8 bg-gradient-to-b from-transparent via-purple-900/5 to-transparent">
+        <Suspense fallback={<ArchitectureSkeleton />}>
+          <SystemArchitecture />
+        </Suspense>
+      </section>
+
+      {/* How It Works */}
+      <section className="py-16 px-4 md:px-8 bg-gradient-to-b from-transparent to-gray-900/50">
+        <Suspense fallback={<HowItWorksSkeleton />}>
+          <HowItWorks />
+        </Suspense>
+      </section>
+
       {/* Footer */}
-      <footer className="py-8 px-4 text-center text-gray-500 text-sm">
-        <p>
-          Powered by{' '}
-          <a
-            href="https://www.themoviedb.org/"
-            className="underline hover:text-gray-700"
-          >
-            TMDB
-          </a>{' '}
-          &bull; Built with{' '}
-          <a href="https://arw.dev" className="underline hover:text-gray-700">
-            ARW
-          </a>{' '}
-          &bull;{' '}
-          <a
-            href="/.well-known/arw-manifest.json"
-            className="underline hover:text-gray-700"
-          >
-            Agent API
-          </a>
-        </p>
+      <footer className="py-12 px-4 text-center text-gray-400 text-sm border-t border-gray-800">
+        <div className="max-w-4xl mx-auto space-y-4">
+          <p className="text-lg font-semibold text-white mb-2">
+            Exogenesis Omega: Distributed TV Intelligence
+          </p>
+          <div className="flex flex-wrap justify-center gap-4 text-xs">
+            <span>40M+ Connected TVs</span>
+            <span>•</span>
+            <span>Sub-15ms Recommendations</span>
+            <span>•</span>
+            <span>99.99% Uptime</span>
+            <span>•</span>
+            <span>Privacy-First Design</span>
+          </div>
+          <p className="pt-4">
+            Powered by{' '}
+            <a
+              href="https://www.themoviedb.org/"
+              className="underline hover:text-gray-300 transition-colors"
+            >
+              TMDB
+            </a>{' '}
+            &bull; Built with{' '}
+            <a href="https://arw.dev" className="underline hover:text-gray-300 transition-colors">
+              ARW
+            </a>{' '}
+            &bull;{' '}
+            <a
+              href="/.well-known/arw-manifest.json"
+              className="underline hover:text-gray-300 transition-colors"
+            >
+              Agent API
+            </a>
+          </p>
+          <p className="text-xs text-gray-500 pt-2">
+            Using SIMD-accelerated vector search, federated learning, and differential privacy
+          </p>
+        </div>
       </footer>
     </main>
   );
@@ -99,6 +145,43 @@ function ContentSkeleton() {
           key={i}
           className="aspect-[2/3] bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"
         />
+      ))}
+    </div>
+  );
+}
+
+function MetricsSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="h-12 bg-gray-800 rounded-lg animate-pulse max-w-md mx-auto" />
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="h-32 bg-gray-800 rounded-lg animate-pulse" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ArchitectureSkeleton() {
+  return (
+    <div className="space-y-8">
+      <div className="h-12 bg-gray-800 rounded-lg animate-pulse max-w-lg mx-auto" />
+      <div className="grid gap-6 md:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="h-96 bg-gray-800 rounded-lg animate-pulse" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function HowItWorksSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="h-12 bg-gray-800 rounded-lg animate-pulse max-w-md mx-auto" />
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="h-48 bg-gray-800 rounded-lg animate-pulse" />
       ))}
     </div>
   );
