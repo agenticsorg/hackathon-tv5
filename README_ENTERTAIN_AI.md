@@ -3,7 +3,7 @@
 Reinventing Media Discovery with AI
 
 
-## 🎯 The Challenge**
+## 🎯 The Challenge
 
 <img width="600" height="600" alt="Screenshot 2025-12-07 at 4 18 48 PM" src="https://github.com/user-attachments/assets/84f4d539-d210-4251-8f70-f08a7aa14300" />
 
