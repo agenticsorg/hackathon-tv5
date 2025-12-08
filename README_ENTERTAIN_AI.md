@@ -69,8 +69,13 @@ We serve people.
 
 <img width="600" height="600" alt="Screenshot 2025-12-07 at 4 07 07 PM" src="https://github.com/user-attachments/assets/41b417f0-a750-41e4-b48b-a2fb59ec9247" />
 
+<img width="427" height="207" alt="Screenshot 2025-12-07 at 1 38 59 PM" src="https://github.com/user-attachments/assets/51f023bf-c0af-4309-a228-9644a5cd2291" />
 
-Instead of scrolling:https://aura-agent-production.up.railway.app/
+
+<img width="414" height="287" alt="Screenshot 2025-12-07 at 1 39 38 PM" src="https://github.com/user-attachments/assets/73f9ee47-3625-4900-87c2-8618b267ef76" />
+
+
+**Instead of scrolling**:https://aura-agent-production.up.railway.app/
 
 You talk.
 The AI understands.
