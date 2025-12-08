@@ -95,8 +95,8 @@ struct ForYouView: View {
                                     logMood(newMood)
                                 }
                                 refreshRecommendations()
-                                // Sync override to CloudKit
-                                publishVibeToCloud(mood: newMood)
+                                // CloudKit sync disabled for iOS 26 beta
+                                // publishVibeToCloud(mood: newMood)
                             }
                             .padding(.horizontal)
                         }

@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct BenchmarkResult: Identifiable {
     let id = UUID()
@@ -29,6 +30,11 @@ struct BenchmarkResult: Identifiable {
 }
 
 struct BenchmarkView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query private var moodLogs: [MoodLog]
+    @Query private var watchHistory: [WatchHistory]
+    @Query private var watchlistItems: [WatchlistItem]
+
     @State private var results: [BenchmarkResult] = []
     @State private var isRunning = false
     @State private var memoryUsage: String = "—"
@@ -36,6 +42,20 @@ struct BenchmarkView: View {
 
     var body: some View {
         List {
+            // Data Context Section
+            Section {
+                StatRow(label: "Sample Media Items", value: "\(MediaItem.samples.count)", icon: "film")
+                StatRow(label: "Mood Logs", value: "\(moodLogs.count)", icon: "heart.text.square")
+                StatRow(label: "Watch History", value: "\(watchHistory.count)", icon: "clock.arrow.circlepath")
+                StatRow(label: "Watchlist Items", value: "\(watchlistItems.count)", icon: "bookmark")
+                StatRow(label: "Mood States", value: "\(MoodState.Energy.allCases.count * MoodState.Stress.allCases.count)", icon: "brain.head.profile")
+                StatRow(label: "Recommendation Hints", value: "7", icon: "sparkles")
+            } header: {
+                Text("Data Context")
+            } footer: {
+                Text("Records in the system that benchmarks operate on")
+            }
+
             Section {
                 HStack {
                     Text("Total Time")
@@ -227,8 +247,31 @@ struct BenchmarkView: View {
     }
 }
 
+// MARK: - Stat Row
+
+struct StatRow: View {
+    let label: String
+    let value: String
+    let icon: String
+
+    var body: some View {
+        HStack {
+            Image(systemName: icon)
+                .foregroundStyle(.secondary)
+                .frame(width: 24)
+            Text(label)
+            Spacer()
+            Text(value)
+                .monospacedDigit()
+                .fontWeight(.medium)
+                .foregroundStyle(.primary)
+        }
+    }
+}
+
 #Preview {
     NavigationStack {
         BenchmarkView()
     }
+    .modelContainer(for: [MoodLog.self, WatchHistory.self, WatchlistItem.self], inMemory: true)
 }
