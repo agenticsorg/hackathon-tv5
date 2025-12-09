@@ -98,6 +98,10 @@ class RuvectorBridge {
             // This catches issues where module loads but functions trap
             try verifyWASMExecution()
 
+            // INITIALIZATION: Call rec_init and ios_learner_init to enable subsystems
+            // This makes bench_dot_product and ios_get_energy work
+            try initializeSubsystems()
+
             // Calculate load time
             self.loadTimeMs = (CFAbsoluteTimeGetCurrent() - startTime) * 1000
 
@@ -120,7 +124,31 @@ class RuvectorBridge {
         try await load(wasmPath: path)
     }
 
-    // MARK: - Verification
+    // MARK: - Verification & Initialization
+
+    /// Initialize the recommendation engine subsystems
+    /// Must be called after instantiation to enable benchmark functions
+    private func initializeSubsystems() throws {
+        // 1. Call rec_init to initialize recommendation engine (required for bench_dot_product, etc.)
+        if let recInitFunc = getExportedFunction(name: "rec_init") {
+            do {
+                _ = try recInitFunc.invoke([])
+                print("   ✅ rec_init() - recommendation engine initialized")
+            } catch {
+                print("   ⚠️ rec_init() failed: \(error) - benchmarks may not work")
+            }
+        }
+
+        // 2. Call ios_learner_init to enable ML inference
+        if let learnerInitFunc = getExportedFunction(name: "ios_learner_init") {
+            do {
+                _ = try learnerInitFunc.invoke([])
+                print("   ✅ ios_learner_init() - ML learner initialized")
+            } catch {
+                print("   ⚠️ ios_learner_init() failed: \(error) - ML inference may not work")
+            }
+        }
+    }
 
     /// Verify WASM execution actually works by calling a simple function
     /// This catches trap errors early instead of reporting false "load success"
