@@ -144,10 +144,16 @@ Your Goal: Help the user explore these movies or find new ones.
 
     } catch (error) {
         console.error('Chat error:', error);
+        // Expose first 8 chars of key in error for debugging (safe-ish)
+        const keyPrefix = (process.env.GOOGLE_GEMINI_API_KEY || "").substring(0, 8) + "...";
         return {
             statusCode: 500,
             headers,
-            body: JSON.stringify({ error: 'Chat failed', details: error.message }),
+            body: JSON.stringify({
+                error: 'Chat failed',
+                details: error.message,
+                debugKey: keyPrefix
+            }),
         };
     }
 };
