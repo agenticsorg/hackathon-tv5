@@ -119,7 +119,11 @@ def generate_embedding(data_item):
             metadata = {
                 "title": movie.get("title", "Unknown")[:1000],
                 "year": movie.get("release_date", "")[:4] if movie.get("release_date") else "",
-                "genres": str(movie.get("genres", ""))[:1000]
+                "genres": str(movie.get("genres", ""))[:1000],
+                "poster_path": movie.get("poster_path", "") or "",
+                "overview": movie.get("overview", "")[:1000], # Limit size for Pinecone metadata limits (40KB total record)
+                "vote_average": float(movie.get("vote_average", 0)),
+                "popularity": float(movie.get("popularity", 0))
             }
             
             return movie, {

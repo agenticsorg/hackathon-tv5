@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" x-data="knowledgeGraphApp()" x-init="init()">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,49 +12,78 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
         .gradient-bg {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
         }
+
         .card-hover:hover {
             transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
         }
-        .badge-netflix { background: #e50914; }
-        .badge-amazon { background: #00a8e1; }
-        .badge-fast { background: #10b981; }
+
+        .badge-netflix {
+            background: #e50914;
+        }
+
+        .badge-amazon {
+            background: #00a8e1;
+        }
+
+        .badge-fast {
+            background: #10b981;
+        }
+
         .tab-active {
             border-bottom: 2px solid #818cf8;
             color: #818cf8;
         }
+
         .fade-in {
             animation: fadeIn 0.3s ease-in;
         }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         .node-card {
             transition: all 0.3s ease;
         }
+
         .node-card:hover {
             transform: scale(1.02);
         }
+
         pre.feed-preview {
             max-height: 400px;
             overflow: auto;
         }
     </style>
 </head>
+
 <body class="gradient-bg min-h-screen text-white">
     <!-- Header -->
     <header class="border-b border-gray-700/50 backdrop-blur-sm sticky top-0 z-50 bg-gray-900/80">
         <div class="max-w-7xl mx-auto px-4 py-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-cyan-600 rounded-lg flex items-center justify-center">
+                    <div
+                        class="w-10 h-10 bg-gradient-to-br from-green-500 to-cyan-600 rounded-lg flex items-center justify-center">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
                     </div>
                     <div>
@@ -62,12 +92,15 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="index.html" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors text-sm">
+                    <a href="index.html"
+                        class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors text-sm">
                         ← Back to Discovery
                     </a>
                     <div class="flex items-center space-x-1">
-                        <span class="w-2 h-2 rounded-full animate-pulse" :class="stats.totalMovies > 0 ? 'bg-green-500' : 'bg-yellow-500'"></span>
-                        <span class="text-sm" :class="stats.totalMovies > 0 ? 'text-green-400' : 'text-yellow-400'" x-text="stats.totalMovies > 0 ? 'Ready' : 'Initializing'"></span>
+                        <span class="w-2 h-2 rounded-full animate-pulse"
+                            :class="stats.totalMovies > 0 ? 'bg-green-500' : 'bg-yellow-500'"></span>
+                        <span class="text-sm" :class="stats.totalMovies > 0 ? 'text-green-400' : 'text-yellow-400'"
+                            x-text="stats.totalMovies > 0 ? 'Ready' : 'Initializing'"></span>
                     </div>
                 </div>
             </div>
@@ -78,67 +111,49 @@
     <nav class="border-b border-gray-800 bg-gray-900/50">
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex space-x-8 overflow-x-auto">
-                <button
-                    @click="activeTab = 'team'"
+                <button @click="activeTab = 'team'"
                     :class="activeTab === 'team' ? 'tab-active' : 'text-gray-400 hover:text-white'"
-                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap"
-                >
+                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap">
                     👥 Team Output
                 </button>
-                <button
-                    @click="activeTab = 'about'"
+                <button @click="activeTab = 'about'"
                     :class="activeTab === 'about' ? 'tab-active' : 'text-gray-400 hover:text-white'"
-                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap"
-                >
+                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap">
                     ℹ️ About
                 </button>
-                <button
-                    @click="activeTab = 'overview'"
+                <button @click="activeTab = 'overview'"
                     :class="activeTab === 'overview' ? 'tab-active' : 'text-gray-400 hover:text-white'"
-                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap"
-                >
+                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap">
                     📊 Overview
                 </button>
-                <button
-                    @click="activeTab = 'browse'; loadMovies()"
+                <button @click="activeTab = 'browse'; loadMovies()"
                     :class="activeTab === 'browse' ? 'tab-active' : 'text-gray-400 hover:text-white'"
-                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap"
-                >
+                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap">
                     🎬 Browse Movies
                 </button>
-                <button
-                    @click="activeTab = 'genres'; loadGenres()"
+                <button @click="activeTab = 'genres'; loadGenres()"
                     :class="activeTab === 'genres' ? 'tab-active' : 'text-gray-400 hover:text-white'"
-                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap"
-                >
+                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap">
                     🏷️ Genres
                 </button>
-                <button
-                    @click="activeTab = 'feeds'"
+                <button @click="activeTab = 'feeds'"
                     :class="activeTab === 'feeds' ? 'tab-active' : 'text-gray-400 hover:text-white'"
-                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap"
-                >
+                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap">
                     📡 Feed Preview
                 </button>
-                <button
-                    @click="activeTab = 'search'"
+                <button @click="activeTab = 'search'"
                     :class="activeTab === 'search' ? 'tab-active' : 'text-gray-400 hover:text-white'"
-                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap"
-                >
+                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap">
                     🔍 Semantic Search
                 </button>
-                <button
-                    @click="activeTab = 'ingest'"
+                <button @click="activeTab = 'ingest'"
                     :class="activeTab === 'ingest' ? 'tab-active' : 'text-gray-400 hover:text-white'"
-                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap"
-                >
+                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap">
                     ⚙️ Ingest Data
                 </button>
-                <button
-                    @click="activeTab = 'visualize'; loadGraphData()"
+                <button @click="activeTab = 'visualize'; loadGraphData()"
                     :class="activeTab === 'visualize' ? 'tab-active' : 'text-gray-400 hover:text-white'"
-                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap"
-                >
+                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap">
                     🕸️ Visualize
                 </button>
             </div>
@@ -153,7 +168,9 @@
             <section x-show="activeTab === 'overview'" class="fade-in">
                 <div class="text-center mb-8">
                     <h2 class="text-3xl md:text-4xl font-bold mb-2">
-                        🕸️ <span class="bg-gradient-to-r from-green-400 to-cyan-500 bg-clip-text text-transparent">Knowledge Graph</span>
+                        🕸️ <span
+                            class="bg-gradient-to-r from-green-400 to-cyan-500 bg-clip-text text-transparent">Knowledge
+                            Graph</span>
                     </h2>
                     <p class="text-gray-400">Transform TMDB metadata into distribution-ready feeds</p>
                 </div>
@@ -215,29 +232,35 @@
                 <!-- Architecture Diagram -->
                 <div class="bg-gray-800/50 rounded-xl p-6">
                     <h3 class="text-xl font-bold mb-4">Distribution Pipeline</h3>
-                    <div class="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 md:space-x-4 p-4">
-                        <div class="text-center p-4 bg-blue-600/20 rounded-lg border border-blue-500/30 w-full md:w-1/4">
+                    <div
+                        class="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 md:space-x-4 p-4">
+                        <div
+                            class="text-center p-4 bg-blue-600/20 rounded-lg border border-blue-500/30 w-full md:w-1/4">
                             <div class="flex items-center justify-center gap-2 mb-2">
-                                <span class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded">TV5MONDE</span>
+                                <span
+                                    class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded">TV5MONDE</span>
                             </div>
                             <div class="text-2xl mb-2">📥</div>
                             <div class="font-bold">GCS Bucket</div>
                             <div class="text-xs text-gray-400">TMDB Dataset (1.33M)</div>
                         </div>
                         <div class="text-2xl text-gray-500">→</div>
-                        <div class="text-center p-4 bg-purple-600/20 rounded-lg border border-purple-500/30 w-full md:w-1/4">
+                        <div
+                            class="text-center p-4 bg-purple-600/20 rounded-lg border border-purple-500/30 w-full md:w-1/4">
                             <div class="text-2xl mb-2">🧠</div>
                             <div class="font-bold">Knowledge Graph</div>
                             <div class="text-xs text-gray-400">Hypergraph in Firestore</div>
                         </div>
                         <div class="text-2xl text-gray-500">→</div>
-                        <div class="text-center p-4 bg-green-600/20 rounded-lg border border-green-500/30 w-full md:w-1/4">
+                        <div
+                            class="text-center p-4 bg-green-600/20 rounded-lg border border-green-500/30 w-full md:w-1/4">
                             <div class="text-2xl mb-2">🤖</div>
                             <div class="font-bold">AI Enrichment</div>
                             <div class="text-xs text-gray-400">Vertex AI Embeddings</div>
                         </div>
                         <div class="text-2xl text-gray-500">→</div>
-                        <div class="text-center p-4 bg-orange-600/20 rounded-lg border border-orange-500/30 w-full md:w-1/4">
+                        <div
+                            class="text-center p-4 bg-orange-600/20 rounded-lg border border-orange-500/30 w-full md:w-1/4">
                             <div class="text-2xl mb-2">📡</div>
                             <div class="font-bold">Distribution</div>
                             <div class="text-xs text-gray-400">Netflix / Amazon / FAST</div>
@@ -251,21 +274,15 @@
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                     <h2 class="text-2xl font-bold">Browse Movies</h2>
                     <div class="flex flex-wrap gap-2">
-                        <select
-                            x-model="movieFilters.genre"
-                            @change="loadMovies()"
-                            class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm"
-                        >
+                        <select x-model="movieFilters.genre" @change="loadMovies()"
+                            class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm">
                             <option value="">All Genres</option>
                             <template x-for="genre in genres" :key="genre.id">
                                 <option :value="genre.id" x-text="genre.name"></option>
                             </template>
                         </select>
-                        <select
-                            x-model="movieFilters.sortBy"
-                            @change="loadMovies()"
-                            class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm"
-                        >
+                        <select x-model="movieFilters.sortBy" @change="loadMovies()"
+                            class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm">
                             <option value="popularity">Popularity</option>
                             <option value="voteAverage">Rating</option>
                             <option value="year">Year</option>
@@ -278,18 +295,12 @@
                 <template x-if="!loading && movies.length > 0">
                     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                         <template x-for="movie in movies" :key="movie.id">
-                            <div
-                                @click="selectMovie(movie)"
-                                class="bg-gray-800/50 rounded-xl overflow-hidden cursor-pointer node-card"
-                            >
+                            <div @click="selectMovie(movie)"
+                                class="bg-gray-800/50 rounded-xl overflow-hidden cursor-pointer node-card">
                                 <div class="aspect-[2/3] relative overflow-hidden bg-gray-700">
                                     <template x-if="movie.posterPath">
-                                        <img
-                                            :src="'https://image.tmdb.org/t/p/w342' + movie.posterPath"
-                                            :alt="movie.title"
-                                            class="w-full h-full object-cover"
-                                            loading="lazy"
-                                        >
+                                        <img :src="'https://image.tmdb.org/t/p/w342' + movie.posterPath"
+                                            :alt="movie.title" class="w-full h-full object-cover" loading="lazy">
                                     </template>
                                     <template x-if="!movie.posterPath">
                                         <div class="w-full h-full flex items-center justify-center text-4xl">🎬</div>
@@ -299,7 +310,8 @@
                                             ⭐ <span x-text="movie.voteAverage?.toFixed(1)"></span>
                                         </span>
                                     </div>
-                                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                                    <div
+                                        class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
                                         <span class="text-xs text-gray-300" x-text="movie.year"></span>
                                     </div>
                                 </div>
@@ -318,10 +330,8 @@
                         <div class="text-6xl mb-4">📦</div>
                         <h3 class="text-xl font-bold mb-2">No Movies Found</h3>
                         <p class="text-gray-400 mb-4">Start by ingesting data from the GCS bucket</p>
-                        <button
-                            @click="activeTab = 'ingest'"
-                            class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
-                        >
+                        <button @click="activeTab = 'ingest'"
+                            class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors">
                             Go to Ingest
                         </button>
                     </div>
@@ -344,21 +354,15 @@
 
                 <!-- Pagination -->
                 <div x-show="movies.length > 0" class="flex justify-center mt-8 space-x-2">
-                    <button
-                        @click="prevPage()"
-                        :disabled="movieFilters.offset === 0"
-                        class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg disabled:opacity-50"
-                    >
+                    <button @click="prevPage()" :disabled="movieFilters.offset === 0"
+                        class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg disabled:opacity-50">
                         ← Previous
                     </button>
                     <span class="px-4 py-2 text-gray-400">
                         Page <span x-text="Math.floor(movieFilters.offset / movieFilters.limit) + 1"></span>
                     </span>
-                    <button
-                        @click="nextPage()"
-                        :disabled="!hasMoreMovies"
-                        class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg disabled:opacity-50"
-                    >
+                    <button @click="nextPage()" :disabled="!hasMoreMovies"
+                        class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg disabled:opacity-50">
                         Next →
                     </button>
                 </div>
@@ -369,12 +373,11 @@
                 <h2 class="text-2xl font-bold mb-6">Genres</h2>
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     <template x-for="genre in genres" :key="genre.id">
-                        <div
-                            @click="filterByGenre(genre)"
-                            class="bg-gray-800/50 rounded-xl p-6 cursor-pointer node-card"
-                        >
+                        <div @click="filterByGenre(genre)"
+                            class="bg-gray-800/50 rounded-xl p-6 cursor-pointer node-card">
                             <h3 class="text-lg font-bold mb-2" x-text="genre.name"></h3>
-                            <div class="text-2xl font-bold text-indigo-400" x-text="genre.movieCount?.toLocaleString() || 0"></div>
+                            <div class="text-2xl font-bold text-indigo-400"
+                                x-text="genre.movieCount?.toLocaleString() || 0"></div>
                             <div class="text-sm text-gray-400">movies</div>
                         </div>
                     </template>
@@ -393,32 +396,27 @@
             <section x-show="activeTab === 'feeds'" class="fade-in">
                 <div class="text-center mb-8">
                     <h2 class="text-3xl font-bold mb-2">
-                        📡 <span class="bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">Feed Preview</span>
+                        📡 <span class="bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">Feed
+                            Preview</span>
                     </h2>
                     <p class="text-gray-400">Preview distribution feeds in platform-specific formats</p>
                 </div>
 
                 <!-- Platform Selection -->
                 <div class="flex justify-center gap-4 mb-8">
-                    <button
-                        @click="feedPlatform = 'netflix'; updateFeedPreview()"
+                    <button @click="feedPlatform = 'netflix'; updateFeedPreview()"
                         :class="feedPlatform === 'netflix' ? 'badge-netflix' : 'bg-gray-800 hover:bg-gray-700'"
-                        class="px-6 py-3 rounded-lg font-medium transition-colors"
-                    >
+                        class="px-6 py-3 rounded-lg font-medium transition-colors">
                         Netflix IMF
                     </button>
-                    <button
-                        @click="feedPlatform = 'amazon'; updateFeedPreview()"
+                    <button @click="feedPlatform = 'amazon'; updateFeedPreview()"
                         :class="feedPlatform === 'amazon' ? 'badge-amazon' : 'bg-gray-800 hover:bg-gray-700'"
-                        class="px-6 py-3 rounded-lg font-medium transition-colors"
-                    >
+                        class="px-6 py-3 rounded-lg font-medium transition-colors">
                         Amazon MEC
                     </button>
-                    <button
-                        @click="feedPlatform = 'fast'; updateFeedPreview()"
+                    <button @click="feedPlatform = 'fast'; updateFeedPreview()"
                         :class="feedPlatform === 'fast' ? 'badge-fast' : 'bg-gray-800 hover:bg-gray-700'"
-                        class="px-6 py-3 rounded-lg font-medium transition-colors"
-                    >
+                        class="px-6 py-3 rounded-lg font-medium transition-colors">
                         FAST MRSS
                     </button>
                 </div>
@@ -428,7 +426,8 @@
                     <template x-if="feedPlatform === 'netflix'">
                         <div>
                             <h3 class="text-xl font-bold mb-2 text-red-400">Netflix IMF Package</h3>
-                            <p class="text-gray-400 mb-4">Interoperable Master Format (SMPTE ST 2067) for Netflix content delivery</p>
+                            <p class="text-gray-400 mb-4">Interoperable Master Format (SMPTE ST 2067) for Netflix
+                                content delivery</p>
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                                 <div class="p-3 bg-gray-700/50 rounded-lg">
                                     <div class="text-gray-400">Format</div>
@@ -452,7 +451,8 @@
                     <template x-if="feedPlatform === 'amazon'">
                         <div>
                             <h3 class="text-xl font-bold mb-2 text-blue-400">Amazon MEC Feed</h3>
-                            <p class="text-gray-400 mb-4">Media Entertainment Core (EMA Avails v2.5) for Amazon Prime Video</p>
+                            <p class="text-gray-400 mb-4">Media Entertainment Core (EMA Avails v2.5) for Amazon Prime
+                                Video</p>
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                                 <div class="p-3 bg-gray-700/50 rounded-lg">
                                     <div class="text-gray-400">Format</div>
@@ -476,7 +476,8 @@
                     <template x-if="feedPlatform === 'fast'">
                         <div>
                             <h3 class="text-xl font-bold mb-2 text-green-400">FAST MRSS Feed</h3>
-                            <p class="text-gray-400 mb-4">Media RSS 2.0 for Pluto TV, Tubi, Roku Channel, Samsung TV Plus</p>
+                            <p class="text-gray-400 mb-4">Media RSS 2.0 for Pluto TV, Tubi, Roku Channel, Samsung TV
+                                Plus</p>
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                                 <div class="p-3 bg-gray-700/50 rounded-lg">
                                     <div class="text-gray-400">Format</div>
@@ -503,14 +504,13 @@
                 <div class="bg-gray-900 rounded-xl p-4 overflow-hidden">
                     <div class="flex justify-between items-center mb-4">
                         <h4 class="font-medium">Sample Feed Output</h4>
-                        <button
-                            @click="copyFeed()"
-                            class="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-sm transition-colors"
-                        >
+                        <button @click="copyFeed()"
+                            class="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-sm transition-colors">
                             Copy
                         </button>
                     </div>
-                    <pre class="feed-preview text-xs text-green-400 overflow-x-auto"><code x-text="feedPreview"></code></pre>
+                    <pre
+                        class="feed-preview text-xs text-green-400 overflow-x-auto"><code x-text="feedPreview"></code></pre>
                 </div>
             </section>
 
@@ -518,7 +518,9 @@
             <section x-show="activeTab === 'search'" class="fade-in">
                 <div class="text-center mb-8">
                     <h2 class="text-3xl font-bold mb-2">
-                        🔍 <span class="bg-gradient-to-r from-violet-400 to-purple-500 bg-clip-text text-transparent">Semantic Search</span>
+                        🔍 <span
+                            class="bg-gradient-to-r from-violet-400 to-purple-500 bg-clip-text text-transparent">Semantic
+                            Search</span>
                     </h2>
                     <p class="text-gray-400">Find movies using natural language powered by Vertex AI embeddings</p>
                 </div>
@@ -527,28 +529,33 @@
                 <div class="bg-gray-800/50 rounded-xl p-6 mb-6">
                     <div class="max-w-2xl mx-auto">
                         <div class="relative">
-                            <input
-                                type="text"
-                                x-model="searchQuery"
-                                @keydown.enter="performSemanticSearch()"
+                            <input type="text" x-model="searchQuery" @keydown.enter="performSemanticSearch()"
                                 placeholder="Describe the kind of movie you're looking for..."
-                                class="w-full bg-gray-700 border border-gray-600 rounded-xl px-6 py-4 pr-32 text-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-                            >
-                            <button
-                                @click="performSemanticSearch()"
-                                :disabled="searching || !searchQuery.trim()"
-                                class="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 rounded-lg font-medium transition-colors"
-                            >
+                                class="w-full bg-gray-700 border border-gray-600 rounded-xl px-6 py-4 pr-32 text-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all">
+                            <button @click="performSemanticSearch()" :disabled="searching || !searchQuery.trim()"
+                                class="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 rounded-lg font-medium transition-colors">
                                 <span x-show="!searching">Search</span>
                                 <span x-show="searching">...</span>
                             </button>
                         </div>
                         <div class="flex flex-wrap gap-2 mt-4 justify-center">
-                            <button @click="searchQuery = 'epic space adventure with aliens'; performSemanticSearch()" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">epic space adventure</button>
-                            <button @click="searchQuery = 'romantic comedy in New York'; performSemanticSearch()" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">romantic comedy NYC</button>
-                            <button @click="searchQuery = 'thriller about a serial killer'; performSemanticSearch()" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">thriller serial killer</button>
-                            <button @click="searchQuery = 'animated movie for kids about animals'; performSemanticSearch()" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">animated kids animals</button>
-                            <button @click="searchQuery = 'mind-bending sci-fi about time travel'; performSemanticSearch()" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">time travel sci-fi</button>
+                            <button @click="searchQuery = 'epic space adventure with aliens'; performSemanticSearch()"
+                                class="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">epic
+                                space adventure</button>
+                            <button @click="searchQuery = 'romantic comedy in New York'; performSemanticSearch()"
+                                class="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">romantic
+                                comedy NYC</button>
+                            <button @click="searchQuery = 'thriller about a serial killer'; performSemanticSearch()"
+                                class="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">thriller
+                                serial killer</button>
+                            <button
+                                @click="searchQuery = 'animated movie for kids about animals'; performSemanticSearch()"
+                                class="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">animated
+                                kids animals</button>
+                            <button
+                                @click="searchQuery = 'mind-bending sci-fi about time travel'; performSemanticSearch()"
+                                class="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">time
+                                travel sci-fi</button>
                         </div>
                     </div>
                 </div>
@@ -560,9 +567,12 @@
                         <div>
                             <h4 class="font-medium text-purple-400">How Semantic Search Works</h4>
                             <p class="text-sm text-gray-400 mt-1">
-                                Unlike keyword search, semantic search understands the <strong>meaning</strong> of your query.
-                                Your query and movie descriptions are converted to 768-dimensional vectors using Vertex AI embeddings,
-                                then matched by cosine similarity. This finds movies that are conceptually related, even without exact word matches.
+                                Unlike keyword search, semantic search understands the <strong>meaning</strong> of your
+                                query.
+                                Your query and movie descriptions are converted to 768-dimensional vectors using Vertex
+                                AI embeddings,
+                                then matched by cosine similarity. This finds movies that are conceptually related, even
+                                without exact word matches.
                             </p>
                         </div>
                     </div>
@@ -579,28 +589,22 @@
                         </div>
                         <div class="space-y-4">
                             <template x-for="(result, index) in searchResults" :key="result.id + '-' + index">
-                                <div
-                                    @click="selectMovie(result)"
-                                    class="bg-gray-800/50 rounded-xl p-4 cursor-pointer node-card flex gap-4"
-                                >
+                                <div @click="selectMovie(result)"
+                                    class="bg-gray-800/50 rounded-xl p-4 cursor-pointer node-card flex gap-4">
                                     <!-- Rank Badge -->
                                     <div class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold"
-                                         :class="index < 3 ? 'bg-purple-600' : 'bg-gray-700'"
-                                         x-text="'#' + (index + 1)">
+                                        :class="index < 3 ? 'bg-purple-600' : 'bg-gray-700'" x-text="'#' + (index + 1)">
                                     </div>
 
                                     <!-- Poster -->
                                     <div class="flex-shrink-0 w-20 h-30 bg-gray-700 rounded-lg overflow-hidden">
                                         <template x-if="result.posterPath">
-                                            <img
-                                                :src="'https://image.tmdb.org/t/p/w154' + result.posterPath"
-                                                :alt="result.title"
-                                                class="w-full h-full object-cover"
-                                                loading="lazy"
-                                            >
+                                            <img :src="'https://image.tmdb.org/t/p/w154' + result.posterPath"
+                                                :alt="result.title" class="w-full h-full object-cover" loading="lazy">
                                         </template>
                                         <template x-if="!result.posterPath">
-                                            <div class="w-full h-full flex items-center justify-center text-2xl">🎬</div>
+                                            <div class="w-full h-full flex items-center justify-center text-2xl">🎬
+                                            </div>
                                         </template>
                                     </div>
 
@@ -613,11 +617,13 @@
                                                     <span class="px-2 py-0.5 bg-orange-600/50 rounded text-xs">
                                                         ⭐ <span x-text="result.voteAverage?.toFixed(1)"></span>
                                                     </span>
-                                                    <span class="px-2 py-0.5 bg-gray-700 rounded text-xs" x-text="result.year"></span>
+                                                    <span class="px-2 py-0.5 bg-gray-700 rounded text-xs"
+                                                        x-text="result.year"></span>
                                                 </div>
                                             </div>
                                             <div class="flex-shrink-0 text-right">
-                                                <div class="text-2xl font-bold text-purple-400" x-text="(result.similarity * 100).toFixed(1) + '%'"></div>
+                                                <div class="text-2xl font-bold text-purple-400"
+                                                    x-text="(result.similarity * 100).toFixed(1) + '%'"></div>
                                                 <div class="text-xs text-gray-400">similarity</div>
                                             </div>
                                         </div>
@@ -634,7 +640,8 @@
                     <div class="text-center py-16">
                         <div class="text-6xl mb-4">🔎</div>
                         <h3 class="text-xl font-bold mb-2">No Matches Found</h3>
-                        <p class="text-gray-400 mb-4">Try a different query or check if movies have been ingested with embeddings</p>
+                        <p class="text-gray-400 mb-4">Try a different query or check if movies have been ingested with
+                            embeddings</p>
                     </div>
                 </template>
 
@@ -643,7 +650,8 @@
                     <div class="text-center py-16">
                         <div class="text-6xl mb-4">🧠</div>
                         <h3 class="text-xl font-bold mb-2">AI-Powered Movie Discovery</h3>
-                        <p class="text-gray-400 mb-4">Enter a natural language description to find semantically similar movies</p>
+                        <p class="text-gray-400 mb-4">Enter a natural language description to find semantically similar
+                            movies</p>
                         <div class="flex items-center justify-center gap-2 text-sm text-gray-500">
                             <span class="px-3 py-1 bg-gray-800 rounded-full">Vertex AI</span>
                             <span>×</span>
@@ -668,7 +676,9 @@
             <section x-show="activeTab === 'ingest'" class="fade-in">
                 <div class="text-center mb-8">
                     <h2 class="text-3xl font-bold mb-2">
-                        ⚙️ <span class="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">Data Ingestion</span>
+                        ⚙️ <span
+                            class="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">Data
+                            Ingestion</span>
                     </h2>
                     <p class="text-gray-400">Process TMDB dataset into knowledge graph</p>
                 </div>
@@ -680,7 +690,8 @@
                         <div>
                             <h4 class="font-bold text-amber-400">GCP Access Disabled</h4>
                             <p class="text-gray-300 text-sm mt-1">
-                                This feature is no longer active as we no longer have access to the Hackathon GCP account.
+                                This feature is no longer active as we no longer have access to the Hackathon GCP
+                                account.
                                 The data ingestion controls below are shown for demonstration purposes only.
                                 The application now runs on pre-exported data hosted on Netlify.
                             </p>
@@ -717,10 +728,8 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm text-gray-400 mb-2">Number of Movies to Ingest</label>
-                            <select
-                                x-model="ingestLimit"
-                                class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2"
-                            >
+                            <select x-model="ingestLimit"
+                                class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2">
                                 <option value="100">100 (Quick Test)</option>
                                 <option value="1000">1,000 (Sample)</option>
                                 <option value="10000">10,000 (Medium)</option>
@@ -730,53 +739,45 @@
                         </div>
                         <div>
                             <label class="flex items-center space-x-3 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    x-model="generateEmbeddings"
-                                    class="w-5 h-5 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
-                                >
+                                <input type="checkbox" x-model="generateEmbeddings"
+                                    class="w-5 h-5 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2">
                                 <div>
                                     <span class="font-medium">Generate Vertex AI Embeddings</span>
                                     <p class="text-sm text-gray-400">Enable semantic search (768-dim vectors)</p>
                                 </div>
                             </label>
                         </div>
-                        <div x-show="generateEmbeddings" class="p-4 bg-purple-600/20 border border-purple-500/30 rounded-lg">
+                        <div x-show="generateEmbeddings"
+                            class="p-4 bg-purple-600/20 border border-purple-500/30 rounded-lg">
                             <div class="flex items-start space-x-3">
                                 <div class="text-xl">🧠</div>
                                 <div class="text-sm">
-                                    <p class="font-medium text-purple-300">Embeddings will be generated using Vertex AI</p>
-                                    <p class="text-gray-400 mt-1">This adds ~2 seconds per batch of 5 movies. For 100k movies, expect ~5-6 hours total processing time.</p>
+                                    <p class="font-medium text-purple-300">Embeddings will be generated using Vertex AI
+                                    </p>
+                                    <p class="text-gray-400 mt-1">This adds ~2 seconds per batch of 5 movies. For 100k
+                                        movies, expect ~5-6 hours total processing time.</p>
                                 </div>
                             </div>
                         </div>
                         <div class="flex flex-wrap gap-4">
-                            <button
-                                disabled
+                            <button disabled
                                 class="flex-1 px-6 py-3 bg-gray-600 cursor-not-allowed rounded-lg font-medium transition-colors opacity-50"
-                                title="GCP access disabled - feature unavailable"
-                            >
+                                title="GCP access disabled - feature unavailable">
                                 🚀 Start Ingestion
                             </button>
-                            <button
-                                disabled
+                            <button disabled
                                 class="px-6 py-3 bg-gray-600 cursor-not-allowed rounded-lg font-medium transition-colors opacity-50"
-                                title="GCP access disabled - feature unavailable"
-                            >
+                                title="GCP access disabled - feature unavailable">
                                 ✅ Validate for Distribution
                             </button>
-                            <button
-                                disabled
+                            <button disabled
                                 class="px-6 py-3 bg-gray-600 cursor-not-allowed rounded-lg font-medium transition-colors opacity-50"
-                                title="GCP access disabled - feature unavailable"
-                            >
+                                title="GCP access disabled - feature unavailable">
                                 🗑️ Clear Data
                             </button>
-                            <button
-                                disabled
+                            <button disabled
                                 class="px-6 py-3 bg-gray-600 cursor-not-allowed rounded-lg font-medium transition-colors opacity-50"
-                                title="GCP access disabled - feature unavailable"
-                            >
+                                title="GCP access disabled - feature unavailable">
                                 🔄 Refresh Stats
                             </button>
                         </div>
@@ -789,23 +790,30 @@
                         <h3 class="text-xl font-bold mb-4">Ingestion Result</h3>
                         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                             <div class="p-4 bg-green-600/20 rounded-lg">
-                                <div class="text-2xl font-bold text-green-400" x-text="(ingestionResult.stats?.moviesStored || ingestionResult.stats?.stored || 0).toLocaleString()"></div>
+                                <div class="text-2xl font-bold text-green-400"
+                                    x-text="(ingestionResult.stats?.moviesStored || ingestionResult.stats?.stored || 0).toLocaleString()">
+                                </div>
                                 <div class="text-sm text-gray-400">Movies Stored</div>
                             </div>
                             <div class="p-4 bg-purple-600/20 rounded-lg">
-                                <div class="text-2xl font-bold text-purple-400" x-text="(ingestionResult.stats?.embeddingsGenerated || 0).toLocaleString()"></div>
+                                <div class="text-2xl font-bold text-purple-400"
+                                    x-text="(ingestionResult.stats?.embeddingsGenerated || 0).toLocaleString()"></div>
                                 <div class="text-sm text-gray-400">Embeddings</div>
                             </div>
                             <div class="p-4 bg-red-600/20 rounded-lg">
-                                <div class="text-2xl font-bold text-red-400" x-text="ingestionResult.stats?.errors || ingestionResult.stats?.failed || 0"></div>
+                                <div class="text-2xl font-bold text-red-400"
+                                    x-text="ingestionResult.stats?.errors || ingestionResult.stats?.failed || 0"></div>
                                 <div class="text-sm text-gray-400">Errors</div>
                             </div>
                             <div class="p-4 bg-blue-600/20 rounded-lg">
-                                <div class="text-2xl font-bold text-blue-400" x-text="((ingestionResult.stats?.durationMs || 0) / 1000).toFixed(1) + 's'"></div>
+                                <div class="text-2xl font-bold text-blue-400"
+                                    x-text="((ingestionResult.stats?.durationMs || 0) / 1000).toFixed(1) + 's'"></div>
                                 <div class="text-sm text-gray-400">Duration</div>
                             </div>
                             <div class="p-4 bg-cyan-600/20 rounded-lg">
-                                <div class="text-2xl font-bold text-cyan-400" x-text="ingestionResult.stats?.genresFound || ingestionResult.stats?.cacheStats?.genres || 0"></div>
+                                <div class="text-2xl font-bold text-cyan-400"
+                                    x-text="ingestionResult.stats?.genresFound || ingestionResult.stats?.cacheStats?.genres || 0">
+                                </div>
                                 <div class="text-sm text-gray-400">Genres</div>
                             </div>
                         </div>
@@ -815,7 +823,8 @@
                                     <div class="text-xl">✅</div>
                                     <div>
                                         <p class="font-medium text-purple-300">Semantic Search Ready!</p>
-                                        <p class="text-sm text-gray-400">You can now use the Semantic Search tab to find movies by description</p>
+                                        <p class="text-sm text-gray-400">You can now use the Semantic Search tab to find
+                                            movies by description</p>
                                     </div>
                                 </div>
                             </div>
@@ -828,7 +837,9 @@
             <section x-show="activeTab === 'visualize'" class="fade-in">
                 <div class="text-center mb-6">
                     <h2 class="text-3xl font-bold mb-2">
-                        🕸️ <span class="bg-gradient-to-r from-cyan-400 to-teal-500 bg-clip-text text-transparent">Knowledge Graph Visualization</span>
+                        🕸️ <span
+                            class="bg-gradient-to-r from-cyan-400 to-teal-500 bg-clip-text text-transparent">Knowledge
+                            Graph Visualization</span>
                     </h2>
                     <p class="text-gray-400">Explore relationships between movies, genres, companies, and more</p>
                 </div>
@@ -838,12 +849,10 @@
                     <div class="flex flex-wrap gap-4 items-center justify-between">
                         <div class="flex flex-wrap gap-4 items-center">
                             <div>
-                                <label class="block text-xs text-gray-400 mb-1">Movie Limit <span class="text-blue-400" x-text="'(of ' + stats.totalMovies.toLocaleString() + ' available)'"></span></label>
-                                <select
-                                    x-model="graphSettings.movieLimit"
-                                    @change="loadGraphData()"
-                                    class="bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-sm"
-                                >
+                                <label class="block text-xs text-gray-400 mb-1">Movie Limit <span class="text-blue-400"
+                                        x-text="'(of ' + stats.totalMovies.toLocaleString() + ' available)'"></span></label>
+                                <select x-model="graphSettings.movieLimit" @change="loadGraphData()"
+                                    class="bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-sm">
                                     <option value="10">10 movies</option>
                                     <option value="25">25 movies</option>
                                     <option value="50">50 movies</option>
@@ -857,32 +866,30 @@
                                 <label class="block text-xs text-gray-400 mb-1">Show Relationships</label>
                                 <div class="flex gap-2">
                                     <label class="flex items-center gap-1 text-sm">
-                                        <input type="checkbox" x-model="graphSettings.showGenres" @change="renderGraph()" class="rounded bg-gray-700 border-gray-600">
+                                        <input type="checkbox" x-model="graphSettings.showGenres"
+                                            @change="renderGraph()" class="rounded bg-gray-700 border-gray-600">
                                         <span class="text-yellow-400">Genres</span>
                                     </label>
                                     <label class="flex items-center gap-1 text-sm">
-                                        <input type="checkbox" x-model="graphSettings.showCompanies" @change="renderGraph()" class="rounded bg-gray-700 border-gray-600">
+                                        <input type="checkbox" x-model="graphSettings.showCompanies"
+                                            @change="renderGraph()" class="rounded bg-gray-700 border-gray-600">
                                         <span class="text-blue-400">Companies</span>
                                     </label>
                                     <label class="flex items-center gap-1 text-sm">
-                                        <input type="checkbox" x-model="graphSettings.showCountries" @change="renderGraph()" class="rounded bg-gray-700 border-gray-600">
+                                        <input type="checkbox" x-model="graphSettings.showCountries"
+                                            @change="renderGraph()" class="rounded bg-gray-700 border-gray-600">
                                         <span class="text-green-400">Countries</span>
                                     </label>
                                 </div>
                             </div>
                         </div>
                         <div class="flex gap-2">
-                            <button
-                                @click="fitGraph()"
-                                class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition-colors"
-                            >
+                            <button @click="fitGraph()"
+                                class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition-colors">
                                 📐 Fit View
                             </button>
-                            <button
-                                @click="loadGraphData()"
-                                :disabled="graphLoading"
-                                class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 rounded-lg text-sm transition-colors"
-                            >
+                            <button @click="loadGraphData()" :disabled="graphLoading"
+                                class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 rounded-lg text-sm transition-colors">
                                 <span x-show="!graphLoading">🔄 Refresh</span>
                                 <span x-show="graphLoading">Loading...</span>
                             </button>
@@ -967,10 +974,8 @@
                         <div class="text-6xl mb-4">🕸️</div>
                         <h3 class="text-xl font-bold mb-2">No Graph Data</h3>
                         <p class="text-gray-400 mb-4">Ingest some movies first to visualize the knowledge graph</p>
-                        <button
-                            @click="activeTab = 'ingest'"
-                            class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
-                        >
+                        <button @click="activeTab = 'ingest'"
+                            class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors">
                             Go to Ingest
                         </button>
                     </div>
@@ -982,11 +987,15 @@
                 <!-- Investment Hero Header -->
                 <div class="text-center mb-10">
                     <!-- Hackathon Banner -->
-                    <div class="bg-gradient-to-r from-red-900/50 via-purple-900/50 to-blue-900/50 border border-purple-500/50 rounded-2xl p-6 mb-8 max-w-4xl mx-auto">
+                    <div
+                        class="bg-gradient-to-r from-red-900/50 via-purple-900/50 to-blue-900/50 border border-purple-500/50 rounded-2xl p-6 mb-8 max-w-4xl mx-auto">
                         <div class="flex flex-wrap items-center justify-center gap-3 mb-3">
-                            <span class="px-3 py-1 bg-red-600/50 border border-red-400/50 rounded-full text-red-200 text-xs font-bold">TV5MONDE</span>
+                            <span
+                                class="px-3 py-1 bg-red-600/50 border border-red-400/50 rounded-full text-red-200 text-xs font-bold">TV5MONDE</span>
                             <span class="text-gray-400">×</span>
-                            <span class="px-3 py-1 bg-purple-600/50 border border-purple-400/50 rounded-full text-purple-200 text-xs font-bold">AGENTICS FOUNDATION</span>
+                            <span
+                                class="px-3 py-1 bg-purple-600/50 border border-purple-400/50 rounded-full text-purple-200 text-xs font-bold">AGENTICS
+                                FOUNDATION</span>
                         </div>
                         <h3 class="text-2xl font-bold text-white mb-2">🏆 London Chapter Team Output</h3>
                         <p class="text-gray-300 text-lg mb-2">
@@ -998,14 +1007,18 @@
                         </div>
                     </div>
 
-                    <div class="inline-block px-4 py-1 bg-gradient-to-r from-amber-600/30 to-yellow-600/30 border border-amber-500/50 rounded-full text-amber-300 text-sm font-medium mb-4">
+                    <div
+                        class="inline-block px-4 py-1 bg-gradient-to-r from-amber-600/30 to-yellow-600/30 border border-amber-500/50 rounded-full text-amber-300 text-sm font-medium mb-4">
                         🚀 Investment Opportunity — AI-Powered Media Intelligence Platform
                     </div>
                     <h2 class="text-4xl font-bold mb-4">
-                        <span class="bg-gradient-to-r from-amber-400 via-orange-400 to-red-500 bg-clip-text text-transparent">The Future of Media Discovery & Distribution</span>
+                        <span
+                            class="bg-gradient-to-r from-amber-400 via-orange-400 to-red-500 bg-clip-text text-transparent">The
+                            Future of Media Discovery & Distribution</span>
                     </h2>
                     <p class="text-xl text-gray-300 max-w-4xl mx-auto mb-6">
-                        A unified platform addressing the <strong class="text-amber-300">$2.4 billion</strong> media metadata crisis through AI-powered discovery, recommendation, and distribution.
+                        A unified platform addressing the <strong class="text-amber-300">$2.4 billion</strong> media
+                        metadata crisis through AI-powered discovery, recommendation, and distribution.
                     </p>
                     <div class="flex flex-wrap justify-center gap-4 mb-6">
                         <div class="px-6 py-3 bg-green-600/20 border border-green-500/50 rounded-xl">
@@ -1028,11 +1041,13 @@
                 </div>
 
                 <!-- Platform Vision Banner -->
-                <div class="bg-gradient-to-r from-indigo-900/40 via-purple-900/40 to-pink-900/40 border border-purple-500/30 rounded-2xl p-8 mb-10">
+                <div
+                    class="bg-gradient-to-r from-indigo-900/40 via-purple-900/40 to-pink-900/40 border border-purple-500/30 rounded-2xl p-8 mb-10">
                     <div class="text-center mb-6">
                         <h3 class="text-2xl font-bold text-white mb-2">🎯 Integrated Platform Vision</h3>
                         <p class="text-gray-300 max-w-3xl mx-auto">
-                            Five interconnected AI modules working together to revolutionize how content is discovered, recommended, experienced, and distributed globally.
+                            Five interconnected AI modules working together to revolutionize how content is discovered,
+                            recommended, experienced, and distributed globally.
                         </p>
                     </div>
                     <div class="flex flex-wrap justify-center items-center gap-4 text-sm">
@@ -1059,41 +1074,49 @@
                 </div>
 
                 <!-- Module 1: Bence - Visual Preference Capture -->
-                <div class="bg-gray-800/50 rounded-2xl p-6 border border-cyan-500/30 mb-6 hover:border-cyan-400/50 transition-all">
+                <div
+                    class="bg-gray-800/50 rounded-2xl p-6 border border-cyan-500/30 mb-6 hover:border-cyan-400/50 transition-all">
                     <div class="flex flex-col xl:flex-row gap-6">
                         <div class="xl:w-3/5">
-                            <div
-                                class="relative rounded-xl overflow-hidden cursor-pointer group"
-                                @click="expandedImage = './images/Bence.png'"
-                            >
-                                <img
-                                    src="./images/Bence.png"
-                                    alt="AI-Powered Media Discovery Infographic"
-                                    class="w-full h-auto rounded-xl shadow-2xl transition-transform group-hover:scale-[1.02]"
-                                />
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
-                                    <span class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-white text-sm">🔍 Click to expand</span>
+                            <div class="relative rounded-xl overflow-hidden cursor-pointer group"
+                                @click="expandedImage = './images/Bence.png'">
+                                <img src="./images/Bence.png" alt="AI-Powered Media Discovery Infographic"
+                                    class="w-full h-auto rounded-xl shadow-2xl transition-transform group-hover:scale-[1.02]" />
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
+                                    <span
+                                        class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-white text-sm">🔍
+                                        Click to expand</span>
                                 </div>
                             </div>
                         </div>
                         <div class="xl:w-2/5 flex flex-col justify-center">
-                            <div class="inline-block px-3 py-1 bg-cyan-600/30 border border-cyan-500/50 rounded-full text-cyan-300 text-xs font-medium mb-3 w-fit">
+                            <div
+                                class="inline-block px-3 py-1 bg-cyan-600/30 border border-cyan-500/50 rounded-full text-cyan-300 text-xs font-medium mb-3 w-fit">
                                 MODULE 1 — User Onboarding
                             </div>
                             <h3 class="text-2xl font-bold mb-3 text-cyan-400">AI-Powered Media Discovery</h3>
                             <p class="text-gray-300 mb-4 leading-relaxed">
-                                <strong class="text-white">No more endless scrolling.</strong> Users select images that catch their eye, and AI analyzes behavior in real-time — clicks, hovers, and interaction patterns — to understand preferences in just <strong class="text-cyan-300">12 seconds</strong>.
+                                <strong class="text-white">No more endless scrolling.</strong> Users select images that
+                                catch their eye, and AI analyzes behavior in real-time — clicks, hovers, and interaction
+                                patterns — to understand preferences in just <strong class="text-cyan-300">12
+                                    seconds</strong>.
                             </p>
                             <ul class="text-sm text-gray-400 space-y-2 mb-4">
-                                <li class="flex items-center gap-2"><span class="text-cyan-400">✓</span> Visual-first preference capture</li>
-                                <li class="flex items-center gap-2"><span class="text-cyan-400">✓</span> Real-time behavioral AI analysis</li>
-                                <li class="flex items-center gap-2"><span class="text-cyan-400">✓</span> Instant personalization without questionnaires</li>
+                                <li class="flex items-center gap-2"><span class="text-cyan-400">✓</span> Visual-first
+                                    preference capture</li>
+                                <li class="flex items-center gap-2"><span class="text-cyan-400">✓</span> Real-time
+                                    behavioral AI analysis</li>
+                                <li class="flex items-center gap-2"><span class="text-cyan-400">✓</span> Instant
+                                    personalization without questionnaires</li>
                             </ul>
                             <div class="flex flex-wrap gap-3">
-                                <a href="https://agentics-hackathon.netlify.app/" target="_blank" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm transition-colors">
+                                <a href="https://agentics-hackathon.netlify.app/" target="_blank"
+                                    class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm transition-colors">
                                     🚀 Try Live Demo
                                 </a>
-                                <a href="https://www.linkedin.com/in/bencecsernak/" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors">
+                                <a href="https://www.linkedin.com/in/bencecsernak/" target="_blank"
+                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors">
                                     👤 Bence Csernak
                                 </a>
                             </div>
@@ -1102,38 +1125,45 @@
                 </div>
 
                 <!-- Module 2: Lorraine - AI Viewing Companion -->
-                <div class="bg-gray-800/50 rounded-2xl p-6 border border-purple-500/30 mb-6 hover:border-purple-400/50 transition-all">
+                <div
+                    class="bg-gray-800/50 rounded-2xl p-6 border border-purple-500/30 mb-6 hover:border-purple-400/50 transition-all">
                     <div class="flex flex-col xl:flex-row-reverse gap-6">
                         <div class="xl:w-3/5">
-                            <div
-                                class="relative rounded-xl overflow-hidden cursor-pointer group"
-                                @click="expandedImage = './images/AI-Viewer-Companion.png'"
-                            >
-                                <img
-                                    src="./images/AI-Viewer-Companion.png"
+                            <div class="relative rounded-xl overflow-hidden cursor-pointer group"
+                                @click="expandedImage = './images/AI-Viewer-Companion.png'">
+                                <img src="./images/AI-Viewer-Companion.png"
                                     alt="AI-Powered Streaming Experience Infographic"
-                                    class="w-full h-auto rounded-xl shadow-2xl transition-transform group-hover:scale-[1.02]"
-                                />
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
-                                    <span class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-white text-sm">🔍 Click to expand</span>
+                                    class="w-full h-auto rounded-xl shadow-2xl transition-transform group-hover:scale-[1.02]" />
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
+                                    <span
+                                        class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-white text-sm">🔍
+                                        Click to expand</span>
                                 </div>
                             </div>
                         </div>
                         <div class="xl:w-2/5 flex flex-col justify-center">
-                            <div class="inline-block px-3 py-1 bg-purple-600/30 border border-purple-500/50 rounded-full text-purple-300 text-xs font-medium mb-3 w-fit">
+                            <div
+                                class="inline-block px-3 py-1 bg-purple-600/30 border border-purple-500/50 rounded-full text-purple-300 text-xs font-medium mb-3 w-fit">
                                 MODULE 2 — Viewing Experience
                             </div>
                             <h3 class="text-2xl font-bold mb-3 text-purple-400">Always-On AI Viewing Companion</h3>
                             <p class="text-gray-300 mb-4 leading-relaxed">
-                                <strong class="text-white">An AI that sees, hears, and understands.</strong> The companion streams video frames to Gemini at 1fps, captures voice via Web Audio API, and provides deep narrative context about every film.
+                                <strong class="text-white">An AI that sees, hears, and understands.</strong> The
+                                companion streams video frames to Gemini at 1fps, captures voice via Web Audio API, and
+                                provides deep narrative context about every film.
                             </p>
                             <ul class="text-sm text-gray-400 space-y-2 mb-4">
-                                <li class="flex items-center gap-2"><span class="text-purple-400">✓</span> Visual awareness with real-time frame analysis</li>
-                                <li class="flex items-center gap-2"><span class="text-purple-400">✓</span> Low-latency voice interaction</li>
-                                <li class="flex items-center gap-2"><span class="text-purple-400">✓</span> Deep narrative context and Q&A</li>
+                                <li class="flex items-center gap-2"><span class="text-purple-400">✓</span> Visual
+                                    awareness with real-time frame analysis</li>
+                                <li class="flex items-center gap-2"><span class="text-purple-400">✓</span> Low-latency
+                                    voice interaction</li>
+                                <li class="flex items-center gap-2"><span class="text-purple-400">✓</span> Deep
+                                    narrative context and Q&A</li>
                             </ul>
                             <div class="flex flex-wrap gap-3">
-                                <a href="https://www.linkedin.com/in/lorraine-david/" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors">
+                                <a href="https://www.linkedin.com/in/lorraine-david/" target="_blank"
+                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors">
                                     👤 Lorraine David
                                 </a>
                             </div>
@@ -1142,38 +1172,45 @@
                 </div>
 
                 <!-- Module 3: John - Semantic Recommender -->
-                <div class="bg-gray-800/50 rounded-2xl p-6 border border-orange-500/30 mb-6 hover:border-orange-400/50 transition-all">
+                <div
+                    class="bg-gray-800/50 rounded-2xl p-6 border border-orange-500/30 mb-6 hover:border-orange-400/50 transition-all">
                     <div class="flex flex-col xl:flex-row gap-6">
                         <div class="xl:w-3/5">
-                            <div
-                                class="relative rounded-xl overflow-hidden cursor-pointer group"
-                                @click="expandedImage = './images/JohnOHare.jpeg'"
-                            >
-                                <img
-                                    src="./images/JohnOHare.jpeg"
-                                    alt="Semantic Recommender System Infographic"
-                                    class="w-full h-auto rounded-xl shadow-2xl transition-transform group-hover:scale-[1.02]"
-                                />
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
-                                    <span class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-white text-sm">🔍 Click to expand</span>
+                            <div class="relative rounded-xl overflow-hidden cursor-pointer group"
+                                @click="expandedImage = './images/JohnOHare.jpeg'">
+                                <img src="./images/JohnOHare.jpeg" alt="Semantic Recommender System Infographic"
+                                    class="w-full h-auto rounded-xl shadow-2xl transition-transform group-hover:scale-[1.02]" />
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
+                                    <span
+                                        class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-white text-sm">🔍
+                                        Click to expand</span>
                                 </div>
                             </div>
                         </div>
                         <div class="xl:w-2/5 flex flex-col justify-center">
-                            <div class="inline-block px-3 py-1 bg-orange-600/30 border border-orange-500/50 rounded-full text-orange-300 text-xs font-medium mb-3 w-fit">
+                            <div
+                                class="inline-block px-3 py-1 bg-orange-600/30 border border-orange-500/50 rounded-full text-orange-300 text-xs font-medium mb-3 w-fit">
                                 MODULE 3 — Recommendation Engine
                             </div>
-                            <h3 class="text-2xl font-bold mb-3 text-orange-400">High-Performance Semantic Recommender</h3>
+                            <h3 class="text-2xl font-bold mb-3 text-orange-400">High-Performance Semantic Recommender
+                            </h3>
                             <p class="text-gray-300 mb-4 leading-relaxed">
-                                <strong class="text-white">Understanding meaning, not just keywords.</strong> A hybrid brain combining semantic analysis with knowledge graph connections, powered by GPU turbo-charge to scan millions of movies instantly.
+                                <strong class="text-white">Understanding meaning, not just keywords.</strong> A hybrid
+                                brain combining semantic analysis with knowledge graph connections, powered by GPU
+                                turbo-charge to scan millions of movies instantly.
                             </p>
                             <ul class="text-sm text-gray-400 space-y-2 mb-4">
-                                <li class="flex items-center gap-2"><span class="text-orange-400">✓</span> <strong class="text-orange-300">316,000 queries/second</strong> throughput</li>
-                                <li class="flex items-center gap-2"><span class="text-orange-400">✓</span> <strong class="text-orange-300">&lt;1ms latency</strong> for all retrievals</li>
-                                <li class="flex items-center gap-2"><span class="text-orange-400">✓</span> Understands vibe, theme, and mood</li>
+                                <li class="flex items-center gap-2"><span class="text-orange-400">✓</span> <strong
+                                        class="text-orange-300">316,000 queries/second</strong> throughput</li>
+                                <li class="flex items-center gap-2"><span class="text-orange-400">✓</span> <strong
+                                        class="text-orange-300">&lt;1ms latency</strong> for all retrievals</li>
+                                <li class="flex items-center gap-2"><span class="text-orange-400">✓</span> Understands
+                                    vibe, theme, and mood</li>
                             </ul>
                             <div class="flex flex-wrap gap-3">
-                                <a href="https://www.linkedin.com/in/jjohare/" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors">
+                                <a href="https://www.linkedin.com/in/jjohare/" target="_blank"
+                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors">
                                     👤 Dr John O'Hare
                                 </a>
                             </div>
@@ -1182,38 +1219,45 @@
                 </div>
 
                 <!-- Module 4: Yegor - Hybrid AI -->
-                <div class="bg-gray-800/50 rounded-2xl p-6 border border-green-500/30 mb-6 hover:border-green-400/50 transition-all">
+                <div
+                    class="bg-gray-800/50 rounded-2xl p-6 border border-green-500/30 mb-6 hover:border-green-400/50 transition-all">
                     <div class="flex flex-col xl:flex-row-reverse gap-6">
                         <div class="xl:w-3/5">
-                            <div
-                                class="relative rounded-xl overflow-hidden cursor-pointer group"
-                                @click="expandedImage = './images/Yegor.png'"
-                            >
-                                <img
-                                    src="./images/Yegor.png"
-                                    alt="CR-HyperVR Hybrid AI Infographic"
-                                    class="w-full h-auto rounded-xl shadow-2xl transition-transform group-hover:scale-[1.02]"
-                                />
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
-                                    <span class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-white text-sm">🔍 Click to expand</span>
+                            <div class="relative rounded-xl overflow-hidden cursor-pointer group"
+                                @click="expandedImage = './images/Yegor.png'">
+                                <img src="./images/Yegor.png" alt="CR-HyperVR Hybrid AI Infographic"
+                                    class="w-full h-auto rounded-xl shadow-2xl transition-transform group-hover:scale-[1.02]" />
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
+                                    <span
+                                        class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-white text-sm">🔍
+                                        Click to expand</span>
                                 </div>
                             </div>
                         </div>
                         <div class="xl:w-2/5 flex flex-col justify-center">
-                            <div class="inline-block px-3 py-1 bg-green-600/30 border border-green-500/50 rounded-full text-green-300 text-xs font-medium mb-3 w-fit">
+                            <div
+                                class="inline-block px-3 py-1 bg-green-600/30 border border-green-500/50 rounded-full text-green-300 text-xs font-medium mb-3 w-fit">
                                 MODULE 4 — Hybrid Intelligence
                             </div>
-                            <h3 class="text-2xl font-bold mb-3 text-green-400">CR-HyperVR: Smarter Film Recommendations</h3>
+                            <h3 class="text-2xl font-bold mb-3 text-green-400">CR-HyperVR: Smarter Film Recommendations
+                            </h3>
                             <p class="text-gray-300 mb-4 leading-relaxed">
-                                <strong class="text-white">Solving the cold-start problem.</strong> A hybrid recommender blending semantic search with hypergraph signals, using an optimized ONNX model that runs on CPU — no expensive GPUs required.
+                                <strong class="text-white">Solving the cold-start problem.</strong> A hybrid recommender
+                                blending semantic search with hypergraph signals, using an optimized ONNX model that
+                                runs on CPU — no expensive GPUs required.
                             </p>
                             <ul class="text-sm text-gray-400 space-y-2 mb-4">
-                                <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Low latency & cost on CPU</li>
-                                <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Works even with sparse user data</li>
-                                <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Score fusion & ranking for perfect results</li>
+                                <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Low latency &
+                                    cost on CPU</li>
+                                <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Works even
+                                    with sparse user data</li>
+                                <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Score fusion &
+                                    ranking for perfect results</li>
                             </ul>
                             <div class="flex flex-wrap gap-3">
-                                <a href="https://www.linkedin.com/in/yegor-pomazunov/" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors">
+                                <a href="https://www.linkedin.com/in/yegor-pomazunov/" target="_blank"
+                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors">
                                     👤 Yegor Pomazunov
                                 </a>
                             </div>
@@ -1222,41 +1266,51 @@
                 </div>
 
                 <!-- Module 5: Mondweep - Global Distribution -->
-                <div class="bg-gradient-to-r from-pink-900/30 via-purple-900/30 to-indigo-900/30 rounded-2xl p-6 border-2 border-pink-500/50 mb-6 hover:border-pink-400/70 transition-all relative overflow-hidden">
-                    <div class="absolute top-4 right-4 px-3 py-1 bg-pink-600/50 border border-pink-400/50 rounded-full text-pink-200 text-xs font-bold animate-pulse">
+                <div
+                    class="bg-gradient-to-r from-pink-900/30 via-purple-900/30 to-indigo-900/30 rounded-2xl p-6 border-2 border-pink-500/50 mb-6 hover:border-pink-400/70 transition-all relative overflow-hidden">
+                    <div
+                        class="absolute top-4 right-4 px-3 py-1 bg-pink-600/50 border border-pink-400/50 rounded-full text-pink-200 text-xs font-bold animate-pulse">
                         📍 YOU ARE HERE
                     </div>
                     <div class="flex flex-col xl:flex-row gap-6">
                         <div class="xl:w-3/5">
-                            <div
-                                class="relative rounded-xl overflow-hidden cursor-pointer group"
-                                @click="expandedImage = './images/metadata-distribution.png'"
-                            >
-                                <img
-                                    src="./images/metadata-distribution.png"
+                            <div class="relative rounded-xl overflow-hidden cursor-pointer group"
+                                @click="expandedImage = './images/metadata-distribution.png'">
+                                <img src="./images/metadata-distribution.png"
                                     alt="Unifying Global Media Distribution Infographic"
-                                    class="w-full h-auto rounded-xl shadow-2xl transition-transform group-hover:scale-[1.02]"
-                                />
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
-                                    <span class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-white text-sm">🔍 Click to expand</span>
+                                    class="w-full h-auto rounded-xl shadow-2xl transition-transform group-hover:scale-[1.02]" />
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
+                                    <span
+                                        class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-white text-sm">🔍
+                                        Click to expand</span>
                                 </div>
                             </div>
                         </div>
                         <div class="xl:w-2/5 flex flex-col justify-center">
-                            <div class="inline-block px-3 py-1 bg-pink-600/30 border border-pink-500/50 rounded-full text-pink-300 text-xs font-medium mb-3 w-fit">
+                            <div
+                                class="inline-block px-3 py-1 bg-pink-600/30 border border-pink-500/50 rounded-full text-pink-300 text-xs font-medium mb-3 w-fit">
                                 MODULE 5 — Global Distribution
                             </div>
-                            <h3 class="text-2xl font-bold mb-3 text-pink-400">UMMID: Unifying Global Media Distribution</h3>
+                            <h3 class="text-2xl font-bold mb-3 text-pink-400">UMMID: Unifying Global Media Distribution
+                            </h3>
                             <p class="text-gray-300 mb-4 leading-relaxed">
-                                <strong class="text-white">Solving the $2.4B metadata crisis.</strong> An AI-powered knowledge graph that ingests, enriches, and distributes compliant metadata feeds to Netflix (IMF), Amazon (MEC), and FAST channels (MRSS).
+                                <strong class="text-white">Solving the $2.4B metadata crisis.</strong> An AI-powered
+                                knowledge graph that ingests, enriches, and distributes compliant metadata feeds to
+                                Netflix (IMF), Amazon (MEC), and FAST channels (MRSS).
                             </p>
                             <ul class="text-sm text-gray-400 space-y-2 mb-4">
-                                <li class="flex items-center gap-2"><span class="text-pink-400">✓</span> Prevents <strong class="text-pink-300">40% revenue loss</strong> from metadata failures</li>
-                                <li class="flex items-center gap-2"><span class="text-pink-400">✓</span> <strong class="text-pink-300">10x faster</strong> semantic content discovery</li>
-                                <li class="flex items-center gap-2"><span class="text-pink-400">✓</span> <strong class="text-pink-300">85% reduction</strong> in data processing costs</li>
+                                <li class="flex items-center gap-2"><span class="text-pink-400">✓</span> Prevents
+                                    <strong class="text-pink-300">40% revenue loss</strong> from metadata failures
+                                </li>
+                                <li class="flex items-center gap-2"><span class="text-pink-400">✓</span> <strong
+                                        class="text-pink-300">10x faster</strong> semantic content discovery</li>
+                                <li class="flex items-center gap-2"><span class="text-pink-400">✓</span> <strong
+                                        class="text-pink-300">85% reduction</strong> in data processing costs</li>
                             </ul>
                             <div class="flex flex-wrap gap-3">
-                                <a href="https://www.linkedin.com/in/mondweepchakravorty/" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors">
+                                <a href="https://www.linkedin.com/in/mondweepchakravorty/" target="_blank"
+                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors">
                                     👤 Mondweep Chakravorty
                                 </a>
                             </div>
@@ -1265,10 +1319,12 @@
                 </div>
 
                 <!-- Additional Team Project: Nolan - ARW -->
-                <div class="bg-gray-800/50 rounded-2xl p-6 border border-red-500/30 mb-6 hover:border-red-400/50 transition-all">
+                <div
+                    class="bg-gray-800/50 rounded-2xl p-6 border border-red-500/30 mb-6 hover:border-red-400/50 transition-all">
                     <div class="flex flex-col lg:flex-row gap-6">
                         <div class="lg:w-1/3">
-                            <div class="aspect-video bg-gradient-to-br from-red-900/50 to-orange-900/50 rounded-xl flex items-center justify-center border border-red-500/30">
+                            <div
+                                class="aspect-video bg-gradient-to-br from-red-900/50 to-orange-900/50 rounded-xl flex items-center justify-center border border-red-500/30">
                                 <div class="text-center p-6">
                                     <div class="text-6xl mb-4">🌐</div>
                                     <div class="text-xl font-bold text-red-400">Agent Ready Web</div>
@@ -1277,23 +1333,32 @@
                             </div>
                         </div>
                         <div class="lg:w-2/3 flex flex-col justify-center">
-                            <div class="inline-block px-3 py-1 bg-red-600/30 border border-red-500/50 rounded-full text-red-300 text-xs font-medium mb-3 w-fit">
+                            <div
+                                class="inline-block px-3 py-1 bg-red-600/30 border border-red-500/50 rounded-full text-red-300 text-xs font-medium mb-3 w-fit">
                                 MODULE 6 — Agent Infrastructure
                             </div>
                             <h3 class="text-2xl font-bold mb-3 text-red-400">Agent Ready Web (ARW)</h3>
                             <p class="text-gray-300 mb-4 leading-relaxed">
-                                <strong class="text-white">Infrastructure for the AI agent economy.</strong> Enabling efficient agent-web interaction with <strong class="text-red-300">85% token reduction</strong>, full observability of agent traffic, and safe commercial transactions.
+                                <strong class="text-white">Infrastructure for the AI agent economy.</strong> Enabling
+                                efficient agent-web interaction with <strong class="text-red-300">85% token
+                                    reduction</strong>, full observability of agent traffic, and safe commercial
+                                transactions.
                             </p>
                             <ul class="text-sm text-gray-400 space-y-2 mb-4">
-                                <li class="flex items-center gap-2"><span class="text-red-400">✓</span> 10x faster content discovery for AI agents</li>
-                                <li class="flex items-center gap-2"><span class="text-red-400">✓</span> Full agent traffic observability</li>
-                                <li class="flex items-center gap-2"><span class="text-red-400">✓</span> Safe agent commercial transactions</li>
+                                <li class="flex items-center gap-2"><span class="text-red-400">✓</span> 10x faster
+                                    content discovery for AI agents</li>
+                                <li class="flex items-center gap-2"><span class="text-red-400">✓</span> Full agent
+                                    traffic observability</li>
+                                <li class="flex items-center gap-2"><span class="text-red-400">✓</span> Safe agent
+                                    commercial transactions</li>
                             </ul>
                             <div class="flex flex-wrap gap-3">
-                                <a href="https://github.com/ARC-Solutions/arc-viewer" target="_blank" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition-colors">
+                                <a href="https://github.com/ARC-Solutions/arc-viewer" target="_blank"
+                                    class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition-colors">
                                     🔗 GitHub Repository
                                 </a>
-                                <a href="https://github.com/nolandubeau/hackathon-tv5" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors">
+                                <a href="https://github.com/nolandubeau/hackathon-tv5" target="_blank"
+                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors">
                                     👤 Nolan Dubeau
                                 </a>
                             </div>
@@ -1302,11 +1367,14 @@
                 </div>
 
                 <!-- Investment CTA -->
-                <div class="bg-gradient-to-r from-amber-900/40 via-orange-900/40 to-red-900/40 border-2 border-amber-500/50 rounded-2xl p-8 mb-8">
+                <div
+                    class="bg-gradient-to-r from-amber-900/40 via-orange-900/40 to-red-900/40 border-2 border-amber-500/50 rounded-2xl p-8 mb-8">
                     <div class="text-center">
                         <h3 class="text-2xl font-bold text-white mb-4">🎬 Ready to Transform Media Discovery?</h3>
                         <p class="text-gray-300 max-w-2xl mx-auto mb-6">
-                            Our integrated platform combines AI-powered preference capture, intelligent viewing companions, high-performance recommendations, and global distribution — all built by industry experts passionate about solving real problems.
+                            Our integrated platform combines AI-powered preference capture, intelligent viewing
+                            companions, high-performance recommendations, and global distribution — all built by
+                            industry experts passionate about solving real problems.
                         </p>
                         <div class="flex flex-wrap justify-center gap-4">
                             <div class="px-6 py-4 bg-black/30 rounded-xl border border-amber-500/30">
@@ -1327,57 +1395,55 @@
 
                 <!-- Team Members -->
                 <div class="bg-gray-800/30 rounded-2xl p-6 border border-gray-700">
-                    <h3 class="text-lg font-bold mb-4 text-center">🏆 London Chapter Team — TV5MONDE Agentics Foundation</h3>
+                    <h3 class="text-lg font-bold mb-4 text-center">🏆 London Chapter Team — TV5MONDE Agentics Foundation
+                    </h3>
                     <div class="flex flex-wrap justify-center gap-3">
-                        <a href="https://www.linkedin.com/in/mondweepchakravorty/" target="_blank" class="px-4 py-2 bg-gradient-to-r from-pink-600/50 to-purple-600/50 hover:from-pink-600 hover:to-purple-600 rounded-full text-sm transition-all border border-pink-500/50">
+                        <a href="https://www.linkedin.com/in/mondweepchakravorty/" target="_blank"
+                            class="px-4 py-2 bg-gradient-to-r from-pink-600/50 to-purple-600/50 hover:from-pink-600 hover:to-purple-600 rounded-full text-sm transition-all border border-pink-500/50">
                             Mondweep Chakravorty
                         </a>
-                        <a href="https://www.linkedin.com/in/bencecsernak/" target="_blank" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">
+                        <a href="https://www.linkedin.com/in/bencecsernak/" target="_blank"
+                            class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">
                             Bence Csernak
                         </a>
-                        <a href="https://www.linkedin.com/in/lorraine-david/" target="_blank" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">
+                        <a href="https://www.linkedin.com/in/lorraine-david/" target="_blank"
+                            class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">
                             Lorraine David
                         </a>
-                        <a href="https://www.linkedin.com/in/jjohare/" target="_blank" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">
+                        <a href="https://www.linkedin.com/in/jjohare/" target="_blank"
+                            class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">
                             Dr John O'Hare
                         </a>
-                        <a href="https://www.linkedin.com/in/yegor-pomazunov/" target="_blank" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">
+                        <a href="https://www.linkedin.com/in/yegor-pomazunov/" target="_blank"
+                            class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">
                             Yegor Pomazunov
                         </a>
-                        <a href="https://github.com/nolandubeau/hackathon-tv5" target="_blank" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">
+                        <a href="https://github.com/nolandubeau/hackathon-tv5" target="_blank"
+                            class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">
                             Nolan Dubeau
                         </a>
-                        <a href="https://www.linkedin.com/in/imad-ez-zejjari-data-scientist/" target="_blank" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">
+                        <a href="https://www.linkedin.com/in/imad-ez-zejjari-data-scientist/" target="_blank"
+                            class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-sm transition-colors">
                             Imad Ezzejajari
                         </a>
                     </div>
                 </div>
 
                 <!-- Image Modal -->
-                <div
-                    x-show="expandedImage"
-                    x-transition:enter="transition ease-out duration-300"
-                    x-transition:enter-start="opacity-0"
-                    x-transition:enter-end="opacity-100"
-                    x-transition:leave="transition ease-in duration-200"
-                    x-transition:leave-start="opacity-100"
+                <div x-show="expandedImage" x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                    x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
                     x-transition:leave-end="opacity-0"
                     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm"
-                    @click.self="expandedImage = null"
-                    @keydown.escape.window="expandedImage = null"
-                >
+                    @click.self="expandedImage = null" @keydown.escape.window="expandedImage = null">
                     <div class="relative max-w-7xl max-h-[90vh] w-full">
-                        <button
-                            @click="expandedImage = null"
-                            class="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors"
-                        >
+                        <button @click="expandedImage = null"
+                            class="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors">
                             <span class="text-lg">✕ Close</span>
                         </button>
-                        <img
-                            :src="expandedImage"
+                        <img :src="expandedImage"
                             class="w-full h-auto max-h-[90vh] object-contain rounded-xl shadow-2xl"
-                            alt="Expanded infographic"
-                        />
+                            alt="Expanded infographic" />
                     </div>
                 </div>
             </section>
@@ -1386,18 +1452,22 @@
             <section x-show="activeTab === 'about'" class="fade-in">
                 <!-- Header -->
                 <div class="text-center mb-8">
-                    <div class="inline-block px-4 py-1 bg-red-600/20 border border-red-500/30 rounded-full text-red-400 text-sm font-medium mb-4">
+                    <div
+                        class="inline-block px-4 py-1 bg-red-600/20 border border-red-500/30 rounded-full text-red-400 text-sm font-medium mb-4">
                         TV5MONDE Agentics Foundation Hackathon 2025 - Media Distribution Track
                     </div>
                     <h2 class="text-3xl font-bold mb-2">Nexus-UMMID Knowledge Graph</h2>
-                    <p class="text-lg text-purple-300 mb-2">Unified Media Metadata Integration & Distribution (UMMID)</p>
+                    <p class="text-lg text-purple-300 mb-2">Unified Media Metadata Integration & Distribution (UMMID)
+                    </p>
                     <p class="text-gray-400 max-w-2xl mx-auto">
-                        AI-powered metadata management and distribution pipeline for global content delivery across Netflix, Amazon, and FAST platforms.
+                        AI-powered metadata management and distribution pipeline for global content delivery across
+                        Netflix, Amazon, and FAST platforms.
                     </p>
                 </div>
 
                 <!-- THE PROBLEM -->
-                <div class="bg-gradient-to-r from-red-900/30 to-orange-900/30 border border-red-500/30 rounded-xl p-6 mb-6">
+                <div
+                    class="bg-gradient-to-r from-red-900/30 to-orange-900/30 border border-red-500/30 rounded-xl p-6 mb-6">
                     <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
                         <span class="text-red-400">🚨</span> The Problem: Metadata Distribution Crisis
                     </h3>
@@ -1405,17 +1475,20 @@
                         <div class="bg-black/30 rounded-lg p-4 text-center">
                             <div class="text-3xl font-bold text-red-400 mb-1">40%</div>
                             <div class="text-sm text-gray-300">Revenue Loss</div>
-                            <div class="text-xs text-gray-500 mt-1">Due to inadequate metadata management across distribution channels</div>
+                            <div class="text-xs text-gray-500 mt-1">Due to inadequate metadata management across
+                                distribution channels</div>
                         </div>
                         <div class="bg-black/30 rounded-lg p-4 text-center">
                             <div class="text-3xl font-bold text-orange-400 mb-1">25+</div>
                             <div class="text-sm text-gray-300">Disconnected Systems</div>
-                            <div class="text-xs text-gray-500 mt-1">Organizations manage metadata across fragmented silos</div>
+                            <div class="text-xs text-gray-500 mt-1">Organizations manage metadata across fragmented
+                                silos</div>
                         </div>
                         <div class="bg-black/30 rounded-lg p-4 text-center">
                             <div class="text-3xl font-bold text-yellow-400 mb-1">20%</div>
                             <div class="text-sm text-gray-300">Audience Churn</div>
-                            <div class="text-xs text-gray-500 mt-1">Subscribers leave when they can't find relevant content</div>
+                            <div class="text-xs text-gray-500 mt-1">Subscribers leave when they can't find relevant
+                                content</div>
                         </div>
                         <div class="bg-black/30 rounded-lg p-4 text-center">
                             <div class="text-3xl font-bold text-pink-400 mb-1">∞</div>
@@ -1426,15 +1499,18 @@
                     <div class="mt-4 p-4 bg-black/20 rounded-lg">
                         <p class="text-sm text-gray-300">
                             <span class="text-red-400 font-semibold">The Last Mile Challenge:</span>
-                            While content ownership is centralized, distribution occurs through fragmented third-party ecosystems (SVOD, AVOD, FAST, linear TV).
-                            Each platform—Netflix, Amazon, Pluto TV—maintains unique, rigid delivery specifications. Metadata accepted by one platform faces rejection from another if formatted incorrectly,
+                            While content ownership is centralized, distribution occurs through fragmented third-party
+                            ecosystems (SVOD, AVOD, FAST, linear TV).
+                            Each platform—Netflix, Amazon, Pluto TV—maintains unique, rigid delivery specifications.
+                            Metadata accepted by one platform faces rejection from another if formatted incorrectly,
                             causing costly delays and lost revenue windows.
                         </p>
                     </div>
                 </div>
 
                 <!-- OUR SOLUTION -->
-                <div class="bg-gradient-to-r from-green-900/30 to-blue-900/30 border border-green-500/30 rounded-xl p-6 mb-6">
+                <div
+                    class="bg-gradient-to-r from-green-900/30 to-blue-900/30 border border-green-500/30 rounded-xl p-6 mb-6">
                     <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
                         <span class="text-green-400">✅</span> Our Solution: Unified Knowledge Graph
                     </h3>
@@ -1442,23 +1518,27 @@
                         <div class="bg-black/30 rounded-lg p-4">
                             <div class="text-2xl mb-2">🔗</div>
                             <h4 class="font-bold text-purple-400">Hypergraph Architecture</h4>
-                            <p class="text-sm text-gray-400 mt-1">Unified data model connecting movies, genres, actors, and companies through multi-dimensional relationships—eliminating silos</p>
+                            <p class="text-sm text-gray-400 mt-1">Unified data model connecting movies, genres, actors,
+                                and companies through multi-dimensional relationships—eliminating silos</p>
                         </div>
                         <div class="bg-black/30 rounded-lg p-4">
                             <div class="text-2xl mb-2">🤖</div>
                             <h4 class="font-bold text-green-400">AI-Powered Discovery</h4>
-                            <p class="text-sm text-gray-400 mt-1">768-dimensional Vertex AI embeddings enable semantic search, finding content by meaning rather than keywords</p>
+                            <p class="text-sm text-gray-400 mt-1">768-dimensional Vertex AI embeddings enable semantic
+                                search, finding content by meaning rather than keywords</p>
                         </div>
                         <div class="bg-black/30 rounded-lg p-4">
                             <div class="text-2xl mb-2">📡</div>
                             <h4 class="font-bold text-orange-400">Auto-Validation & Export</h4>
-                            <p class="text-sm text-gray-400 mt-1">Automated compliance checking and feed generation for Netflix IMF, Amazon MEC, and FAST MRSS standards</p>
+                            <p class="text-sm text-gray-400 mt-1">Automated compliance checking and feed generation for
+                                Netflix IMF, Amazon MEC, and FAST MRSS standards</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- BUSINESS OUTCOMES -->
-                <div class="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-500/30 rounded-xl p-6 mb-6">
+                <div
+                    class="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-500/30 rounded-xl p-6 mb-6">
                     <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
                         <span class="text-blue-400">📈</span> Business Outcomes
                     </h3>
@@ -1471,7 +1551,8 @@
                         <div class="bg-black/30 rounded-lg p-4 text-center border border-blue-500/20">
                             <div class="text-3xl font-bold text-blue-400 mb-1">10x</div>
                             <div class="text-sm text-gray-300">Faster Discovery</div>
-                            <div class="text-xs text-gray-500 mt-1">Semantic search vs. traditional keyword matching</div>
+                            <div class="text-xs text-gray-500 mt-1">Semantic search vs. traditional keyword matching
+                            </div>
                         </div>
                         <div class="bg-black/30 rounded-lg p-4 text-center border border-purple-500/20">
                             <div class="text-3xl font-bold text-purple-400 mb-1">85%</div>
@@ -1493,24 +1574,35 @@
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div class="text-center p-4 bg-blue-600/10 border border-blue-500/30 rounded-lg">
-                            <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 text-lg font-bold">1</div>
+                            <div
+                                class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 text-lg font-bold">
+                                1</div>
                             <h4 class="font-medium mb-1">Ingest</h4>
                             <p class="text-xs text-gray-400">Import metadata from TMDB dataset stored in GCS bucket</p>
                         </div>
                         <div class="text-center p-4 bg-purple-600/10 border border-purple-500/30 rounded-lg">
-                            <div class="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-3 text-lg font-bold">2</div>
+                            <div
+                                class="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-3 text-lg font-bold">
+                                2</div>
                             <h4 class="font-medium mb-1">Build Graph</h4>
-                            <p class="text-xs text-gray-400">Create nodes and edges connecting movies to genres, companies, countries</p>
+                            <p class="text-xs text-gray-400">Create nodes and edges connecting movies to genres,
+                                companies, countries</p>
                         </div>
                         <div class="text-center p-4 bg-green-600/10 border border-green-500/30 rounded-lg">
-                            <div class="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-3 text-lg font-bold">3</div>
+                            <div
+                                class="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-3 text-lg font-bold">
+                                3</div>
                             <h4 class="font-medium mb-1">AI Enrichment</h4>
-                            <p class="text-xs text-gray-400">Generate semantic embeddings via Vertex AI for intelligent search</p>
+                            <p class="text-xs text-gray-400">Generate semantic embeddings via Vertex AI for intelligent
+                                search</p>
                         </div>
                         <div class="text-center p-4 bg-orange-600/10 border border-orange-500/30 rounded-lg">
-                            <div class="w-10 h-10 bg-orange-600 rounded-full flex items-center justify-center mx-auto mb-3 text-lg font-bold">4</div>
+                            <div
+                                class="w-10 h-10 bg-orange-600 rounded-full flex items-center justify-center mx-auto mb-3 text-lg font-bold">
+                                4</div>
                             <h4 class="font-medium mb-1">Distribute</h4>
-                            <p class="text-xs text-gray-400">Validate and export to Netflix, Amazon, and FAST platforms</p>
+                            <p class="text-xs text-gray-400">Validate and export to Netflix, Amazon, and FAST platforms
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -1522,7 +1614,8 @@
                     </h3>
                     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                         <div class="bg-gray-700/50 rounded-lg p-4 text-center">
-                            <div class="text-2xl font-bold text-blue-400" x-text="stats.totalMovies.toLocaleString()">0</div>
+                            <div class="text-2xl font-bold text-blue-400" x-text="stats.totalMovies.toLocaleString()">0
+                            </div>
                             <div class="text-xs text-gray-400">Movies Indexed</div>
                         </div>
                         <div class="bg-gray-700/50 rounded-lg p-4 text-center">
@@ -1649,58 +1742,44 @@
 
                 <!-- Footer -->
                 <div class="text-center text-gray-500 text-sm">
-                    <p>Built for TV5MONDE Agentics Foundation Hackathon 2025 | Powered by Google Cloud Platform during the Hackathon and now moved to Netlify</p>
+                    <p>Built for TV5MONDE Agentics Foundation Hackathon 2025 | Powered by Google Cloud Platform during
+                        the Hackathon and now moved to Netlify</p>
                 </div>
             </section>
         </div>
     </main>
 
     <!-- Movie Detail Modal -->
-    <div
-        x-show="selectedMovie"
-        x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        x-transition:leave="transition ease-in duration-200"
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
-        @click.self="selectedMovie = null"
-    >
-        <div
-            x-show="selectedMovie"
-            x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="opacity-0 scale-95"
-            x-transition:enter-end="opacity-100 scale-100"
-            class="bg-gray-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
-        >
+    <div x-show="selectedMovie" x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
+        @click.self="selectedMovie = null">
+        <div x-show="selectedMovie" x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+            class="bg-gray-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <template x-if="selectedMovie">
                 <div>
                     <!-- Backdrop -->
                     <div class="relative h-48 md:h-64 overflow-hidden rounded-t-2xl">
                         <template x-if="selectedMovie.backdropPath">
-                            <img
-                                :src="'https://image.tmdb.org/t/p/w1280' + selectedMovie.backdropPath"
-                                class="w-full h-full object-cover"
-                            >
+                            <img :src="'https://image.tmdb.org/t/p/w1280' + selectedMovie.backdropPath"
+                                class="w-full h-full object-cover">
                         </template>
                         <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
                         <!-- Play Trailer Button -->
-                        <button
-                            @click="loadTrailer(selectedMovie)"
+                        <button @click="loadTrailer(selectedMovie)"
                             class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-4 bg-red-600 hover:bg-red-700 hover:scale-110 rounded-full transition-all shadow-lg"
-                            title="Play Trailer"
-                        >
+                            title="Play Trailer">
                             <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M8 5v14l11-7z"/>
+                                <path d="M8 5v14l11-7z" />
                             </svg>
                         </button>
-                        <button
-                            @click="selectedMovie = null"
-                            class="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 rounded-full"
-                        >
+                        <button @click="selectedMovie = null"
+                            class="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 rounded-full">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </div>
@@ -1713,8 +1792,10 @@
                                 ⭐ <span x-text="selectedMovie.voteAverage?.toFixed(1)"></span>
                             </span>
                             <span class="px-3 py-1 bg-gray-700 rounded-full text-sm" x-text="selectedMovie.year"></span>
-                            <span x-show="selectedMovie.runtime" class="px-3 py-1 bg-gray-700 rounded-full text-sm" x-text="selectedMovie.runtime + ' min'"></span>
-                            <span class="px-3 py-1 bg-gray-700 rounded-full text-sm" x-text="selectedMovie.status"></span>
+                            <span x-show="selectedMovie.runtime" class="px-3 py-1 bg-gray-700 rounded-full text-sm"
+                                x-text="selectedMovie.runtime + ' min'"></span>
+                            <span class="px-3 py-1 bg-gray-700 rounded-full text-sm"
+                                x-text="selectedMovie.status"></span>
                         </div>
                         <p class="text-gray-300 mb-6" x-text="selectedMovie.overview"></p>
 
@@ -1722,10 +1803,12 @@
                         <div class="mb-6">
                             <h3 class="text-lg font-bold mb-3">Distribution Readiness</h3>
                             <div class="flex gap-2">
-                                <button @click="previewFeed('netflix')" class="px-4 py-2 badge-netflix rounded-lg text-sm">
+                                <button @click="previewFeed('netflix')"
+                                    class="px-4 py-2 badge-netflix rounded-lg text-sm">
                                     Netflix IMF
                                 </button>
-                                <button @click="previewFeed('amazon')" class="px-4 py-2 badge-amazon rounded-lg text-sm">
+                                <button @click="previewFeed('amazon')"
+                                    class="px-4 py-2 badge-amazon rounded-lg text-sm">
                                     Amazon MEC
                                 </button>
                                 <button @click="previewFeed('fast')" class="px-4 py-2 badge-fast rounded-lg text-sm">
@@ -1750,7 +1833,8 @@
                             </div>
                             <div x-show="selectedMovie.revenue">
                                 <span class="text-gray-400">Revenue:</span>
-                                <span class="ml-2">$<span x-text="selectedMovie.revenue?.toLocaleString()"></span></span>
+                                <span class="ml-2">$<span
+                                        x-text="selectedMovie.revenue?.toLocaleString()"></span></span>
                             </div>
                         </div>
                     </div>
@@ -1760,32 +1844,22 @@
     </div>
 
     <!-- Trailer Modal -->
-    <div
-        x-show="showTrailerModal"
-        x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
+    <div x-show="showTrailerModal" x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
         x-transition:leave="transition ease-in duration-200"
         class="fixed inset-0 bg-black/90 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
-        @click.self="showTrailerModal = false; trailerKey = null"
-    >
+        @click.self="showTrailerModal = false; trailerKey = null">
         <div class="relative w-full max-w-4xl aspect-video">
-            <button
-                @click="showTrailerModal = false; trailerKey = null"
-                class="absolute -top-12 right-0 p-2 text-white hover:text-gray-300 transition-colors"
-            >
+            <button @click="showTrailerModal = false; trailerKey = null"
+                class="absolute -top-12 right-0 p-2 text-white hover:text-gray-300 transition-colors">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
-            <iframe
-                x-show="trailerKey"
-                :src="'https://www.youtube.com/embed/' + trailerKey + '?autoplay=1'"
-                class="w-full h-full rounded-xl"
-                frameborder="0"
+            <iframe x-show="trailerKey" :src="'https://www.youtube.com/embed/' + trailerKey + '?autoplay=1'"
+                class="w-full h-full rounded-xl" frameborder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen
-            ></iframe>
+                allowfullscreen></iframe>
         </div>
     </div>
 
@@ -1946,7 +2020,7 @@
                         const response = await fetch(`${TMDB_BASE}/movie/${movie.id}/videos?api_key=${TMDB_API_KEY}`);
                         const data = await response.json();
                         const trailer = data.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube') ||
-                                       data.results?.find(v => v.site === 'YouTube');
+                            data.results?.find(v => v.site === 'YouTube');
                         if (trailer) {
                             this.trailerKey = trailer.key;
                             this.showTrailerModal = true;
@@ -2497,13 +2571,142 @@
                 fitGraph() {
                     if (this.graphNetwork) {
                         this.graphNetwork.fit({
-                            animation: {
-                                duration: 500,
-                                easingFunction: 'easeInOutQuad'
-                            }
+                            animation: { duration: 1000, easingFunction: 'easeInOutQuad' }
                         });
                     }
+                },
+
+                // --- Chatbot Logic ---
+                showChat: false,
+                chatInput: '',
+                chatMessages: [
+                    { role: 'model', content: "Hi! I'm your AI Movie Guide. I can explain search results, suggest movies, or help you refine your search. Try searching for something first!" }
+                ],
+                isChatProcessing: false,
+                isListening: false,
+                recognition: null,
+
+                toggleChat() {
+                    this.showChat = !this.showChat;
+                    // Auto-focus input when opened
+                    if (this.showChat) {
+                        setTimeout(() => document.getElementById('chatInputRef')?.focus(), 100);
+                    }
+                },
+
+                async sendChatMessage() {
+                    if (!this.chatInput.trim() || this.isChatProcessing) return;
+
+                    const userMsg = this.chatInput.trim();
+                    this.chatMessages.push({ role: 'user', content: userMsg });
+                    this.chatInput = '';
+                    this.isChatProcessing = true;
+
+                    // Scroll to bottom
+                    this.$nextTick(() => {
+                        const container = document.getElementById('chatMessagesRef');
+                        if (container) container.scrollTop = container.scrollHeight;
+                    });
+
+                    try {
+                        // Prepare context (current search results)
+                        const context = {
+                            searchResults: this.searchResults.slice(0, 10).map(m => ({
+                                title: m.title,
+                                year: m.year,
+                                overview: m.overview,
+                                id: m.id
+                            }))
+                        };
+
+                        const response = await fetch(`${API_BASE}/api/v1/knowledge-graph/chat`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                messages: this.chatMessages,
+                                context: context
+                            })
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            this.chatMessages.push({ role: 'model', content: data.reply });
+                        } else {
+                            // Try to parse error details
+                            let errorMessage = "Sorry, I encountered an error talking to the server.";
+                            try {
+                                const errData = await response.json();
+                                // Check for Quota/Rate Limit errors (429)
+                                if (errData.details && errData.details.includes('429') && errData.details.includes('RESOURCE_EXHAUSTED')) {
+                                    errorMessage = "⚠️ usage limit reached. The AI service is currently busy or you have exceeded your free tier quota. Please try again in about a minute.";
+                                } else {
+                                    // Helper for other errors
+                                    if (errData.details) {
+                                        // Clean up JSON dump if possible, or just show it
+                                        errorMessage += `\n\nTechnical Details: ${errData.details}`;
+                                    }
+                                    if (errData.debugKey) {
+                                        errorMessage += `\n(API Key prefix: ${errData.debugKey})`;
+                                    }
+                                }
+                            } catch (e) {
+                                console.error("Could not parse error response", e);
+                            }
+                            this.chatMessages.push({ role: 'model', content: errorMessage });
+                        }
+                    } catch (e) {
+                        console.error("Chat error", e);
+                        this.chatMessages.push({ role: 'model', content: "Network error. Please try again. " + e.message });
+                    } finally {
+                        this.isChatProcessing = false;
+                        this.$nextTick(() => {
+                            const container = document.getElementById('chatMessagesRef');
+                            if (container) container.scrollTop = container.scrollHeight;
+                        });
+                    }
+                },
+
+                toggleVoice() {
+                    if (!('webkitSpeechRecognition' in window)) {
+                        alert("Voice input not supported in this browser. Try Chrome.");
+                        return;
+                    }
+
+                    if (this.isListening) {
+                        this.recognition.stop();
+                        this.isListening = false;
+                        return;
+                    }
+
+                    const recognition = new webkitSpeechRecognition();
+                    recognition.continuous = false;
+                    recognition.interimResults = false;
+                    recognition.lang = 'en-US';
+
+                    recognition.onstart = () => {
+                        this.isListening = true;
+                    };
+
+                    recognition.onresult = (event) => {
+                        const transcript = event.results[0][0].transcript;
+                        this.chatInput = transcript;
+                        // Optional: Auto-send
+                        // this.sendChatMessage(); 
+                    };
+
+                    recognition.onerror = (event) => {
+                        console.error(event.error);
+                        this.isListening = false;
+                    };
+
+                    recognition.onend = () => {
+                        this.isListening = false;
+                    };
+
+                    this.recognition = recognition;
+                    recognition.start();
                 }
+
             };
         }
 
@@ -2517,5 +2720,73 @@
             });
         });
     </script>
+    <!-- Floating Chat Button -->
+    <div class="fixed bottom-6 right-6 z-40">
+        <button @click="toggleChat()"
+            class="w-14 h-14 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110">
+            <span x-show="!showChat" class="text-2xl">💬</span>
+            <span x-show="showChat" class="text-xl">✖️</span>
+        </button>
+    </div>
+
+    <!-- Chat Window -->
+    <div x-show="showChat" x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 translate-y-10 scale-95"
+        x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+        x-transition:leave="transition ease-in duration-200"
+        class="fixed bottom-24 right-6 w-96 h-[500px] bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl z-40 flex flex-col overflow-hidden">
+        <!-- Chat Header -->
+        <div class="bg-gray-800 p-4 border-b border-gray-700 flex justify-between items-center">
+            <h3 class="font-bold flex items-center gap-2">
+                <span class="text-xl">🤖</span> AI Assistant
+            </h3>
+            <span class="text-xs text-gray-400">Powered by Gemini</span>
+        </div>
+
+        <!-- Chat Messages -->
+        <div id="chatMessagesRef" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-900/90">
+            <template x-for="(msg, index) in chatMessages" :key="index">
+                <div :class="msg.role === 'user' ? 'flex justify-end' : 'flex justify-start'">
+                    <div :class="msg.role === 'user' ? 'bg-purple-600 text-white rounded-br-none' : 'bg-gray-800 text-gray-200 rounded-bl-none'"
+                        class="max-w-[80%] rounded-xl p-3 text-sm shadow-sm">
+                        <p x-text="msg.content"></p>
+                    </div>
+                </div>
+            </template>
+            <div x-show="isChatProcessing" class="flex justify-start">
+                <div class="bg-gray-800 rounded-xl p-3 rounded-bl-none flex space-x-1">
+                    <span class="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></span>
+                    <span class="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-100"></span>
+                    <span class="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-200"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Input -->
+        <div class="p-3 bg-gray-800 border-t border-gray-700">
+            <div class="relative flex items-center gap-2">
+                <button @click="toggleVoice()"
+                    :class="isListening ? 'text-red-500 animate-pulse' : 'text-gray-400 hover:text-white'"
+                    class="p-2 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                    </svg>
+                </button>
+                <input id="chatInputRef" type="text" x-model="chatInput" @keydown.enter="sendChatMessage()"
+                    placeholder="Ask about movies..."
+                    class="flex-1 bg-gray-700 border-0 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none"
+                    autocomplete="off">
+                <button @click="sendChatMessage()" :disabled="!chatInput.trim() || isChatProcessing"
+                    class="p-2 text-purple-400 hover:text-white disabled:opacity-50 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
+
 </html>

@@ -1,190 +1,10 @@
 /**
- * Knowledge Graph Semantic Search API
+ * Knowledge Graph Semantic Search API (Pinecone Version)
  * POST /.netlify/functions/kg-search
  * Body: { "query": "movies about redemption", "limit": 10 }
- *
- * Supports both:
- * - Semantic search (if embeddings available and GOOGLE_GEMINI_API_KEY is set)
- * - Text-based fallback search
  */
 
-const fs = require('fs');
-const path = require('path');
-
-let cachedData = null;
-let hasEmbeddings = false;
-
-function loadData() {
-  if (cachedData) return cachedData;
-
-  // Try to load embeddings file first, fall back to regular export
-  const embeddingsPath = path.join(__dirname, '../../mondweep/knowledge-graph-with-embeddings.json');
-  const regularPath = path.join(__dirname, '../../mondweep/media-hackathion-knowledge-graph-full-export-2025-12-08.json');
-
-  let dataPath = regularPath;
-  if (fs.existsSync(embeddingsPath)) {
-    dataPath = embeddingsPath;
-    hasEmbeddings = true;
-    console.log('Using embeddings file for semantic search');
-  } else {
-    console.log('Embeddings file not found, using text search');
-  }
-
-  const rawData = fs.readFileSync(dataPath, 'utf8');
-  cachedData = JSON.parse(rawData);
-
-  // Check if data actually has embeddings
-  if (cachedData.data.movies[0]?.embedding) {
-    hasEmbeddings = true;
-  }
-
-  return cachedData;
-}
-
-// Cosine similarity between two vectors
-function cosineSimilarity(a, b) {
-  if (!a || !b || a.length !== b.length) return 0;
-
-  let dotProduct = 0;
-  let normA = 0;
-  let normB = 0;
-
-  for (let i = 0; i < a.length; i++) {
-    dotProduct += a[i] * b[i];
-    normA += a[i] * a[i];
-    normB += b[i] * b[i];
-  }
-
-  normA = Math.sqrt(normA);
-  normB = Math.sqrt(normB);
-
-  if (normA === 0 || normB === 0) return 0;
-  return dotProduct / (normA * normB);
-}
-
-// Get embedding for query from Gemini
-async function getQueryEmbedding(query, apiKey) {
-  const model = 'text-embedding-004';
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:embedContent?key=${apiKey}`;
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: `models/${model}`,
-      content: {
-        parts: [{ text: query }]
-      },
-      taskType: 'RETRIEVAL_QUERY', // Use QUERY type for search queries
-    }),
-  });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Gemini API error: ${response.status} - ${error}`);
-  }
-
-  const data = await response.json();
-  return data.embedding.values;
-}
-
-// Semantic search using embeddings
-async function semanticSearch(movies, query, limit, apiKey) {
-  // Get query embedding
-  const queryEmbedding = await getQueryEmbedding(query, apiKey);
-
-  // Calculate similarity for all movies with embeddings
-  const scored = movies
-    .filter(m => m.embedding)
-    .map(movie => ({
-      ...movie,
-      similarity: cosineSimilarity(queryEmbedding, movie.embedding),
-    }))
-    .sort((a, b) => b.similarity - a.similarity)
-    .slice(0, limit);
-
-  return scored.map(movie => ({
-    // Flat structure for frontend compatibility
-    id: movie.id,
-    title: movie.title,
-    overview: movie.overview,
-    tagline: movie.tagline,
-    posterPath: movie.posterPath,
-    backdropPath: movie.backdropPath,
-    releaseDate: movie.releaseDate,
-    year: movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : null,
-    voteAverage: movie.voteAverage,
-    popularity: movie.popularity,
-    runtime: movie.runtime,
-    budget: movie.budget,
-    revenue: movie.revenue,
-    status: movie.status,
-    imdbId: movie.imdbId,
-    platformReadiness: movie.platformReadiness,
-    genres: movie.genres,
-    similarity: movie.similarity,
-  }));
-}
-
-// Text-based fallback search
-function textSearch(movies, query, limit) {
-  const queryTerms = query.toLowerCase().split(/\s+/).filter(t => t.length > 1);
-
-  const scored = movies.map(movie => {
-    let score = 0;
-    const title = (movie.title || '').toLowerCase();
-    const overview = (movie.overview || '').toLowerCase();
-    const tagline = (movie.tagline || '').toLowerCase();
-
-    queryTerms.forEach(term => {
-      if (title.includes(term)) {
-        score += 10;
-        if (title.startsWith(term)) score += 5;
-      }
-      if (overview.includes(term)) {
-        score += 3;
-        const matches = overview.split(term).length - 1;
-        score += Math.min(matches, 3);
-      }
-      if (tagline.includes(term)) {
-        score += 2;
-      }
-    });
-
-    if (movie.popularity) {
-      score += Math.log10(movie.popularity + 1) * 0.5;
-    }
-
-    return { ...movie, searchScore: score };
-  })
-    .filter(m => m.searchScore > 0)
-    .sort((a, b) => b.searchScore - a.searchScore)
-    .slice(0, limit);
-
-  return scored.map(movie => ({
-    // Flat structure for frontend compatibility
-    id: movie.id,
-    title: movie.title,
-    overview: movie.overview,
-    tagline: movie.tagline,
-    posterPath: movie.posterPath,
-    backdropPath: movie.backdropPath,
-    releaseDate: movie.releaseDate,
-    year: movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : null,
-    voteAverage: movie.voteAverage,
-    popularity: movie.popularity,
-    runtime: movie.runtime,
-    budget: movie.budget,
-    revenue: movie.revenue,
-    status: movie.status,
-    imdbId: movie.imdbId,
-    platformReadiness: movie.platformReadiness,
-    genres: movie.genres,
-    similarity: Math.min(movie.searchScore / 20, 1),
-  }));
-}
+// const { Pinecone } = require('@pinecone-database/pinecone'); // Removed to avoid dependency error, using fetch instead
 
 exports.handler = async (event, context) => {
   const headers = {
@@ -198,7 +18,7 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    // Parse request body
+    // Parse request
     let body = {};
     if (event.body) {
       try {
@@ -207,9 +27,8 @@ exports.handler = async (event, context) => {
         body.query = event.queryStringParameters?.query;
       }
     }
-
     const query = body.query || event.queryStringParameters?.query;
-    const limit = parseInt(body.limit || event.queryStringParameters?.limit) || 10;
+    const limit = parseInt(body.limit || event.queryStringParameters?.limit) || 20;
 
     if (!query) {
       return {
@@ -219,29 +38,96 @@ exports.handler = async (event, context) => {
       };
     }
 
-    const data = loadData();
-    const movies = data.data.movies || [];
+    // Config
+    const PINECONE_API_KEY = process.env.PINECONE_API_KEY;
+    const PINECONE_HOST = process.env.PINECONE_HOST; // E.g. https://index-host.svc.pinecone.io
+    const GEMINI_API_KEY = process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
-    // Check if we can do semantic search
-    const geminiKey = process.env.GEMINI_API_KEY;
-    const canDoSemantic = hasEmbeddings && geminiKey;
-
-    let results;
-    let searchType;
-
-    if (canDoSemantic) {
-      try {
-        results = await semanticSearch(movies, query, limit, geminiKey);
-        searchType = 'semantic';
-      } catch (error) {
-        console.error('Semantic search failed, falling back to text:', error.message);
-        results = textSearch(movies, query, limit);
-        searchType = 'text (fallback)';
-      }
-    } else {
-      results = textSearch(movies, query, limit);
-      searchType = 'text';
+    // Check configuration
+    if (!PINECONE_API_KEY || !PINECONE_HOST || !GEMINI_API_KEY) {
+      console.error("Missing Configuration: ", {
+        hasPineconeKey: !!PINECONE_API_KEY,
+        hasPineconeHost: !!PINECONE_HOST,
+        hasGeminiKey: !!GEMINI_API_KEY
+      });
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({
+          error: 'Server configuration error. Missing API Keys.',
+          details: 'Please ensure PINECONE_API_KEY, PINECONE_HOST, and GOOGLE_GEMINI_API_KEY are set.'
+        }),
+      };
     }
+
+    // 1. Generate Embedding
+    const model = 'text-embedding-004';
+    const embedUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:embedContent?key=${GEMINI_API_KEY}`;
+
+    const embedResponse = await fetch(embedUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: `models/${model}`,
+        content: { parts: [{ text: query }] },
+        taskType: 'RETRIEVAL_QUERY',
+      }),
+    });
+
+    if (!embedResponse.ok) {
+      throw new Error(`Gemini Embedding Failed: ${embedResponse.status} ${await embedResponse.text()}`);
+    }
+
+    const embedData = await embedResponse.json();
+    const vector = embedData.embedding.values;
+
+    // 2. Search Pinecone (REST API)
+    // Host should be the full URL, e.g., https://media-knowledge-graph-....pinecone.io
+    // Endpoint: /vectors/query
+
+    // Ensure host starts with https://
+    const hostUrl = PINECONE_HOST.startsWith('http') ? PINECONE_HOST : `https://${PINECONE_HOST}`;
+    const searchUrl = `${hostUrl}/query`;
+
+    const searchResponse = await fetch(searchUrl, {
+      method: 'POST',
+      headers: {
+        'Api-Key': PINECONE_API_KEY,
+        'Content-Type': 'application/json',
+        'X-Pinecone-API-Version': '2024-07'
+      },
+      body: JSON.stringify({
+        vector: vector,
+        topK: limit,
+        includeMetadata: true,
+        includeValues: false
+      })
+    });
+
+    if (!searchResponse.ok) {
+      throw new Error(`Pinecone Search Failed: ${searchResponse.status} ${await searchResponse.text()}`);
+    }
+
+    const searchData = await searchResponse.json();
+    const matches = searchData.matches || [];
+
+    // 3. Map to Result Format
+    const results = matches.map(match => {
+      const md = match.metadata || {};
+      return {
+        id: match.id,
+        title: md.title || 'Unknown',
+        overview: md.overview || '',
+        posterPath: md.poster_path || null, // Map from snake_case to camelCase
+        releaseDate: md.year ? `${md.year}-01-01` : null, // Approx
+        year: md.year ? parseInt(md.year) : null,
+        voteAverage: md.vote_average || 0,
+        popularity: md.popularity || 0,
+        genres: md.genres ? md.genres.split(',').map(g => g.trim()) : [],
+        similarity: match.score,
+        platformReadiness: { netflix: true, amazon: true, fast: true } // Mock status
+      };
+    });
 
     return {
       statusCode: 200,
@@ -250,10 +136,11 @@ exports.handler = async (event, context) => {
         query,
         results,
         total: results.length,
-        searchType,
-        embeddingsAvailable: hasEmbeddings,
+        searchType: 'semantic-pinecone',
+        embeddingsAvailable: true
       }),
     };
+
   } catch (error) {
     console.error('Search error:', error);
     return {
