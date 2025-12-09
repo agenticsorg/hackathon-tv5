@@ -1,0 +1,1178 @@
+openapi: 3.0.0
+info:
+  title: Nexus-UMMID Metadata API
+  version: 1.0.0
+  description: |
+    Enterprise-grade metadata integration and distribution platform for media and entertainment.
+
+    **Nexus-UMMID** leverages a Hypergraph AI Cognitive Architecture to manage complex media rights,
+    metadata enrichment, and content distribution across 400M+ users.
+
+    ## Key Features
+    - **Hypergraph-based metadata management** - N-dimensional rights modeling
+    - **Semantic search** - Vector-powered content discovery
+    - **Real-time recommendations** - AI-driven content suggestions
+    - **EIDR integration** - Canonical identifier resolution
+    - **Multi-platform delivery** - Netflix IMF, Apple UMC compliance
+
+    ## Authentication
+    All API requests require an API key passed in the `x-api-key` header.
+
+  contact:
+    name: Nexus-UMMID API Support
+    email: api-support@nexus-ummid.io
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+
+servers:
+  - url: https://api.nexus-ummid.io/v1
+    description: Production server
+  - url: https://staging-api.nexus-ummid.io/v1
+    description: Staging server
+  - url: http://localhost:3000/v1
+    description: Local development server
+
+tags:
+  - name: Health
+    description: Service health and status endpoints
+  - name: Metadata
+    description: Media metadata management and retrieval
+  - name: Recommendations
+    description: AI-powered content recommendations
+  - name: Search
+    description: Semantic search and discovery
+  - name: Rights
+    description: Rights management and availability windows
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: Returns the current health status of the API service
+      operationId: getHealth
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: healthy
+                timestamp: '2025-12-06T00:00:00Z'
+                version: 1.0.0
+                uptime: 86400
+                dependencies:
+                  database: healthy
+                  vectorStore: healthy
+                  cache: healthy
+
+  /api/v1/metadata:
+    get:
+      tags:
+        - Metadata
+      summary: List metadata records
+      description: |
+        Retrieve a paginated list of media metadata records with optional filtering.
+        Supports filtering by content type, genre, territory, and availability status.
+      operationId: listMetadata
+      parameters:
+        - name: contentType
+          in: query
+          description: Filter by content type (movie, series, episode, etc.)
+          schema:
+            type: string
+            enum: [movie, series, episode, season, trailer, clip]
+        - name: genre
+          in: query
+          description: Filter by genre
+          schema:
+            type: string
+        - name: territory
+          in: query
+          description: Filter by territory/region (ISO 3166-1 alpha-2)
+          schema:
+            type: string
+            pattern: '^[A-Z]{2}$'
+        - name: platform
+          in: query
+          description: Filter by platform availability
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: Number of records to return (max 100)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: Number of records to skip for pagination
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Successfully retrieved metadata records
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetadataListResponse'
+              example:
+                data:
+                  - id: eidr:10.5240/ABCD-1234-5678-9012-3456-7890-K
+                    title: Inception
+                    contentType: movie
+                    releaseYear: 2010
+                    genres: [sci-fi, thriller, action]
+                    synopsis: A thief who steals corporate secrets through dream-sharing technology...
+                    runtime: 148
+                    territories: [US, GB, FR, DE]
+                    createdAt: '2025-01-01T00:00:00Z'
+                    updatedAt: '2025-12-05T12:30:00Z'
+                pagination:
+                  total: 1500000
+                  limit: 20
+                  offset: 0
+                  hasMore: true
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Metadata
+      summary: Create metadata record
+      description: |
+        Ingest a new media metadata record into the Nexus-UMMID platform.
+        The system will automatically vectorize text fields and attempt EIDR resolution.
+      operationId: createMetadata
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetadataCreateRequest'
+            example:
+              title: The Matrix Resurrections
+              originalTitle: The Matrix Resurrections
+              contentType: movie
+              releaseYear: 2021
+              genres: [sci-fi, action]
+              synopsis: Return to a world of two realities...
+              runtime: 148
+              territories: [US, GB, CA]
+              eidrId: eidr:10.5240/1234-5678-9012-3456-7890-ABCD-E
+              ratings:
+                - territory: US
+                  system: MPAA
+                  rating: R
+              technicalSpecs:
+                resolution: UHD
+                aspectRatio: '2.39:1'
+                colorimetry: Dolby Vision
+                audioFormats: [Dolby Atmos, DTS:X]
+      responses:
+        '201':
+          description: Metadata record created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaMetadata'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Conflict - Record with same identifier already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/metadata/{id}:
+    get:
+      tags:
+        - Metadata
+      summary: Get metadata by ID
+      description: Retrieve detailed metadata for a specific media asset by EIDR or internal ID
+      operationId: getMetadataById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: EIDR ID or internal UUID of the metadata record
+          schema:
+            type: string
+        - name: includeRights
+          in: query
+          description: Include rights and availability data
+          schema:
+            type: boolean
+            default: false
+        - name: includeTechnical
+          in: query
+          description: Include technical specifications
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Successfully retrieved metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaMetadata'
+              example:
+                id: eidr:10.5240/ABCD-1234-5678-9012-3456-7890-K
+                title: Inception
+                originalTitle: Inception
+                contentType: movie
+                releaseYear: 2010
+                genres: [sci-fi, thriller, action]
+                synopsis: A thief who steals corporate secrets through dream-sharing technology is given a chance at redemption.
+                runtime: 148
+                director: Christopher Nolan
+                cast:
+                  - name: Leonardo DiCaprio
+                    role: Cobb
+                  - name: Marion Cotillard
+                    role: Mal
+                territories: [US, GB, FR, DE, JP]
+                ratings:
+                  - territory: US
+                    system: MPAA
+                    rating: PG-13
+                technicalSpecs:
+                  resolution: UHD
+                  aspectRatio: '2.39:1'
+                  colorimetry: Dolby Vision
+                  audioFormats: [Dolby Atmos]
+                tags:
+                  - dream heist
+                  - reality bending
+                  - psychological thriller
+                provenance:
+                  source: EIDR
+                  confidence: 0.98
+                  lastVerified: '2025-12-01T00:00:00Z'
+                createdAt: '2025-01-01T00:00:00Z'
+                updatedAt: '2025-12-05T12:30:00Z'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags:
+        - Metadata
+      summary: Update metadata
+      description: Update an existing metadata record. Supports partial updates.
+      operationId: updateMetadata
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: EIDR ID or internal UUID of the metadata record
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetadataUpdateRequest'
+      responses:
+        '200':
+          description: Metadata updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaMetadata'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Metadata
+      summary: Delete metadata
+      description: |
+        Soft delete a metadata record. The record is marked as deleted but retained
+        for audit purposes. Hard deletion requires administrative privileges.
+      operationId: deleteMetadata
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: EIDR ID or internal UUID of the metadata record
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Metadata deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/metadata/search:
+    post:
+      tags:
+        - Search
+      summary: Semantic search
+      description: |
+        Perform semantic search across metadata using vector similarity.
+        Supports natural language queries like "movies about space exploration"
+        or "thrillers set in Tokyo".
+      operationId: searchMetadata
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+            example:
+              query: movies about artificial intelligence and consciousness
+              filters:
+                contentType: movie
+                releaseYear:
+                  min: 2010
+                  max: 2024
+              limit: 10
+      responses:
+        '200':
+          description: Search results returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+              example:
+                results:
+                  - id: eidr:10.5240/ABCD-1234-5678-9012-3456-7890-K
+                    title: Ex Machina
+                    relevanceScore: 0.95
+                    synopsis: A young programmer is selected to participate in a breakthrough experiment...
+                  - id: eidr:10.5240/1234-ABCD-5678-9012-3456-7890-F
+                    title: Her
+                    relevanceScore: 0.92
+                    synopsis: A lonely writer develops an unlikely relationship with an OS...
+                totalResults: 47
+                queryVector: [0.123, -0.456, 0.789, ...]
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/recommendations:
+    post:
+      tags:
+        - Recommendations
+      summary: Get content recommendations
+      description: |
+        Generate personalized content recommendations based on user preferences,
+        viewing history, and the hypergraph cognitive architecture.
+
+        Recommendations leverage vector similarity, collaborative filtering,
+        and content-based filtering across the semantic hypergraph.
+      operationId: getRecommendations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecommendationRequest'
+            example:
+              userId: user-12345
+              preferences:
+                genres: [sci-fi, thriller]
+                mood: [intense, thought-provoking]
+                excludeViewed: true
+              context:
+                territory: US
+                platform: streaming
+                timeOfDay: evening
+              limit: 20
+      responses:
+        '200':
+          description: Recommendations generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendationResponse'
+              example:
+                recommendations:
+                  - contentId: eidr:10.5240/ABCD-1234-5678-9012-3456-7890-K
+                    title: Inception
+                    score: 0.94
+                    reasoning: Based on your preference for mind-bending sci-fi thrillers
+                    matchFactors:
+                      genreMatch: 0.95
+                      moodMatch: 0.92
+                      similarityToHistory: 0.89
+                    metadata:
+                      contentType: movie
+                      releaseYear: 2010
+                      runtime: 148
+                  - contentId: eidr:10.5240/5678-ABCD-1234-9012-3456-7890-M
+                    title: Blade Runner 2049
+                    score: 0.91
+                    reasoning: Visually stunning sci-fi exploring consciousness themes
+                    matchFactors:
+                      genreMatch: 0.93
+                      moodMatch: 0.90
+                      similarityToHistory: 0.87
+                    metadata:
+                      contentType: movie
+                      releaseYear: 2017
+                      runtime: 164
+                userId: user-12345
+                generatedAt: '2025-12-06T00:00:00Z'
+                algorithm: hypergraph-cognitive-v2
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/recommendations/{userId}:
+    get:
+      tags:
+        - Recommendations
+      summary: Get user recommendations
+      description: Retrieve cached recommendations for a specific user
+      operationId: getUserRecommendations
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: User identifier
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: Number of recommendations to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+      responses:
+        '200':
+          description: Recommendations retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendationResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/rights/availability:
+    get:
+      tags:
+        - Rights
+      summary: Check content availability
+      description: |
+        Query availability windows for content based on territory, platform, and time.
+        Utilizes bitemporal modeling to answer historical and future-dated queries.
+      operationId: checkAvailability
+      parameters:
+        - name: contentId
+          in: query
+          required: true
+          description: EIDR ID or internal UUID of the content
+          schema:
+            type: string
+        - name: territory
+          in: query
+          required: true
+          description: Territory code (ISO 3166-1 alpha-2)
+          schema:
+            type: string
+            pattern: '^[A-Z]{2}$'
+        - name: platform
+          in: query
+          description: Platform identifier
+          schema:
+            type: string
+        - name: asOfDate
+          in: query
+          description: Check availability as of specific date (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Availability information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailabilityResponse'
+              example:
+                contentId: eidr:10.5240/ABCD-1234-5678-9012-3456-7890-K
+                territory: US
+                platform: netflix
+                available: true
+                window:
+                  start: '2025-01-01T00:00:00Z'
+                  end: '2025-12-31T23:59:59Z'
+                  type: exclusive
+                rights:
+                  - SVOD
+                  - download
+                qualityTiers:
+                  - UHD
+                  - HD
+                  - SD
+                restrictions:
+                  ratingRequired: PG-13
+                  geoFencing: false
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: API key for authentication. Contact support to obtain credentials.
+
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+          description: Overall health status of the service
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp of the health check
+        version:
+          type: string
+          description: API version
+        uptime:
+          type: integer
+          description: Service uptime in seconds
+        dependencies:
+          type: object
+          description: Health status of dependent services
+          additionalProperties:
+            type: string
+            enum: [healthy, degraded, unhealthy]
+
+    MediaMetadata:
+      type: object
+      required:
+        - id
+        - title
+        - contentType
+      properties:
+        id:
+          type: string
+          description: EIDR ID or internal UUID
+          example: eidr:10.5240/ABCD-1234-5678-9012-3456-7890-K
+        eidrId:
+          type: string
+          description: Entertainment Identifier Registry ID
+        title:
+          type: string
+          description: Primary title
+          example: Inception
+        originalTitle:
+          type: string
+          description: Original language title
+        contentType:
+          type: string
+          enum: [movie, series, episode, season, trailer, clip, special]
+          description: Type of media content
+        releaseYear:
+          type: integer
+          minimum: 1888
+          maximum: 2100
+          description: Year of original release
+        genres:
+          type: array
+          items:
+            type: string
+          description: Content genres
+          example: [sci-fi, thriller, action]
+        synopsis:
+          type: string
+          description: Long-form content description
+          maxLength: 2000
+        logline:
+          type: string
+          description: Short tagline or logline
+          maxLength: 200
+        runtime:
+          type: integer
+          description: Runtime in minutes
+          minimum: 1
+        director:
+          type: string
+          description: Primary director name
+        cast:
+          type: array
+          items:
+            $ref: '#/components/schemas/CastMember'
+        territories:
+          type: array
+          items:
+            type: string
+            pattern: '^[A-Z]{2}$'
+          description: Available territories (ISO 3166-1 alpha-2)
+        ratings:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentRating'
+        technicalSpecs:
+          $ref: '#/components/schemas/TechnicalSpecifications'
+        tags:
+          type: array
+          items:
+            type: string
+          description: AI-generated content tags (mood, theme, tone)
+        provenance:
+          $ref: '#/components/schemas/DataProvenance'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    MetadataCreateRequest:
+      type: object
+      required:
+        - title
+        - contentType
+      properties:
+        title:
+          type: string
+        originalTitle:
+          type: string
+        contentType:
+          type: string
+          enum: [movie, series, episode, season, trailer, clip, special]
+        releaseYear:
+          type: integer
+        genres:
+          type: array
+          items:
+            type: string
+        synopsis:
+          type: string
+        logline:
+          type: string
+        runtime:
+          type: integer
+        director:
+          type: string
+        cast:
+          type: array
+          items:
+            $ref: '#/components/schemas/CastMember'
+        territories:
+          type: array
+          items:
+            type: string
+        eidrId:
+          type: string
+        ratings:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentRating'
+        technicalSpecs:
+          $ref: '#/components/schemas/TechnicalSpecifications'
+
+    MetadataUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        synopsis:
+          type: string
+        genres:
+          type: array
+          items:
+            type: string
+        territories:
+          type: array
+          items:
+            type: string
+        ratings:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentRating'
+        technicalSpecs:
+          $ref: '#/components/schemas/TechnicalSpecifications'
+
+    MetadataListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/MediaMetadata'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    CastMember:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: Leonardo DiCaprio
+        role:
+          type: string
+          example: Cobb
+        characterName:
+          type: string
+        order:
+          type: integer
+          description: Billing order
+
+    ContentRating:
+      type: object
+      required:
+        - territory
+        - system
+        - rating
+      properties:
+        territory:
+          type: string
+          pattern: '^[A-Z]{2}$'
+          description: Territory code (ISO 3166-1 alpha-2)
+        system:
+          type: string
+          description: Rating system (MPAA, BBFC, etc.)
+          example: MPAA
+        rating:
+          type: string
+          example: PG-13
+        descriptors:
+          type: array
+          items:
+            type: string
+          description: Content descriptors (violence, language, etc.)
+
+    TechnicalSpecifications:
+      type: object
+      properties:
+        resolution:
+          type: string
+          enum: [SD, HD, FHD, UHD, 4K, 8K]
+        aspectRatio:
+          type: string
+          example: '16:9'
+        colorimetry:
+          type: string
+          enum: [SDR, HDR10, HDR10+, Dolby Vision, HLG]
+        audioFormats:
+          type: array
+          items:
+            type: string
+          example: [Dolby Atmos, DTS:X]
+        frameRate:
+          type: string
+          example: '23.976'
+        bitrate:
+          type: integer
+          description: Bitrate in kbps
+
+    DataProvenance:
+      type: object
+      properties:
+        source:
+          type: string
+          description: Data source identifier
+          example: EIDR
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Confidence score for data accuracy
+        lastVerified:
+          type: string
+          format: date-time
+        verifiedBy:
+          type: string
+          description: Entity that verified the data
+
+    SearchRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: Natural language search query
+          example: movies about time travel
+        filters:
+          type: object
+          properties:
+            contentType:
+              type: string
+            genres:
+              type: array
+              items:
+                type: string
+            releaseYear:
+              type: object
+              properties:
+                min:
+                  type: integer
+                max:
+                  type: integer
+            territories:
+              type: array
+              items:
+                type: string
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+
+    SearchResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              title:
+                type: string
+              relevanceScore:
+                type: number
+                format: float
+                minimum: 0
+                maximum: 1
+              synopsis:
+                type: string
+              metadata:
+                $ref: '#/components/schemas/MediaMetadata'
+        totalResults:
+          type: integer
+        queryVector:
+          type: array
+          items:
+            type: number
+          description: Vector representation of the query (for debugging)
+
+    RecommendationRequest:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: string
+          description: User identifier
+        preferences:
+          $ref: '#/components/schemas/UserPreference'
+        context:
+          type: object
+          properties:
+            territory:
+              type: string
+            platform:
+              type: string
+            device:
+              type: string
+            timeOfDay:
+              type: string
+              enum: [morning, afternoon, evening, night]
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 20
+
+    UserPreference:
+      type: object
+      properties:
+        genres:
+          type: array
+          items:
+            type: string
+          description: Preferred genres
+        mood:
+          type: array
+          items:
+            type: string
+          description: Preferred mood/tone
+          example: [intense, thought-provoking, uplifting]
+        excludeViewed:
+          type: boolean
+          default: true
+          description: Exclude previously viewed content
+        minRating:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 10
+          description: Minimum content rating threshold
+        preferredLanguages:
+          type: array
+          items:
+            type: string
+            pattern: '^[a-z]{2}$'
+          description: Preferred content languages (ISO 639-1)
+        excludeGenres:
+          type: array
+          items:
+            type: string
+          description: Genres to exclude
+
+    ContentRecommendation:
+      type: object
+      required:
+        - contentId
+        - title
+        - score
+      properties:
+        contentId:
+          type: string
+          description: EIDR ID or internal UUID
+        title:
+          type: string
+        score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Recommendation confidence score
+        reasoning:
+          type: string
+          description: Human-readable explanation for recommendation
+        matchFactors:
+          type: object
+          properties:
+            genreMatch:
+              type: number
+              format: float
+            moodMatch:
+              type: number
+              format: float
+            similarityToHistory:
+              type: number
+              format: float
+            trendingScore:
+              type: number
+              format: float
+        metadata:
+          type: object
+          properties:
+            contentType:
+              type: string
+            releaseYear:
+              type: integer
+            runtime:
+              type: integer
+            genres:
+              type: array
+              items:
+                type: string
+
+    RecommendationResponse:
+      type: object
+      properties:
+        recommendations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentRecommendation'
+        userId:
+          type: string
+        generatedAt:
+          type: string
+          format: date-time
+        algorithm:
+          type: string
+          description: Recommendation algorithm version used
+        cacheExpiry:
+          type: string
+          format: date-time
+
+    AvailabilityResponse:
+      type: object
+      properties:
+        contentId:
+          type: string
+        territory:
+          type: string
+        platform:
+          type: string
+        available:
+          type: boolean
+        window:
+          type: object
+          properties:
+            start:
+              type: string
+              format: date-time
+            end:
+              type: string
+              format: date-time
+            type:
+              type: string
+              enum: [exclusive, non-exclusive, theatrical, streaming]
+        rights:
+          type: array
+          items:
+            type: string
+          description: Available rights (SVOD, TVOD, AVOD, download, etc.)
+        qualityTiers:
+          type: array
+          items:
+            type: string
+        restrictions:
+          type: object
+          properties:
+            ratingRequired:
+              type: string
+            geoFencing:
+              type: boolean
+            deviceLimits:
+              type: integer
+
+    Pagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Total number of records
+        limit:
+          type: integer
+          description: Number of records per page
+        offset:
+          type: integer
+          description: Current offset
+        hasMore:
+          type: boolean
+          description: Whether more records are available
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          description: Additional error details
+        requestId:
+          type: string
+          description: Unique request identifier for debugging
+        timestamp:
+          type: string
+          format: date-time
+
+  responses:
+    BadRequest:
+      description: Bad request - Invalid input parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: BAD_REQUEST
+            message: Invalid content type specified
+            details:
+              field: contentType
+              value: invalid-type
+              allowedValues: [movie, series, episode, season, trailer, clip]
+            requestId: req-123e4567-e89b-12d3-a456-426614174000
+            timestamp: '2025-12-06T00:00:00Z'
+
+    Unauthorized:
+      description: Unauthorized - Invalid or missing API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: UNAUTHORIZED
+            message: Invalid API key provided
+            requestId: req-123e4567-e89b-12d3-a456-426614174000
+            timestamp: '2025-12-06T00:00:00Z'
+
+    NotFound:
+      description: Not found - Resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: NOT_FOUND
+            message: Metadata record not found
+            details:
+              id: eidr:10.5240/INVALID-ID
+            requestId: req-123e4567-e89b-12d3-a456-426614174000
+            timestamp: '2025-12-06T00:00:00Z'
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: INTERNAL_SERVER_ERROR
+            message: An unexpected error occurred
+            requestId: req-123e4567-e89b-12d3-a456-426614174000
+            timestamp: '2025-12-06T00:00:00Z'

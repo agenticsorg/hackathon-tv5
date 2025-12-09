@@ -1,0 +1,191 @@
+name: Metadata API Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/metadata-api/**'
+      - '.github/workflows/metadata-api-deploy.yml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  NODE_VERSION: '18'
+  WORKING_DIR: apps/metadata-api
+  GCP_PROJECT_ID: agentics-foundation25lon-1899
+  GCP_REGION: us-central1
+  SERVICE_NAME: metadata-api
+  MIN_INSTANCES: '1'
+  MAX_INSTANCES: '100'
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy to Cloud Run
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'staging' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ env.WORKING_DIR }}/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ${{ env.WORKING_DIR }}
+        run: npm ci
+
+      - name: Run tests
+        working-directory: ${{ env.WORKING_DIR }}
+        run: npm test -- --ci
+        env:
+          CI: true
+
+      - name: Build application
+        working-directory: ${{ env.WORKING_DIR }}
+        run: npm run build
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev
+
+      - name: Build and push Docker image
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          IMAGE_TAG="${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/metadata-api/${{ env.SERVICE_NAME }}:${{ github.sha }}"
+          IMAGE_LATEST="${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/metadata-api/${{ env.SERVICE_NAME }}:latest"
+
+          docker build \
+            --build-arg NODE_ENV=production \
+            --tag ${IMAGE_TAG} \
+            --tag ${IMAGE_LATEST} \
+            .
+
+          docker push ${IMAGE_TAG}
+          docker push ${IMAGE_LATEST}
+
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image=${{ env.IMAGE_TAG }} \
+            --platform=managed \
+            --region=${{ env.GCP_REGION }} \
+            --project=${{ env.GCP_PROJECT_ID }} \
+            --allow-unauthenticated \
+            --memory=2Gi \
+            --cpu=2 \
+            --timeout=300 \
+            --min-instances=${{ env.MIN_INSTANCES }} \
+            --max-instances=${{ env.MAX_INSTANCES }} \
+            --concurrency=80 \
+            --set-env-vars="NODE_ENV=production" \
+            --set-secrets="GOOGLE_AI_STUDIO_API_KEY=GOOGLE_AI_STUDIO_API_KEY:latest" \
+            --labels="app=metadata-api,environment=${{ github.event.inputs.environment || 'staging' }},commit=${{ github.sha }}" \
+            --quiet
+
+      - name: Get service URL
+        id: get-url
+        run: |
+          SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region=${{ env.GCP_REGION }} \
+            --project=${{ env.GCP_PROJECT_ID }} \
+            --format='value(status.url)')
+          echo "SERVICE_URL=${SERVICE_URL}" >> $GITHUB_OUTPUT
+          echo "Service deployed to: ${SERVICE_URL}"
+
+      - name: Run health check
+        run: |
+          sleep 10
+          curl -f ${{ steps.get-url.outputs.SERVICE_URL }}/health || exit 1
+
+      - name: Create deployment summary
+        run: |
+          echo "## Deployment Successful ✅" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Service:** ${{ env.SERVICE_NAME }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.event.inputs.environment || 'staging' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Region:** ${{ env.GCP_REGION }}" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** ${{ steps.get-url.outputs.SERVICE_URL }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** ${{ env.IMAGE_TAG }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Resources" >> $GITHUB_STEP_SUMMARY
+          echo "- Memory: 2Gi" >> $GITHUB_STEP_SUMMARY
+          echo "- CPU: 2" >> $GITHUB_STEP_SUMMARY
+          echo "- Min Instances: ${{ env.MIN_INSTANCES }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Max Instances: ${{ env.MAX_INSTANCES }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify deployment status
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ job.status }}' === 'success' ? '✅ Success' : '❌ Failed';
+            const url = '${{ steps.get-url.outputs.SERVICE_URL }}';
+            const comment = `## Metadata API Deployment ${status}\n\n` +
+              `**Environment:** ${{ github.event.inputs.environment || 'staging' }}\n` +
+              `**Service URL:** ${url}\n` +
+              `**Commit:** ${{ github.sha }}\n` +
+              `**Triggered by:** @${{ github.actor }}`;
+
+            if (context.issue.number) {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
+
+  rollback:
+    name: Rollback (Manual)
+    runs-on: ubuntu-latest
+    if: failure() && github.event_name == 'workflow_dispatch'
+    needs: build-and-deploy
+
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Rollback to previous revision
+        run: |
+          PREVIOUS_REVISION=$(gcloud run revisions list \
+            --service=${{ env.SERVICE_NAME }} \
+            --region=${{ env.GCP_REGION }} \
+            --project=${{ env.GCP_PROJECT_ID }} \
+            --limit=2 \
+            --format='value(name)' | tail -n 1)
+
+          gcloud run services update-traffic ${{ env.SERVICE_NAME }} \
+            --to-revisions=${PREVIOUS_REVISION}=100 \
+            --region=${{ env.GCP_REGION }} \
+            --project=${{ env.GCP_PROJECT_ID }}
+
+          echo "Rolled back to revision: ${PREVIOUS_REVISION}"

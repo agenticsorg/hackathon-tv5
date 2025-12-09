@@ -1,0 +1,2117 @@
+<!DOCTYPE html>
+<html lang="en" x-data="discoveryApp()" x-init="init()">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus-UMMID | Entertainment Discovery Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        .search-glow:focus {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+        }
+        .badge-netflix { background: #e50914; }
+        .badge-amazon { background: #00a8e1; }
+        .badge-fast { background: #10b981; }
+        .skeleton {
+            background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+            background-size: 200% 100%;
+            animation: skeleton 1.5s infinite;
+        }
+        @keyframes skeleton {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .mood-card {
+            transition: all 0.3s ease;
+        }
+        .mood-card:hover {
+            transform: scale(1.05);
+        }
+        .mood-card.selected {
+            ring: 2px;
+            ring-color: #818cf8;
+        }
+        .tab-active {
+            border-bottom: 2px solid #818cf8;
+            color: #818cf8;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen text-white">
+    <!-- Header with User Profile -->
+    <header class="border-b border-gray-700/50 backdrop-blur-sm sticky top-0 z-50 bg-gray-900/80">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V1m0 3H7m10 0a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2m5 7l-3 3m0 0l-3-3m3 3V9"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold">Nexus-UMMID</h1>
+                        <p class="text-xs text-gray-400">Unified Media Metadata Integration & Distribution Platform</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- Knowledge Graph Link -->
+                    <a href="knowledge-graph.html" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors text-sm">
+                        📊 Knowledge Graph →
+                    </a>
+                    <!-- User Profile Button -->
+                    <button
+                        @click="showProfileModal = true"
+                        class="flex items-center space-x-2 px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
+                    >
+                        <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-sm font-bold">
+                            <span x-text="userProfile.name ? userProfile.name[0].toUpperCase() : '?'"></span>
+                        </div>
+                        <span class="text-sm hidden md:inline" x-text="userProfile.name || 'Set Profile'"></span>
+                    </button>
+                    <div class="flex items-center space-x-1">
+                        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                        <span class="text-sm text-green-400">Live</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="border-b border-gray-800 bg-gray-900/50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex space-x-8 overflow-x-auto">
+                <button
+                    @click="activeTab = 'trending'; loadTrending()"
+                    :class="activeTab === 'trending' ? 'tab-active' : 'text-gray-400 hover:text-white'"
+                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap"
+                >
+                    🔥 Trending
+                </button>
+                <button
+                    @click="activeTab = 'discover'"
+                    :class="activeTab === 'discover' ? 'tab-active' : 'text-gray-400 hover:text-white'"
+                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap"
+                >
+                    🔍 Discover
+                </button>
+                <button
+                    @click="activeTab = 'forYou'; loadForYou()"
+                    :class="activeTab === 'forYou' ? 'tab-active' : 'text-gray-400 hover:text-white'"
+                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap"
+                >
+                    ✨ For You
+                </button>
+                <button
+                    @click="activeTab = 'mood'"
+                    :class="activeTab === 'mood' ? 'tab-active' : 'text-gray-400 hover:text-white'"
+                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap"
+                >
+                    🎭 By Mood
+                </button>
+                <button
+                    @click="activeTab = 'history'; loadHistory()"
+                    :class="activeTab === 'history' ? 'tab-active' : 'text-gray-400 hover:text-white'"
+                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap"
+                >
+                    📜 History
+                    <span x-show="watchHistory.length > 0" class="ml-1 px-2 py-0.5 bg-indigo-600 rounded-full text-xs" x-text="watchHistory.length"></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <!-- TRENDING TAB (TMDb Real Data) -->
+        <section x-show="activeTab === 'trending'" class="py-8 px-4">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl md:text-4xl font-bold mb-2">
+                        🔥 <span class="bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">Trending Now</span>
+                    </h2>
+                    <p class="text-gray-400">Real-time trending movies & TV shows from TMDb</p>
+                </div>
+
+                <!-- Trending Type Toggle -->
+                <div class="flex justify-center gap-4 mb-8">
+                    <button
+                        @click="loadTrending('movie')"
+                        :class="trendingType === 'movie' ? 'bg-indigo-600' : 'bg-gray-800 hover:bg-gray-700'"
+                        class="px-6 py-2 rounded-full font-medium transition-colors"
+                    >
+                        🎬 Movies
+                    </button>
+                    <button
+                        @click="loadTrending('tv')"
+                        :class="trendingType === 'tv' ? 'bg-indigo-600' : 'bg-gray-800 hover:bg-gray-700'"
+                        class="px-6 py-2 rounded-full font-medium transition-colors"
+                    >
+                        📺 TV Shows
+                    </button>
+                </div>
+
+                <!-- Trending Grid -->
+                <template x-if="!loading && trendingItems.length > 0">
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                        <template x-for="item in trendingItems" :key="item.id">
+                            <div
+                                @click="selectItem(item)"
+                                class="bg-gray-800/50 rounded-xl overflow-hidden cursor-pointer card-hover transition-all duration-300 fade-in"
+                            >
+                                <div class="aspect-[2/3] relative overflow-hidden">
+                                    <img
+                                        x-show="item.poster_path"
+                                        :src="TMDB_IMAGE_BASE + '/' + TMDB_POSTER_SIZE + item.poster_path"
+                                        :alt="item.title || item.name"
+                                        class="w-full h-full object-cover"
+                                        loading="lazy"
+                                    >
+                                    <div
+                                        x-show="!item.poster_path"
+                                        class="w-full h-full flex items-center justify-center text-6xl bg-gradient-to-br from-gray-700 to-gray-900"
+                                    >
+                                        <span x-text="item.media_type === 'tv' ? '📺' : '🎬'"></span>
+                                    </div>
+                                    <div class="absolute top-2 left-2 flex gap-1">
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-orange-600">
+                                            ⭐ <span x-text="item.vote_average?.toFixed(1)"></span>
+                                        </span>
+                                    </div>
+                                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+                                        <div class="text-xs text-gray-300" x-text="(item.release_date || item.first_air_date || '').substring(0, 4)"></div>
+                                    </div>
+                                </div>
+                                <div class="p-4">
+                                    <h4 class="font-semibold truncate" x-text="item.title || item.name"></h4>
+                                    <div class="flex items-center space-x-2 text-sm text-gray-400 mt-1">
+                                        <span x-text="item.media_type === 'tv' ? 'TV Series' : 'Movie'"></span>
+                                        <span>•</span>
+                                        <span x-text="item.vote_count + ' votes'"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                <!-- Loading -->
+                <div x-show="loading" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                    <template x-for="i in 10">
+                        <div class="bg-gray-800/50 rounded-xl overflow-hidden">
+                            <div class="aspect-[2/3] skeleton"></div>
+                            <div class="p-4 space-y-2">
+                                <div class="h-4 skeleton rounded w-3/4"></div>
+                                <div class="h-3 skeleton rounded w-1/2"></div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </section>
+
+        <!-- DISCOVER TAB -->
+        <section x-show="activeTab === 'discover'" class="py-8 px-4">
+            <div class="max-w-7xl mx-auto">
+                <!-- Search Bar -->
+                <div class="max-w-4xl mx-auto mb-8">
+                    <h2 class="text-3xl md:text-4xl font-bold mb-4 text-center">
+                        Discover Your Next
+                        <span class="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Favorite</span>
+                    </h2>
+                    <div class="relative">
+                        <input
+                            type="text"
+                            x-model="searchQuery"
+                            @keyup.enter="search()"
+                            placeholder="Try: 'dark thriller with twist ending' or 'feel-good comedy'"
+                            class="w-full px-6 py-4 bg-gray-800/80 border border-gray-700 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 search-glow transition-all"
+                        >
+                        <button
+                            @click="search()"
+                            :disabled="loading"
+                            class="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-xl font-medium transition-colors disabled:opacity-50"
+                        >
+                            <span x-show="!loading">Search</span>
+                            <span x-show="loading" class="flex items-center">
+                                <svg class="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+
+                    <!-- Quick Filters -->
+                    <div class="flex flex-wrap justify-center gap-2 mt-4">
+                        <button @click="filterByGenre('Action')" class="px-4 py-2 bg-gray-800/60 hover:bg-gray-700 rounded-full text-sm transition-colors">Action</button>
+                        <button @click="filterByGenre('Comedy')" class="px-4 py-2 bg-gray-800/60 hover:bg-gray-700 rounded-full text-sm transition-colors">Comedy</button>
+                        <button @click="filterByGenre('Drama')" class="px-4 py-2 bg-gray-800/60 hover:bg-gray-700 rounded-full text-sm transition-colors">Drama</button>
+                        <button @click="filterByGenre('Sci-Fi')" class="px-4 py-2 bg-gray-800/60 hover:bg-gray-700 rounded-full text-sm transition-colors">Sci-Fi</button>
+                        <button @click="filterByGenre('Thriller')" class="px-4 py-2 bg-gray-800/60 hover:bg-gray-700 rounded-full text-sm transition-colors">Thriller</button>
+                        <button @click="searchQuery = ''; loadCatalog()" class="px-4 py-2 bg-indigo-600/30 hover:bg-indigo-600/50 rounded-full text-sm text-indigo-300 transition-colors">View All</button>
+                    </div>
+                </div>
+
+                <!-- Advanced Filters -->
+                <div class="mb-6 p-4 bg-gray-800/30 rounded-xl">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Type</label>
+                            <select x-model="filters.type" @change="applyFilters()" class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
+                                <option value="">All Types</option>
+                                <option value="movie">Movies</option>
+                                <option value="series">Series</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Year</label>
+                            <select x-model="filters.year" @change="applyFilters()" class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
+                                <option value="">All Years</option>
+                                <option value="2024">2024</option>
+                                <option value="2023">2023</option>
+                                <option value="2022">2022</option>
+                                <option value="2021">2021</option>
+                                <option value="2020">2020</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Rating</label>
+                            <select x-model="filters.rating" @change="applyFilters()" class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
+                                <option value="">All Ratings</option>
+                                <option value="G">G</option>
+                                <option value="PG">PG</option>
+                                <option value="PG-13">PG-13</option>
+                                <option value="R">R</option>
+                                <option value="TV-MA">TV-MA</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Duration</label>
+                            <select x-model="filters.duration" @change="applyFilters()" class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
+                                <option value="">Any Length</option>
+                                <option value="short">< 90 min</option>
+                                <option value="medium">90-120 min</option>
+                                <option value="long">> 120 min</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 block mb-1">Sort by</label>
+                            <select x-model="sortBy" @change="sortItems()" class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
+                                <option value="relevance">Relevance</option>
+                                <option value="title">Title</option>
+                                <option value="year">Year (Newest)</option>
+                                <option value="duration">Duration</option>
+                            </select>
+                        </div>
+                        <button
+                            @click="clearFilters()"
+                            class="mt-5 px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
+                        >
+                            Clear Filters
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results Header -->
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-semibold">
+                        <span x-text="searchQuery ? 'Search Results' : 'Browse Catalog'"></span>
+                        <span x-show="filteredItems.length > 0" class="text-gray-400 font-normal text-base ml-2">
+                            (<span x-text="filteredItems.length"></span> titles)
+                        </span>
+                    </h3>
+                </div>
+
+                <!-- Results Grid -->
+                <template x-if="!loading && filteredItems.length > 0">
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                        <template x-for="item in filteredItems" :key="item.id">
+                            <div
+                                @click="selectItem(item)"
+                                class="bg-gray-800/50 rounded-xl overflow-hidden cursor-pointer card-hover transition-all duration-300 fade-in"
+                            >
+                                <div class="aspect-[2/3] relative overflow-hidden">
+                                    <!-- TMDb Poster -->
+                                    <img
+                                        x-show="item.poster_path"
+                                        :src="'https://image.tmdb.org/t/p/w500' + item.poster_path"
+                                        :alt="item.title || item.name"
+                                        class="w-full h-full object-cover"
+                                        loading="lazy"
+                                    >
+                                    <!-- Fallback for no poster -->
+                                    <div
+                                        x-show="!item.poster_path"
+                                        class="w-full h-full flex items-center justify-center text-6xl"
+                                        :style="'background: linear-gradient(135deg, ' + getGradient(item.genres?.[0] || 'default') + ')'"
+                                    >
+                                        <span x-text="getEmoji(item.media_type || item.type)"></span>
+                                    </div>
+                                    <div class="absolute top-2 left-2">
+                                        <span
+                                            class="px-2 py-1 text-xs font-medium rounded-full"
+                                            :class="(item.media_type || item.type) === 'movie' ? 'bg-blue-600' : 'bg-purple-600'"
+                                            x-text="item.media_type || item.type"
+                                        ></span>
+                                    </div>
+                                    <!-- TMDb badge -->
+                                    <div x-show="item.isTmdb" class="absolute top-2 right-2">
+                                        <span class="px-2 py-1 text-xs font-medium bg-green-600/80 rounded-full">TMDb</span>
+                                    </div>
+                                    <!-- Watched badge -->
+                                    <div x-show="isWatched(item.id) && !item.isTmdb" class="absolute top-2 right-2">
+                                        <span class="px-2 py-1 text-xs font-medium bg-green-600 rounded-full">✓ Watched</span>
+                                    </div>
+                                    <!-- Rating badge -->
+                                    <div x-show="item.vote_average" class="absolute bottom-2 right-2">
+                                        <span class="px-2 py-1 text-xs font-medium bg-yellow-600/90 rounded-full flex items-center gap-1">
+                                            ⭐ <span x-text="item.vote_average?.toFixed(1)"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="p-4">
+                                    <h4 class="font-semibold truncate" x-text="item.title || item.name"></h4>
+                                    <div class="flex items-center space-x-2 text-sm text-gray-400 mt-1">
+                                        <span x-text="(item.release_date || item.first_air_date || item.releaseDate) ? new Date(item.release_date || item.first_air_date || item.releaseDate).getFullYear() : 'N/A'"></span>
+                                        <span x-show="item.rating">•</span>
+                                        <span x-show="item.rating" x-text="item.rating"></span>
+                                    </div>
+                                    <p x-show="item.overview" class="text-xs text-gray-500 mt-2 line-clamp-2" x-text="item.overview"></p>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                <!-- Loading -->
+                <div x-show="loading" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                    <template x-for="i in 10">
+                        <div class="bg-gray-800/50 rounded-xl overflow-hidden">
+                            <div class="aspect-[2/3] skeleton"></div>
+                            <div class="p-4 space-y-2">
+                                <div class="h-4 skeleton rounded w-3/4"></div>
+                                <div class="h-3 skeleton rounded w-1/2"></div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Empty State -->
+                <div x-show="!loading && filteredItems.length === 0" class="text-center py-16">
+                    <div class="text-6xl mb-4">🔍</div>
+                    <h3 class="text-xl font-semibold mb-2">No results found</h3>
+                    <p class="text-gray-400">Try adjusting your filters or search term</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOR YOU TAB -->
+        <section x-show="activeTab === 'forYou'" class="py-8 px-4">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold mb-2">✨ Personalized For You</h2>
+                    <p class="text-gray-400" x-show="userProfile.favoriteGenres.length > 0">
+                        Based on your love for <span class="text-indigo-400" x-text="userProfile.favoriteGenres.join(', ')"></span>
+                    </p>
+                    <p class="text-gray-400" x-show="userProfile.favoriteGenres.length === 0">
+                        <button @click="showProfileModal = true" class="text-indigo-400 underline">Set up your profile</button> to get personalized recommendations
+                    </p>
+                </div>
+
+                <!-- Recommendations Grid -->
+                <template x-if="forYouItems.length > 0">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">🎯 Recommended for You</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                            <template x-for="item in forYouItems" :key="item.id">
+                                <div
+                                    @click="selectItem(item)"
+                                    class="bg-gray-800/50 rounded-xl overflow-hidden cursor-pointer card-hover transition-all duration-300 fade-in relative"
+                                >
+                                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 z-10"></div>
+                                    <div class="aspect-[2/3] relative overflow-hidden">
+                                        <!-- TMDb Poster -->
+                                        <img
+                                            x-show="item.poster_path"
+                                            :src="'https://image.tmdb.org/t/p/w500' + item.poster_path"
+                                            :alt="item.title || item.name"
+                                            class="w-full h-full object-cover"
+                                            loading="lazy"
+                                        >
+                                        <!-- Fallback for no poster -->
+                                        <div
+                                            x-show="!item.poster_path"
+                                            class="w-full h-full flex items-center justify-center text-6xl"
+                                            :style="'background: linear-gradient(135deg, ' + getGradient(item.genres?.[0] || 'default') + ')'"
+                                        >
+                                            <span x-text="getEmoji(item.media_type || item.type)"></span>
+                                        </div>
+                                        <!-- Rating badge -->
+                                        <div x-show="item.vote_average" class="absolute top-2 right-2">
+                                            <span class="px-2 py-1 text-xs font-medium bg-yellow-600/90 rounded-full flex items-center gap-1">
+                                                ⭐ <span x-text="item.vote_average?.toFixed(1)"></span>
+                                            </span>
+                                        </div>
+                                        <!-- Recommendation reason -->
+                                        <div class="absolute bottom-2 left-2 right-2">
+                                            <div class="bg-black/70 rounded-lg px-2 py-1 text-xs">
+                                                <span class="text-indigo-400">Why: </span>
+                                                <span x-text="getRecommendationReason(item)"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="p-4">
+                                        <h4 class="font-semibold truncate" x-text="item.title || item.name"></h4>
+                                        <div class="flex items-center space-x-2 text-sm text-gray-400 mt-1">
+                                            <span x-text="(item.release_date || item.first_air_date) ? new Date(item.release_date || item.first_air_date).getFullYear() : 'N/A'"></span>
+                                            <span x-show="item.media_type">•</span>
+                                            <span x-show="item.media_type" x-text="item.media_type === 'movie' ? '🎬 Movie' : '📺 TV'"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Empty Recommendations -->
+                <div x-show="forYouItems.length === 0 && userProfile.favoriteGenres.length > 0" class="text-center py-16">
+                    <div class="text-6xl mb-4">🤔</div>
+                    <h3 class="text-xl font-semibold mb-2">Building your recommendations...</h3>
+                    <p class="text-gray-400">We're finding the perfect content for you</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- MOOD TAB -->
+        <section x-show="activeTab === 'mood'" class="py-8 px-4">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold mb-2">🎭 How do you want to feel?</h2>
+                    <p class="text-gray-400">Select a mood and we'll find the perfect content</p>
+                </div>
+
+                <!-- Mood Cards -->
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+                    <template x-for="mood in moods" :key="mood.id">
+                        <button
+                            @click="selectMood(mood.id)"
+                            :class="selectedMood === mood.id ? 'ring-2 ring-indigo-500 bg-gray-700' : 'bg-gray-800/50 hover:bg-gray-700'"
+                            class="mood-card p-6 rounded-xl text-center transition-all"
+                        >
+                            <div class="text-4xl mb-2" x-text="mood.emoji"></div>
+                            <div class="font-semibold" x-text="mood.name"></div>
+                            <div class="text-xs text-gray-400 mt-1" x-text="mood.description"></div>
+                        </button>
+                    </template>
+                </div>
+
+                <!-- Loading State for Mood Results -->
+                <div x-show="loading && selectedMood" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                    <template x-for="i in 10">
+                        <div class="bg-gray-800/50 rounded-xl overflow-hidden">
+                            <div class="aspect-[2/3] skeleton"></div>
+                            <div class="p-4 space-y-2">
+                                <div class="h-4 skeleton rounded w-3/4"></div>
+                                <div class="h-3 skeleton rounded w-1/2"></div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Mood Results -->
+                <template x-if="selectedMood && moodItems.length > 0 && !loading">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">
+                            <span x-text="moods.find(m => m.id === selectedMood)?.emoji"></span>
+                            Perfect for feeling <span class="text-indigo-400" x-text="moods.find(m => m.id === selectedMood)?.name.toLowerCase()"></span>
+                            <span class="text-gray-400 text-base font-normal ml-2">(<span x-text="moodItems.length"></span> titles from TMDb)</span>
+                        </h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                            <template x-for="item in moodItems" :key="item.id">
+                                <div
+                                    @click="selectItem(item)"
+                                    class="bg-gray-800/50 rounded-xl overflow-hidden cursor-pointer card-hover transition-all duration-300 fade-in"
+                                >
+                                    <div class="aspect-[2/3] relative overflow-hidden">
+                                        <!-- TMDb Poster -->
+                                        <img
+                                            x-show="item.poster_path"
+                                            :src="TMDB_IMAGE_BASE + '/' + TMDB_POSTER_SIZE + item.poster_path"
+                                            :alt="item.title || item.name"
+                                            class="w-full h-full object-cover"
+                                            loading="lazy"
+                                        >
+                                        <!-- Fallback for no poster -->
+                                        <div
+                                            x-show="!item.poster_path"
+                                            class="w-full h-full flex items-center justify-center text-6xl"
+                                            :style="'background: linear-gradient(135deg, ' + getGradient(item.genres?.[0] || 'default') + ')'"
+                                        >
+                                            <span x-text="getEmoji(item.media_type || item.type)"></span>
+                                        </div>
+                                        <!-- Rating Badge -->
+                                        <div class="absolute top-2 left-2 flex gap-1">
+                                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-orange-600">
+                                                ⭐ <span x-text="item.vote_average?.toFixed(1)"></span>
+                                            </span>
+                                        </div>
+                                        <!-- Mood Match Badge -->
+                                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+                                            <div class="text-xs text-purple-300">
+                                                <span x-text="moods.find(m => m.id === selectedMood)?.emoji"></span>
+                                                <span x-text="item.matchedMood || 'Matches mood'"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="p-4">
+                                        <h4 class="font-semibold truncate" x-text="item.title || item.name"></h4>
+                                        <div class="flex items-center space-x-2 text-sm text-gray-400 mt-1">
+                                            <span x-text="(item.release_date || item.first_air_date || '').substring(0, 4)"></span>
+                                            <span>•</span>
+                                            <span x-text="item.vote_count + ' votes'"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Empty mood results -->
+                <div x-show="selectedMood && moodItems.length === 0 && !loading" class="text-center py-8">
+                    <div class="text-4xl mb-2" x-text="moods.find(m => m.id === selectedMood)?.emoji"></div>
+                    <p class="text-gray-400">No results found for this mood. Try another one!</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- HISTORY TAB -->
+        <section x-show="activeTab === 'history'" class="py-8 px-4">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h2 class="text-3xl font-bold mb-2">📜 Watch History</h2>
+                        <p class="text-gray-400">Content you've viewed recently</p>
+                    </div>
+                    <button
+                        x-show="watchHistory.length > 0"
+                        @click="clearHistory()"
+                        class="px-4 py-2 bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded-lg text-sm transition-colors"
+                    >
+                        Clear History
+                    </button>
+                </div>
+
+                <!-- History Grid -->
+                <template x-if="watchHistory.length > 0">
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                        <template x-for="item in watchHistoryItems" :key="item.id">
+                            <div
+                                @click="selectItem(item)"
+                                class="bg-gray-800/50 rounded-xl overflow-hidden cursor-pointer card-hover transition-all duration-300 fade-in relative"
+                            >
+                                <div class="aspect-[2/3] relative overflow-hidden">
+                                    <!-- TMDb Poster -->
+                                    <img
+                                        x-show="item.poster_path"
+                                        :src="TMDB_IMAGE_BASE + '/' + TMDB_POSTER_SIZE + item.poster_path"
+                                        :alt="item.title"
+                                        class="w-full h-full object-cover"
+                                        loading="lazy"
+                                    >
+                                    <!-- Fallback gradient -->
+                                    <div
+                                        x-show="!item.poster_path"
+                                        class="w-full h-full flex items-center justify-center text-6xl"
+                                        :style="'background: linear-gradient(135deg, ' + getGradient(item.genres?.[0] || 'default') + ')'"
+                                    >
+                                        <span x-text="getEmoji(item.type)"></span>
+                                    </div>
+                                    <!-- Rating Badge -->
+                                    <div x-show="item.vote_average" class="absolute top-2 left-2">
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-orange-600">
+                                            ⭐ <span x-text="item.vote_average?.toFixed(1)"></span>
+                                        </span>
+                                    </div>
+                                    <!-- Viewed date overlay -->
+                                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+                                        <div class="text-xs text-gray-300">
+                                            Viewed <span x-text="formatDate(item.viewedAt)"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-4">
+                                    <h4 class="font-semibold truncate" x-text="item.title"></h4>
+                                    <div class="flex items-center space-x-2 text-sm text-gray-400 mt-1">
+                                        <span x-text="(item.release_date || item.releaseDate || '').substring(0, 4) || 'N/A'"></span>
+                                        <span>•</span>
+                                        <span x-text="item.type || item.media_type || 'movie'"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                <!-- Empty History -->
+                <div x-show="watchHistory.length === 0" class="text-center py-16">
+                    <div class="text-6xl mb-4">📺</div>
+                    <h3 class="text-xl font-semibold mb-2">No viewing history yet</h3>
+                    <p class="text-gray-400">Start exploring to build your history</p>
+                    <button @click="activeTab = 'discover'" class="mt-4 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors">
+                        Start Discovering
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Detail Modal -->
+    <div
+        x-show="selectedItem"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        @click.self="selectedItem = null"
+    >
+        <div
+            x-show="selectedItem"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            class="bg-gray-900 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+        >
+            <template x-if="selectedItem">
+                <div>
+                    <div class="relative h-64 overflow-hidden rounded-t-2xl">
+                        <!-- TMDb Backdrop/Poster -->
+                        <img
+                            x-show="selectedItem.backdrop_path || selectedItem.poster_path"
+                            :src="TMDB_IMAGE_BASE + '/' + TMDB_BACKDROP_SIZE + (selectedItem.backdrop_path || selectedItem.poster_path)"
+                            :alt="selectedItem.title || selectedItem.name"
+                            class="w-full h-full object-cover"
+                        >
+                        <div
+                            x-show="!selectedItem.backdrop_path && !selectedItem.poster_path"
+                            class="w-full h-full flex items-center justify-center text-8xl"
+                            :style="'background: linear-gradient(135deg, ' + getGradient(selectedItem.genres?.[0] || 'default') + ')'"
+                        >
+                            <span x-text="getEmoji(selectedItem.type || selectedItem.media_type)"></span>
+                        </div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent"></div>
+                        <button
+                            @click="selectedItem = null"
+                            class="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
+                        >
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                        <!-- Play Trailer Button -->
+                        <button
+                            x-show="selectedItem.isTmdb"
+                            @click="loadTrailer(selectedItem)"
+                            class="absolute bottom-4 left-4 flex items-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-full font-medium transition-colors"
+                        >
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                            <span>Watch Trailer</span>
+                        </button>
+                        <!-- TMDb Rating Badge -->
+                        <div x-show="selectedItem.vote_average" class="absolute top-4 left-4">
+                            <span class="px-3 py-1 bg-orange-600 rounded-full font-bold">
+                                ⭐ <span x-text="selectedItem.vote_average?.toFixed(1)"></span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h2 class="text-2xl font-bold" x-text="selectedItem.title || selectedItem.name"></h2>
+                                <p x-show="selectedItem.tagline" class="text-gray-400 italic mt-1" x-text="selectedItem.tagline"></p>
+                                <div class="flex items-center space-x-2 text-gray-400 mt-2">
+                                    <span x-text="(selectedItem.releaseDate || selectedItem.release_date || selectedItem.first_air_date || '').substring(0, 4) || 'N/A'"></span>
+                                    <span>•</span>
+                                    <span x-text="selectedItem.rating || (selectedItem.vote_average ? '⭐ ' + selectedItem.vote_average.toFixed(1) : 'Not Rated')"></span>
+                                    <span x-show="selectedItem.duration || selectedItem.runtime">•</span>
+                                    <span x-show="selectedItem.duration || selectedItem.runtime" x-text="(selectedItem.duration || selectedItem.runtime) + ' min'"></span>
+                                    <span>•</span>
+                                    <span class="capitalize" x-text="selectedItem.type || selectedItem.media_type || 'movie'"></span>
+                                </div>
+                            </div>
+                            <!-- Watched Toggle -->
+                            <button
+                                @click="toggleWatched(selectedItem)"
+                                :class="isWatched(selectedItem.id) ? 'bg-green-600' : 'bg-gray-700 hover:bg-gray-600'"
+                                class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                            >
+                                <span x-show="isWatched(selectedItem.id)">✓ Watched</span>
+                                <span x-show="!isWatched(selectedItem.id)">Mark as Watched</span>
+                            </button>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <template x-for="genre in (selectedItem.genres || [])" :key="genre">
+                                <span class="px-3 py-1 bg-indigo-600/30 text-indigo-300 rounded-full text-sm" x-text="genre"></span>
+                            </template>
+                        </div>
+
+                        <p class="text-gray-300 mb-6" x-text="selectedItem.synopsis || selectedItem.overview || 'No synopsis available.'"></p>
+
+                        <!-- Cast (TMDb) -->
+                        <div x-show="selectedItem.cast && selectedItem.cast.length > 0" class="mb-6">
+                            <h3 class="text-lg font-semibold mb-3">🎭 Cast</h3>
+                            <div class="flex flex-wrap gap-3">
+                                <template x-for="actor in (selectedItem.cast || [])" :key="actor.id">
+                                    <div class="flex items-center space-x-2 bg-gray-800 rounded-full px-3 py-1">
+                                        <img
+                                            x-show="actor.profile_path"
+                                            :src="TMDB_IMAGE_BASE + '/w45' + actor.profile_path"
+                                            :alt="actor.name"
+                                            class="w-6 h-6 rounded-full object-cover"
+                                        >
+                                        <span class="text-sm" x-text="actor.name"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div x-show="selectedItem.moodTags || selectedItem.keywords" class="mb-6">
+                            <h3 class="text-lg font-semibold mb-3 flex items-center">
+                                <span class="mr-2">✨</span> AI-Enriched Metadata
+                            </h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div x-show="selectedItem.moodTags">
+                                    <h4 class="text-sm text-gray-400 mb-2">Mood Tags</h4>
+                                    <div class="flex flex-wrap gap-1">
+                                        <template x-for="tag in (selectedItem.moodTags || [])" :key="tag">
+                                            <span class="px-2 py-1 bg-purple-600/30 text-purple-300 rounded text-xs" x-text="tag"></span>
+                                        </template>
+                                    </div>
+                                </div>
+                                <div x-show="selectedItem.keywords">
+                                    <h4 class="text-sm text-gray-400 mb-2">Keywords</h4>
+                                    <div class="flex flex-wrap gap-1">
+                                        <template x-for="keyword in (selectedItem.keywords || []).slice(0, 5)" :key="keyword">
+                                            <span class="px-2 py-1 bg-gray-700 rounded text-xs" x-text="keyword"></span>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold mb-3 flex items-center">
+                                <span class="mr-2">📺</span> Platform Availability
+                            </h3>
+                            <div class="flex flex-wrap gap-3">
+                                <template x-for="platform in platforms" :key="platform.id">
+                                    <button
+                                        @click="validatePlatform(selectedItem.id, platform.id)"
+                                        class="flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors"
+                                        :class="platformValidation[platform.id] === true ? platform.bgClass + ' text-white' :
+                                                platformValidation[platform.id] === false ? 'bg-red-600/30 text-red-300' :
+                                                'bg-gray-700 hover:bg-gray-600'"
+                                    >
+                                        <span x-text="platform.name"></span>
+                                        <span x-show="platformValidation[platform.id] === true">✓</span>
+                                        <span x-show="platformValidation[platform.id] === false">✗</span>
+                                        <span x-show="validatingPlatform === platform.id" class="animate-spin">⟳</span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div class="flex space-x-3">
+                            <button
+                                @click="enrichItem(selectedItem.id)"
+                                :disabled="enriching"
+                                class="flex-1 px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-xl font-medium transition-all disabled:opacity-50"
+                            >
+                                <span x-show="!enriching">✨ Enrich with AI</span>
+                                <span x-show="enriching">Enriching...</span>
+                            </button>
+                            <button
+                                @click="findSimilar(selectedItem.id)"
+                                class="px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl font-medium transition-colors"
+                            >
+                                🔍 Find Similar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div
+        x-show="showProfileModal"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-200"
+        class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        @click.self="showProfileModal = false"
+    >
+        <div class="bg-gray-900 rounded-2xl max-w-md w-full p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold">👤 Your Profile</h2>
+                <button @click="showProfileModal = false" class="p-2 hover:bg-gray-800 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Your Name</label>
+                    <input
+                        type="text"
+                        x-model="userProfile.name"
+                        @input="saveProfile()"
+                        placeholder="Enter your name"
+                        class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-indigo-500"
+                    >
+                </div>
+
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Favorite Genres</label>
+                    <div class="flex flex-wrap gap-2">
+                        <template x-for="genre in allGenres" :key="genre">
+                            <button
+                                @click="toggleGenrePreference(genre)"
+                                :class="userProfile.favoriteGenres.includes(genre) ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'"
+                                class="px-3 py-1.5 rounded-full text-sm transition-colors"
+                                x-text="genre"
+                            ></button>
+                        </template>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Preferred Moods</label>
+                    <div class="flex flex-wrap gap-2">
+                        <template x-for="mood in moods" :key="mood.id">
+                            <button
+                                @click="toggleMoodPreference(mood.id)"
+                                :class="userProfile.preferredMoods.includes(mood.id) ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'"
+                                class="px-3 py-1.5 rounded-full text-sm transition-colors"
+                            >
+                                <span x-text="mood.emoji + ' ' + mood.name"></span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-gray-800">
+                    <div class="text-sm text-gray-400">
+                        <p>📊 Stats:</p>
+                        <p class="mt-1">• <span x-text="watchHistory.length"></span> items in watch history</p>
+                        <p>• <span x-text="userProfile.favoriteGenres.length"></span> favorite genres</p>
+                    </div>
+                </div>
+
+                <!-- Learning Insights Section -->
+                <div class="pt-4 border-t border-gray-800">
+                    <h3 class="text-lg font-semibold mb-3 flex items-center">
+                        <span class="mr-2">🧠</span> What I've Learned About You
+                    </h3>
+                    <div class="space-y-3 text-sm">
+                        <!-- Mood Patterns -->
+                        <div x-show="getTopMoods().length > 0">
+                            <p class="text-gray-400 mb-1">Your mood patterns:</p>
+                            <div class="flex flex-wrap gap-2">
+                                <template x-for="mood in getTopMoods()" :key="mood.id">
+                                    <span class="px-2 py-1 bg-purple-600/30 text-purple-300 rounded-full text-xs">
+                                        <span x-text="mood.emoji + ' ' + mood.name"></span>
+                                        <span class="text-purple-400 ml-1" x-text="'(' + mood.count + ')'"></span>
+                                    </span>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Genre Preferences from interactions -->
+                        <div x-show="Object.keys(learningInsights.genrePreferences).length > 0">
+                            <p class="text-gray-400 mb-1">Genres you explore most:</p>
+                            <div class="flex flex-wrap gap-2">
+                                <template x-for="item in Object.entries(learningInsights.genrePreferences).sort((a,b) => b[1]-a[1]).slice(0,5)" :key="item[0]">
+                                    <span class="px-2 py-1 bg-indigo-600/30 text-indigo-300 rounded-full text-xs">
+                                        <span x-text="item[0]"></span>
+                                        <span class="text-indigo-400 ml-1" x-text="'(' + item[1] + ')'"></span>
+                                    </span>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Learning Summary -->
+                        <div class="bg-gray-800/50 rounded-lg p-3 mt-3">
+                            <p class="text-gray-300 mb-2">📈 System Learning Summary:</p>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400">AI Enrichments:</span>
+                                    <span class="text-green-400 font-medium" x-text="learningInsights.enrichmentCount"></span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400">Validations:</span>
+                                    <span class="text-blue-400 font-medium" x-text="learningInsights.validationCount"></span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400">Mood Selections:</span>
+                                    <span class="text-purple-400 font-medium" x-text="Object.values(learningInsights.moodSelections).reduce((a,b) => a+b, 0)"></span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400">Watch History:</span>
+                                    <span class="text-orange-400 font-medium" x-text="watchHistory.length"></span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400">Search Queries:</span>
+                                    <span class="text-cyan-400 font-medium" x-text="(learningInsights.searchQueries || []).length"></span>
+                                </div>
+                            </div>
+                            <p x-show="learningInsights.lastUpdated" class="text-gray-500 text-xs mt-2">
+                                Last updated: <span x-text="new Date(learningInsights.lastUpdated).toLocaleString()"></span>
+                            </p>
+                        </div>
+
+                        <!-- Recent Search Queries with NLP interpretation -->
+                        <div x-show="learningInsights.searchQueries && learningInsights.searchQueries.length > 0" class="mt-3">
+                            <p class="text-gray-400 mb-2">Recent searches (with AI interpretation):</p>
+                            <div class="space-y-1 max-h-32 overflow-y-auto">
+                                <template x-for="(query, index) in (learningInsights.searchQueries || []).slice(0, 5)" :key="index">
+                                    <div class="text-xs bg-gray-800/50 rounded px-2 py-1 flex items-center gap-1">
+                                        <span x-show="query.method === 'gemini'" class="text-green-400" title="Interpreted by Gemini AI">🤖</span>
+                                        <span x-show="query.method !== 'gemini'" class="text-yellow-400" title="Rule-based interpretation">📝</span>
+                                        <span class="text-gray-300" x-text="query.original"></span>
+                                        <span class="text-gray-500">→</span>
+                                        <span class="text-cyan-400" x-text="query.interpreted"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Personalization message -->
+                        <p class="text-gray-500 text-xs italic mt-2" x-show="getLearningsSummary().totalInteractions > 0">
+                            Based on <span x-text="getLearningsSummary().totalInteractions"></span> interactions, I'm learning your preferences to provide better recommendations.
+                        </p>
+                        <p class="text-gray-500 text-xs italic mt-2" x-show="getLearningsSummary().totalInteractions === 0">
+                            Start exploring content to help me learn your preferences!
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trailer Modal (YouTube) -->
+    <div
+        x-show="showTrailerModal"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-200"
+        class="fixed inset-0 bg-black/90 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+        @click.self="showTrailerModal = false; trailerKey = null"
+    >
+        <div class="relative w-full max-w-4xl aspect-video">
+            <button
+                @click="showTrailerModal = false; trailerKey = null"
+                class="absolute -top-12 right-0 p-2 text-white hover:text-gray-300 transition-colors"
+            >
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+            <iframe
+                x-show="trailerKey"
+                :src="'https://www.youtube.com/embed/' + trailerKey + '?autoplay=1'"
+                class="w-full h-full rounded-xl"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+            ></iframe>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-800 py-8 px-4 mt-8">
+        <div class="max-w-7xl mx-auto text-center text-gray-500 text-sm">
+            <p class="mb-2">
+                <strong class="text-gray-300">Nexus-UMMID</strong> - Cognitive Hypergraph Media Metadata Platform
+            </p>
+            <p>
+                Built with 13-Agent Swarm • Agentics Foundation TV5 Hackathon 2025
+            </p>
+            <div class="mt-4 flex justify-center items-center space-x-4 text-xs">
+                <span>API: <a href="https://nexus-ummid-api-181630922804.us-central1.run.app" target="_blank" class="text-indigo-400 hover:underline">Cloud Run</a></span>
+                <span>•</span>
+                <span x-text="'Catalog: ' + totalItems + ' titles'"></span>
+                <span>•</span>
+                <span class="text-green-400">Status: Live</span>
+            </div>
+            <div class="mt-4 flex justify-center items-center space-x-2">
+                <span class="text-xs text-gray-600">Powered by</span>
+                <a href="https://www.themoviedb.org" target="_blank" rel="noopener">
+                    <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDb" class="h-4">
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const API_BASE = 'https://nexus-ummid-api-181630922804.us-central1.run.app';
+
+        // TMDb Configuration
+        const TMDB_API_KEY = '9011f8eb83bea7ca6bf6ced06548027d';
+        const TMDB_BASE = 'https://api.themoviedb.org/3';
+        const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p';
+        const TMDB_POSTER_SIZE = 'w500';
+        const TMDB_BACKDROP_SIZE = 'w1280';
+
+        function discoveryApp() {
+            return {
+                // State
+                activeTab: 'trending',
+                searchQuery: '',
+                items: [],
+                filteredItems: [],
+                forYouItems: [],
+                moodItems: [],
+                trendingItems: [],
+                loading: true,
+                selectedItem: null,
+                sortBy: 'relevance',
+                totalItems: 0,
+                enriching: false,
+                validatingPlatform: null,
+                platformValidation: {},
+                showProfileModal: false,
+                showTrailerModal: false,
+                trailerKey: null,
+                selectedMood: null,
+                trendingType: 'movie',
+
+                // Filters
+                filters: {
+                    type: '',
+                    year: '',
+                    rating: '',
+                    duration: ''
+                },
+
+                // User data (persisted to localStorage)
+                userProfile: {
+                    name: '',
+                    favoriteGenres: [],
+                    preferredMoods: []
+                },
+                watchHistory: [],
+
+                // Static data
+                platforms: [
+                    { id: 'netflix', name: 'Netflix', bgClass: 'badge-netflix' },
+                    { id: 'amazon', name: 'Amazon', bgClass: 'badge-amazon' },
+                    { id: 'fast', name: 'FAST', bgClass: 'badge-fast' }
+                ],
+                allGenres: ['Action', 'Comedy', 'Drama', 'Horror', 'Romance', 'Sci-Fi', 'Thriller', 'Documentary', 'Adventure', 'Crime'],
+                moods: [
+                    { id: 'happy', name: 'Happy', emoji: '😊', description: 'Feel-good & uplifting', keywords: ['feel-good', 'uplifting', 'heartwarming', 'funny', 'lighthearted'], tmdbGenres: [35, 10751, 16] },
+                    { id: 'excited', name: 'Excited', emoji: '🔥', description: 'Action & adventure', keywords: ['thrilling', 'action-packed', 'adventurous', 'epic', 'intense'], tmdbGenres: [28, 12, 878] },
+                    { id: 'thoughtful', name: 'Thoughtful', emoji: '🤔', description: 'Mind-bending & deep', keywords: ['thought-provoking', 'philosophical', 'intelligent', 'mind-bending', 'compelling'], tmdbGenres: [18, 99, 9648] },
+                    { id: 'scared', name: 'Scared', emoji: '😱', description: 'Horror & suspense', keywords: ['scary', 'tense', 'chilling', 'atmospheric', 'suspenseful'], tmdbGenres: [27, 53] },
+                    { id: 'romantic', name: 'Romantic', emoji: '💕', description: 'Love & relationships', keywords: ['romantic', 'sweet', 'passionate', 'emotional', 'nostalgic'], tmdbGenres: [10749, 18] },
+                    { id: 'inspired', name: 'Inspired', emoji: '✨', description: 'Motivational & moving', keywords: ['inspiring', 'moving', 'powerful', 'redemptive', 'hopeful'], tmdbGenres: [18, 99, 36] },
+                    { id: 'relaxed', name: 'Relaxed', emoji: '😌', description: 'Easy watching', keywords: ['relaxing', 'beautiful', 'calming', 'easy', 'comfortable'], tmdbGenres: [35, 10751, 16] },
+                    { id: 'dark', name: 'Dark', emoji: '🌑', description: 'Intense & gritty', keywords: ['dark', 'gritty', 'intense', 'dramatic', 'gripping'], tmdbGenres: [80, 53, 18] }
+                ],
+
+                // Learning insights (simulated self-learning)
+                learningInsights: {
+                    moodSelections: {},
+                    genrePreferences: {},
+                    enrichmentCount: 0,
+                    validationCount: 0,
+                    searchQueries: [],
+                    lastUpdated: null
+                },
+
+                async init() {
+                    // Load from localStorage first for immediate display
+                    this.loadLearningInsights();
+                    // Then sync with API (async, non-blocking for initial render)
+                    this.loadUserData();
+                    // Load content
+                    await this.loadTrending('movie');
+                    await this.loadCatalog();
+                },
+
+                // TMDb API Methods
+                async loadTrending(type = 'movie') {
+                    this.trendingType = type;
+                    this.loading = true;
+                    try {
+                        const response = await fetch(`${TMDB_BASE}/trending/${type}/week?api_key=${TMDB_API_KEY}`);
+                        const data = await response.json();
+                        if (data.results) {
+                            this.trendingItems = data.results.map(item => ({
+                                ...item,
+                                media_type: type,
+                                isTmdb: true
+                            }));
+                        }
+                    } catch (error) {
+                        console.error('Failed to load trending:', error);
+                        this.trendingItems = [];
+                    }
+                    this.loading = false;
+                },
+
+                async searchTmdb(query) {
+                    try {
+                        const response = await fetch(`${TMDB_BASE}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);
+                        const data = await response.json();
+                        return data.results || [];
+                    } catch (error) {
+                        console.error('TMDb search failed:', error);
+                        return [];
+                    }
+                },
+
+                async loadTrailer(item) {
+                    if (!item.isTmdb) return null;
+                    const type = item.media_type === 'tv' ? 'tv' : 'movie';
+                    try {
+                        const response = await fetch(`${TMDB_BASE}/${type}/${item.id}/videos?api_key=${TMDB_API_KEY}`);
+                        const data = await response.json();
+                        const trailer = data.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube') ||
+                                       data.results?.find(v => v.site === 'YouTube');
+                        if (trailer) {
+                            this.trailerKey = trailer.key;
+                            this.showTrailerModal = true;
+                        }
+                    } catch (error) {
+                        console.error('Failed to load trailer:', error);
+                    }
+                },
+
+                async loadTmdbDetails(item) {
+                    if (!item.isTmdb) return;
+                    const type = item.media_type === 'tv' ? 'tv' : 'movie';
+                    try {
+                        const response = await fetch(`${TMDB_BASE}/${type}/${item.id}?api_key=${TMDB_API_KEY}&append_to_response=credits,keywords`);
+                        const data = await response.json();
+                        // Merge details into selected item
+                        this.selectedItem = {
+                            ...this.selectedItem,
+                            runtime: data.runtime,
+                            genres: data.genres?.map(g => g.name) || [],
+                            overview: data.overview,
+                            tagline: data.tagline,
+                            cast: data.credits?.cast?.slice(0, 5) || [],
+                            keywords: data.keywords?.keywords?.map(k => k.name) || data.keywords?.results?.map(k => k.name) || []
+                        };
+                    } catch (error) {
+                        console.error('Failed to load details:', error);
+                    }
+                },
+
+                // User ID for API persistence (use browser fingerprint or generate)
+                userId: localStorage.getItem('nexus-user-id') || (() => {
+                    const id = 'user-' + Math.random().toString(36).substr(2, 9);
+                    localStorage.setItem('nexus-user-id', id);
+                    return id;
+                })(),
+
+                // Persistence - uses API with localStorage fallback
+                async loadUserData() {
+                    // First load from localStorage for immediate display
+                    const profile = localStorage.getItem('nexus-profile');
+                    if (profile) {
+                        this.userProfile = JSON.parse(profile);
+                    }
+                    const history = localStorage.getItem('nexus-history');
+                    if (history) {
+                        this.watchHistory = JSON.parse(history);
+                    }
+
+                    // Then try to sync from API
+                    try {
+                        const response = await fetch(`${API_BASE}/api/v1/user/${this.userId}`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.success && data.data) {
+                                // Merge API data with local (API takes precedence if newer)
+                                if (data.data.preferences?.name) {
+                                    this.userProfile = { ...this.userProfile, ...data.data.preferences };
+                                }
+                                if (data.data.history?.length > 0) {
+                                    // Merge histories, keeping unique items
+                                    const apiHistory = data.data.history;
+                                    const localIds = new Set(this.watchHistory.map(h => h.id));
+                                    const newItems = apiHistory.filter(h => !localIds.has(h.id));
+                                    this.watchHistory = [...this.watchHistory, ...newItems]
+                                        .sort((a, b) => new Date(b.viewedAt) - new Date(a.viewedAt));
+                                }
+                                if (data.data.learning) {
+                                    this.learningInsights = { ...this.learningInsights, ...data.data.learning };
+                                }
+                                console.log('User data synced from API');
+                            }
+                        }
+                    } catch (error) {
+                        console.log('API sync unavailable, using localStorage');
+                    }
+                },
+
+                async saveProfile() {
+                    // Always save to localStorage
+                    localStorage.setItem('nexus-profile', JSON.stringify(this.userProfile));
+
+                    // Also sync to API
+                    try {
+                        await fetch(`${API_BASE}/api/v1/user/${this.userId}/preferences`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.userProfile)
+                        });
+                    } catch (error) {
+                        console.log('API sync failed, data saved locally');
+                    }
+                },
+
+                async saveHistory() {
+                    // Always save to localStorage
+                    localStorage.setItem('nexus-history', JSON.stringify(this.watchHistory));
+
+                    // Also sync latest item to API if available
+                    if (this.watchHistory.length > 0) {
+                        try {
+                            await fetch(`${API_BASE}/api/v1/user/${this.userId}/history`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(this.watchHistory[0])
+                            });
+                        } catch (error) {
+                            console.log('API sync failed, data saved locally');
+                        }
+                    }
+                },
+
+                // Catalog & Search
+                async loadCatalog() {
+                    this.loading = true;
+                    try {
+                        const response = await fetch(`${API_BASE}/api/v1/metadata?limit=50`);
+                        const data = await response.json();
+                        if (data.success && data.data) {
+                            this.items = data.data.items || [];
+                            this.totalItems = data.data.pagination?.total || this.items.length;
+                            this.filteredItems = [...this.items];
+                        }
+                    } catch (error) {
+                        console.error('Failed to load catalog:', error);
+                        this.items = [];
+                        this.filteredItems = [];
+                    }
+                    this.loading = false;
+                },
+
+                // Natural Language Query Interpretation using Gemini AI
+                // Calls the API to interpret conversational queries
+                async interpretQuery(query) {
+                    const original = query.trim();
+
+                    try {
+                        const response = await fetch(`${API_BASE}/api/v1/ai/interpret-query`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ query: original })
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.success && data.data) {
+                                const method = data.data.method === 'gemini' ? '🤖 Gemini' : '📝 Fallback';
+                                console.log(`NLP (${method}): "${original}" → "${data.data.interpreted}"`);
+                                return {
+                                    interpreted: data.data.interpreted,
+                                    method: data.data.method
+                                };
+                            }
+                        }
+                    } catch (error) {
+                        console.error('AI interpretation failed:', error);
+                    }
+
+                    // Client-side fallback if API fails
+                    const fallback = this.fallbackInterpret(original);
+                    console.log(`NLP (client fallback): "${original}" → "${fallback}"`);
+                    return { interpreted: fallback, method: 'client-fallback' };
+                },
+
+                // Client-side fallback interpretation
+                fallbackInterpret(query) {
+                    const original = query.trim().toLowerCase();
+                    const fillerPhrases = [
+                        'i want to see', 'i want to watch', 'show me', 'find me',
+                        'something about', 'something with', 'movies about', 'looking for'
+                    ];
+                    let cleaned = original;
+                    fillerPhrases.forEach(p => { cleaned = cleaned.replace(new RegExp(p, 'gi'), ' '); });
+                    const stopWords = ['a', 'an', 'the', 'is', 'are', 'to', 'of', 'in', 'for', 'on', 'with', 'that'];
+                    const words = cleaned.split(/\s+/).filter(w => w.length > 1 && !stopWords.includes(w));
+                    return words.join(' ').trim() || original;
+                },
+
+                async search() {
+                    if (!this.searchQuery.trim()) {
+                        return this.loadCatalog();
+                    }
+
+                    this.loading = true;
+
+                    // Interpret natural language query using AI
+                    const interpretation = await this.interpretQuery(this.searchQuery);
+                    const interpretedQuery = interpretation.interpreted;
+
+                    // Track search query in learning
+                    this.trackSearchQuery(this.searchQuery, interpretedQuery, interpretation.method);
+
+                    try {
+                        // First, search TMDb for real movie/TV data
+                        const tmdbResults = await this.searchTmdb(interpretedQuery);
+
+                        if (tmdbResults.length > 0) {
+                            this.items = tmdbResults;
+                            this.filteredItems = [...this.items];
+                            this.applyFilters();
+                            this.loading = false;
+                            return;
+                        }
+
+                        // Fallback to local catalog API
+                        const response = await fetch(`${API_BASE}/api/v1/search?q=${encodeURIComponent(this.searchQuery)}`);
+                        const data = await response.json();
+                        if (data.success && data.data && data.data.results?.length > 0) {
+                            this.items = data.data.results.map(r => ({
+                                ...r.metadata,
+                                similarity: r.similarity
+                            }));
+                        } else {
+                            // Final fallback: filter local catalog
+                            await this.loadCatalog();
+                            const queryTerms = interpretedQuery.toLowerCase().split(/\s+/);
+                            this.items = this.items.filter(item => {
+                                const searchableText = [
+                                    item.title,
+                                    item.synopsis,
+                                    ...(item.genres || []),
+                                    ...(item.keywords || []),
+                                    ...(item.moodTags || []),
+                                    ...(item.themes || [])
+                                ].filter(Boolean).join(' ').toLowerCase();
+                                return queryTerms.some(term => searchableText.includes(term));
+                            });
+                        }
+                        this.filteredItems = [...this.items];
+                        this.applyFilters();
+                    } catch (error) {
+                        console.error('Search failed:', error);
+                    }
+                    this.loading = false;
+                },
+
+                // Search TMDb for movies and TV shows
+                async searchTmdb(query) {
+                    try {
+                        // Search both movies and TV shows
+                        const [movieResponse, tvResponse] = await Promise.all([
+                            fetch(`${TMDB_BASE}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&page=1`),
+                            fetch(`${TMDB_BASE}/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&page=1`)
+                        ]);
+
+                        const [movieData, tvData] = await Promise.all([
+                            movieResponse.json(),
+                            tvResponse.json()
+                        ]);
+
+                        // Combine and sort by popularity
+                        const movies = (movieData.results || []).map(m => ({
+                            ...m,
+                            media_type: 'movie',
+                            isTmdb: true
+                        }));
+
+                        const tvShows = (tvData.results || []).map(t => ({
+                            ...t,
+                            media_type: 'tv',
+                            isTmdb: true
+                        }));
+
+                        const combined = [...movies, ...tvShows]
+                            .sort((a, b) => b.popularity - a.popularity)
+                            .slice(0, 20);
+
+                        return combined;
+                    } catch (error) {
+                        console.error('TMDb search failed:', error);
+                        return [];
+                    }
+                },
+
+                // Track search queries for learning
+                trackSearchQuery(originalQuery, interpretedQuery, method = 'unknown') {
+                    if (!this.learningInsights.searchQueries) {
+                        this.learningInsights.searchQueries = [];
+                    }
+
+                    this.learningInsights.searchQueries.unshift({
+                        original: originalQuery,
+                        interpreted: interpretedQuery,
+                        method: method, // 'gemini', 'fallback', or 'client-fallback'
+                        timestamp: new Date().toISOString()
+                    });
+
+                    // Keep last 20 queries
+                    if (this.learningInsights.searchQueries.length > 20) {
+                        this.learningInsights.searchQueries = this.learningInsights.searchQueries.slice(0, 20);
+                    }
+
+                    this.saveLearningInsights();
+                },
+
+                filterByGenre(genre) {
+                    this.searchQuery = genre.toLowerCase();
+                    this.search();
+                },
+
+                // Advanced Filters
+                applyFilters() {
+                    let result = [...this.items];
+
+                    if (this.filters.type) {
+                        result = result.filter(item => item.type === this.filters.type);
+                    }
+
+                    if (this.filters.year) {
+                        result = result.filter(item => {
+                            const year = item.releaseDate ? new Date(item.releaseDate).getFullYear() : null;
+                            return year === parseInt(this.filters.year);
+                        });
+                    }
+
+                    if (this.filters.rating) {
+                        result = result.filter(item => item.rating === this.filters.rating);
+                    }
+
+                    if (this.filters.duration) {
+                        result = result.filter(item => {
+                            const duration = item.duration || 0;
+                            switch (this.filters.duration) {
+                                case 'short': return duration < 90;
+                                case 'medium': return duration >= 90 && duration <= 120;
+                                case 'long': return duration > 120;
+                                default: return true;
+                            }
+                        });
+                    }
+
+                    this.filteredItems = result;
+                    this.sortItems();
+                },
+
+                clearFilters() {
+                    this.filters = { type: '', year: '', rating: '', duration: '' };
+                    this.filteredItems = [...this.items];
+                },
+
+                sortItems() {
+                    switch (this.sortBy) {
+                        case 'title':
+                            this.filteredItems.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+                            break;
+                        case 'year':
+                            this.filteredItems.sort((a, b) => {
+                                const yearA = a.releaseDate ? new Date(a.releaseDate).getFullYear() : 0;
+                                const yearB = b.releaseDate ? new Date(b.releaseDate).getFullYear() : 0;
+                                return yearB - yearA;
+                            });
+                            break;
+                        case 'duration':
+                            this.filteredItems.sort((a, b) => (a.duration || 0) - (b.duration || 0));
+                            break;
+                    }
+                },
+
+                // For You / Recommendations - fetches from TMDb based on preferences
+                async loadForYou() {
+                    if (this.userProfile.favoriteGenres.length === 0) {
+                        this.forYouItems = [];
+                        return;
+                    }
+
+                    this.loading = true;
+
+                    // Map user's favorite genres to TMDb genre IDs
+                    const genreToTmdbId = {
+                        'Action': 28, 'Comedy': 35, 'Drama': 18, 'Horror': 27,
+                        'Romance': 10749, 'Sci-Fi': 878, 'Thriller': 53,
+                        'Documentary': 99, 'Adventure': 12, 'Crime': 80,
+                        'Animation': 16, 'Fantasy': 14, 'Mystery': 9648
+                    };
+
+                    const tmdbGenreIds = this.userProfile.favoriteGenres
+                        .map(g => genreToTmdbId[g])
+                        .filter(Boolean);
+
+                    if (tmdbGenreIds.length === 0) {
+                        // Fallback to local catalog
+                        await this.loadCatalog();
+                        this.forYouItems = this.items.slice(0, 10);
+                        this.loading = false;
+                        return;
+                    }
+
+                    try {
+                        // Fetch personalized recommendations from TMDb
+                        const genreIds = tmdbGenreIds.join(',');
+                        const response = await fetch(
+                            `${TMDB_BASE}/discover/movie?api_key=${TMDB_API_KEY}&with_genres=${genreIds}&sort_by=popularity.desc&vote_average.gte=6.5&vote_count.gte=100`
+                        );
+                        const data = await response.json();
+
+                        if (data.results && data.results.length > 0) {
+                            // Filter out already watched items
+                            const watchedIds = new Set(this.watchHistory.map(h => h.id));
+                            const filtered = data.results.filter(item => !watchedIds.has(item.id));
+
+                            this.forYouItems = filtered.slice(0, 15).map(item => ({
+                                ...item,
+                                media_type: 'movie',
+                                isTmdb: true,
+                                recommendationReason: this.getPersonalizedReason(item)
+                            }));
+                        } else {
+                            this.forYouItems = [];
+                        }
+                    } catch (error) {
+                        console.error('Failed to load personalized recommendations:', error);
+                        // Fallback to local catalog
+                        await this.loadCatalog();
+                        this.forYouItems = this.items.slice(0, 10);
+                    }
+
+                    this.loading = false;
+                },
+
+                // Get personalized recommendation reason
+                getPersonalizedReason(item) {
+                    // Find matching genres
+                    const genreToTmdbId = {
+                        'Action': 28, 'Comedy': 35, 'Drama': 18, 'Horror': 27,
+                        'Romance': 10749, 'Sci-Fi': 878, 'Thriller': 53,
+                        'Documentary': 99, 'Adventure': 12, 'Crime': 80
+                    };
+                    const tmdbIdToGenre = Object.fromEntries(
+                        Object.entries(genreToTmdbId).map(([k, v]) => [v, k])
+                    );
+
+                    const itemGenreIds = item.genre_ids || [];
+                    for (const gid of itemGenreIds) {
+                        const genreName = tmdbIdToGenre[gid];
+                        if (genreName && this.userProfile.favoriteGenres.includes(genreName)) {
+                            return `You like ${genreName}`;
+                        }
+                    }
+                    return 'Matches your taste';
+                },
+
+                getRecommendationReason(item) {
+                    // For TMDb items with genre_ids
+                    if (item.recommendationReason) return item.recommendationReason;
+
+                    // For local catalog items
+                    const matchedGenres = (item.genres || []).filter(g =>
+                        this.userProfile.favoriteGenres.some(fg => fg.toLowerCase() === g.toLowerCase())
+                    );
+                    if (matchedGenres.length > 0) {
+                        return `You like ${matchedGenres[0]}`;
+                    }
+                    return 'Matches your taste';
+                },
+
+                // Mood-based discovery - fetches from TMDb based on mood's genre mapping
+                async selectMood(moodId) {
+                    this.selectedMood = moodId;
+                    this.loading = true;
+                    const mood = this.moods.find(m => m.id === moodId);
+                    if (!mood) {
+                        this.loading = false;
+                        return;
+                    }
+
+                    // Track mood selection for learning
+                    this.trackMoodSelection(moodId);
+
+                    // Fetch from TMDb using genre-based discover API
+                    try {
+                        const genreIds = mood.tmdbGenres.join(',');
+                        const response = await fetch(
+                            `${TMDB_BASE}/discover/movie?api_key=${TMDB_API_KEY}&with_genres=${genreIds}&sort_by=popularity.desc&vote_average.gte=6`
+                        );
+                        const data = await response.json();
+                        if (data.results) {
+                            this.moodItems = data.results.map(item => ({
+                                ...item,
+                                media_type: 'movie',
+                                isTmdb: true,
+                                matchedMood: mood.name
+                            }));
+                        }
+                    } catch (error) {
+                        console.error('Failed to load mood-based content:', error);
+                        // Fallback to local catalog filtering
+                        this.moodItems = this.items.filter(item => {
+                            const itemMoods = [...(item.moodTags || []), ...(item.keywords || [])];
+                            return mood.keywords.some(k =>
+                                itemMoods.some(im => im.toLowerCase().includes(k))
+                            );
+                        });
+                    }
+                    this.loading = false;
+                },
+
+                // Track mood selection for learning insights
+                trackMoodSelection(moodId) {
+                    this.learningInsights.moodSelections[moodId] =
+                        (this.learningInsights.moodSelections[moodId] || 0) + 1;
+                    this.learningInsights.lastUpdated = new Date().toISOString();
+                    this.saveLearningInsights();
+                },
+
+                // Get top moods from learning data
+                getTopMoods() {
+                    const entries = Object.entries(this.learningInsights.moodSelections);
+                    return entries
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 3)
+                        .map(([id, count]) => {
+                            const mood = this.moods.find(m => m.id === id);
+                            return { ...mood, count };
+                        });
+                },
+
+                // Save learning insights to localStorage and API
+                async saveLearningInsights() {
+                    localStorage.setItem('nexus-learning', JSON.stringify(this.learningInsights));
+
+                    // Also sync to API
+                    try {
+                        await fetch(`${API_BASE}/api/v1/user/${this.userId}/learning`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.learningInsights)
+                        });
+                    } catch (error) {
+                        console.log('Learning sync failed, data saved locally');
+                    }
+                },
+
+                // Load learning insights from localStorage (API sync happens in loadUserData)
+                loadLearningInsights() {
+                    const data = localStorage.getItem('nexus-learning');
+                    if (data) {
+                        this.learningInsights = { ...this.learningInsights, ...JSON.parse(data) };
+                    }
+                },
+
+                // Track enrichment action for learning
+                trackEnrichment(item) {
+                    this.learningInsights.enrichmentCount++;
+                    // Track genre preferences from enriched items
+                    (item.genres || []).forEach(genre => {
+                        this.learningInsights.genrePreferences[genre] =
+                            (this.learningInsights.genrePreferences[genre] || 0) + 1;
+                    });
+                    this.learningInsights.lastUpdated = new Date().toISOString();
+                    this.saveLearningInsights();
+                },
+
+                // Track validation action for learning
+                trackValidation(platform) {
+                    this.learningInsights.validationCount++;
+                    this.learningInsights.lastUpdated = new Date().toISOString();
+                    this.saveLearningInsights();
+                },
+
+                // Get learning summary for display
+                getLearningsSummary() {
+                    const topGenres = Object.entries(this.learningInsights.genrePreferences)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 3)
+                        .map(([genre, count]) => ({ genre, count }));
+
+                    const topMoods = this.getTopMoods();
+
+                    const totalInteractions =
+                        Object.values(this.learningInsights.moodSelections).reduce((a, b) => a + b, 0) +
+                        this.learningInsights.enrichmentCount +
+                        this.learningInsights.validationCount;
+
+                    return {
+                        topGenres,
+                        topMoods,
+                        enrichmentCount: this.learningInsights.enrichmentCount,
+                        validationCount: this.learningInsights.validationCount,
+                        totalInteractions,
+                        lastUpdated: this.learningInsights.lastUpdated
+                    };
+                },
+
+                // Watch History - stores full item data for TMDb items
+                loadHistory() {
+                    // Already loaded from localStorage in loadUserData
+                },
+
+                get watchHistoryItems() {
+                    // History now stores full item data, sorted by viewedAt
+                    return this.watchHistory
+                        .filter(h => h.item) // Only items with full data
+                        .map(h => ({ ...h.item, viewedAt: h.viewedAt }))
+                        .sort((a, b) => new Date(b.viewedAt) - new Date(a.viewedAt));
+                },
+
+                isWatched(itemId) {
+                    return this.watchHistory.some(h => h.id === itemId);
+                },
+
+                // Add item to watch history with full data
+                addToHistory(item) {
+                    // Remove if already exists (to update position)
+                    this.watchHistory = this.watchHistory.filter(h => h.id !== item.id);
+
+                    // Add to front with full item data
+                    this.watchHistory.unshift({
+                        id: item.id,
+                        viewedAt: new Date().toISOString(),
+                        item: {
+                            id: item.id,
+                            title: item.title || item.name,
+                            type: item.type || item.media_type || 'movie',
+                            poster_path: item.poster_path,
+                            backdrop_path: item.backdrop_path,
+                            vote_average: item.vote_average,
+                            release_date: item.release_date || item.first_air_date,
+                            overview: item.overview || item.synopsis,
+                            genres: item.genres || [],
+                            isTmdb: item.isTmdb || false
+                        }
+                    });
+
+                    // Keep only last 50 items
+                    if (this.watchHistory.length > 50) {
+                        this.watchHistory = this.watchHistory.slice(0, 50);
+                    }
+
+                    this.saveHistory();
+                },
+
+                toggleWatched(item) {
+                    const idx = this.watchHistory.findIndex(h => h.id === item.id);
+                    if (idx >= 0) {
+                        this.watchHistory.splice(idx, 1);
+                    } else {
+                        this.addToHistory(item);
+                    }
+                    this.saveHistory();
+                },
+
+                clearHistory() {
+                    if (confirm('Clear all watch history?')) {
+                        this.watchHistory = [];
+                        this.saveHistory();
+                    }
+                },
+
+                formatDate(dateStr) {
+                    const date = new Date(dateStr);
+                    const now = new Date();
+                    const diff = now - date;
+                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    if (days === 0) return 'today';
+                    if (days === 1) return 'yesterday';
+                    if (days < 7) return `${days} days ago`;
+                    return date.toLocaleDateString();
+                },
+
+                // User Profile
+                toggleGenrePreference(genre) {
+                    const idx = this.userProfile.favoriteGenres.indexOf(genre);
+                    if (idx >= 0) {
+                        this.userProfile.favoriteGenres.splice(idx, 1);
+                    } else {
+                        this.userProfile.favoriteGenres.push(genre);
+                    }
+                    this.saveProfile();
+                },
+
+                toggleMoodPreference(moodId) {
+                    const idx = this.userProfile.preferredMoods.indexOf(moodId);
+                    if (idx >= 0) {
+                        this.userProfile.preferredMoods.splice(idx, 1);
+                    } else {
+                        this.userProfile.preferredMoods.push(moodId);
+                    }
+                    this.saveProfile();
+                },
+
+                // Item Selection & API calls
+                async selectItem(item) {
+                    this.selectedItem = item;
+                    this.platformValidation = {};
+                    // Load TMDb details if it's a TMDb item
+                    if (item.isTmdb) {
+                        await this.loadTmdbDetails(item);
+                    }
+                    // Add to history when viewing (with full item data)
+                    this.addToHistory(this.selectedItem);
+                },
+
+                async validatePlatform(itemId, platform) {
+                    this.validatingPlatform = platform;
+
+                    // For TMDb items, simulate validation based on data completeness
+                    if (this.selectedItem?.isTmdb) {
+                        await new Promise(r => setTimeout(r, 500)); // Simulate API delay
+                        const item = this.selectedItem;
+
+                        // Validation rules per platform
+                        const hasTitle = !!(item.title || item.name);
+                        const hasSynopsis = !!(item.overview) && item.overview.length >= 50;
+                        const hasGenres = !!(item.genres) && item.genres.length > 0;
+                        const hasRating = !!(item.vote_average);
+                        const hasPoster = !!(item.poster_path);
+
+                        // Platform-specific requirements
+                        const validationResults = {
+                            netflix: hasTitle && hasSynopsis && hasGenres && hasPoster,
+                            amazon: hasTitle && hasSynopsis && hasRating,
+                            fast: hasTitle && hasGenres // FAST has lower requirements
+                        };
+
+                        this.platformValidation[platform] = validationResults[platform] ?? false;
+                        this.trackValidation(platform);
+                        this.validatingPlatform = null;
+                        return;
+                    }
+
+                    // For local catalog items, use the API
+                    try {
+                        const response = await fetch(`${API_BASE}/api/v1/metadata/${itemId}/validate`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ platform })
+                        });
+                        const data = await response.json();
+                        this.platformValidation[platform] = data.success && data.data?.valid;
+                    } catch (error) {
+                        console.error('Validation failed:', error);
+                        this.platformValidation[platform] = false;
+                    }
+                    this.validatingPlatform = null;
+                },
+
+                async enrichItem(itemId) {
+                    this.enriching = true;
+
+                    // For TMDb items, generate enrichment client-side
+                    if (this.selectedItem?.isTmdb) {
+                        await new Promise(r => setTimeout(r, 800)); // Simulate AI processing
+                        const item = this.selectedItem;
+
+                        // Generate mood tags based on genres and overview
+                        const moodMapping = {
+                            'Action': ['thrilling', 'intense', 'action-packed'],
+                            'Adventure': ['adventurous', 'epic', 'exciting'],
+                            'Animation': ['colorful', 'imaginative', 'family-friendly'],
+                            'Comedy': ['funny', 'lighthearted', 'entertaining'],
+                            'Crime': ['gritty', 'suspenseful', 'noir'],
+                            'Documentary': ['educational', 'thought-provoking', 'informative'],
+                            'Drama': ['emotional', 'dramatic', 'compelling'],
+                            'Family': ['heartwarming', 'wholesome', 'feel-good'],
+                            'Fantasy': ['magical', 'imaginative', 'epic'],
+                            'History': ['epic', 'educational', 'powerful'],
+                            'Horror': ['scary', 'tense', 'chilling'],
+                            'Music': ['inspiring', 'emotional', 'rhythmic'],
+                            'Mystery': ['intriguing', 'suspenseful', 'mysterious'],
+                            'Romance': ['romantic', 'emotional', 'heartwarming'],
+                            'Science Fiction': ['mind-bending', 'futuristic', 'thought-provoking'],
+                            'TV Movie': ['entertaining', 'easy-watching'],
+                            'Thriller': ['tense', 'gripping', 'suspenseful'],
+                            'War': ['intense', 'powerful', 'emotional'],
+                            'Western': ['adventurous', 'rugged', 'classic']
+                        };
+
+                        // Generate mood tags from genres
+                        const generatedMoodTags = [];
+                        (item.genres || []).forEach(genre => {
+                            const moods = moodMapping[genre] || [];
+                            generatedMoodTags.push(...moods);
+                        });
+
+                        // Add overview-based tags
+                        const overview = (item.overview || '').toLowerCase();
+                        if (overview.includes('love')) generatedMoodTags.push('romantic');
+                        if (overview.includes('family')) generatedMoodTags.push('family-friendly');
+                        if (overview.includes('revenge')) generatedMoodTags.push('intense');
+                        if (overview.includes('mystery')) generatedMoodTags.push('mysterious');
+                        if (overview.includes('journey')) generatedMoodTags.push('adventurous');
+
+                        // Deduplicate
+                        const uniqueMoodTags = [...new Set(generatedMoodTags)].slice(0, 6);
+
+                        // Generate keywords from overview
+                        const generatedKeywords = item.keywords || [];
+                        if (generatedKeywords.length === 0) {
+                            // Extract key terms from overview
+                            const stopWords = ['the', 'a', 'an', 'is', 'are', 'was', 'were', 'to', 'of', 'in', 'for', 'on', 'with', 'at', 'by', 'from', 'as', 'and', 'or', 'but', 'not', 'be', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'shall', 'can', 'this', 'that', 'these', 'those', 'it', 'its', 'his', 'her', 'their', 'them', 'he', 'she', 'they', 'who', 'which', 'what', 'when', 'where', 'why', 'how', 'all', 'each', 'every', 'both', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 'just', 'also', 'into', 'after', 'before', 'between', 'under', 'over', 'again', 'once'];
+                            const words = overview.split(/\W+/).filter(w => w.length > 4 && !stopWords.includes(w));
+                            const wordFreq = {};
+                            words.forEach(w => { wordFreq[w] = (wordFreq[w] || 0) + 1; });
+                            const sortedWords = Object.entries(wordFreq).sort((a, b) => b[1] - a[1]);
+                            generatedKeywords.push(...sortedWords.slice(0, 5).map(([w]) => w));
+                        }
+
+                        // Update selected item
+                        this.selectedItem = {
+                            ...this.selectedItem,
+                            moodTags: uniqueMoodTags,
+                            keywords: [...new Set([...(item.keywords || []), ...generatedKeywords])].slice(0, 8),
+                            enrichedAt: new Date().toISOString()
+                        };
+
+                        // Track enrichment for learning
+                        this.trackEnrichment(item);
+
+                        this.enriching = false;
+                        return;
+                    }
+
+                    // For local catalog items, use the API
+                    try {
+                        const response = await fetch(`${API_BASE}/api/v1/metadata/${itemId}/enrich`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+                        const data = await response.json();
+                        if (data.success && data.data) {
+                            this.selectedItem = {
+                                ...this.selectedItem,
+                                ...data.data.enrichedMetadata,
+                                moodTags: data.data.enrichedMetadata?.moodTags || this.selectedItem.moodTags
+                            };
+                            const idx = this.items.findIndex(i => i.id === itemId);
+                            if (idx !== -1) {
+                                this.items[idx] = { ...this.items[idx], ...this.selectedItem };
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Enrichment failed:', error);
+                    }
+                    this.enriching = false;
+                },
+
+                async findSimilar(itemId) {
+                    this.selectedItem = null;
+                    this.activeTab = 'discover';
+                    this.loading = true;
+                    try {
+                        const response = await fetch(`${API_BASE}/api/v1/search/similar/${itemId}`);
+                        const data = await response.json();
+                        if (data.success && data.data && data.data.results?.length > 0) {
+                            this.items = data.data.results.map(r => ({
+                                ...r.metadata,
+                                similarity: r.similarity
+                            }));
+                        } else {
+                            // Fallback: find by same genre
+                            const item = this.items.find(i => i.id === itemId);
+                            if (item && item.genres?.length > 0) {
+                                await this.loadCatalog();
+                                this.items = this.items.filter(i =>
+                                    i.id !== itemId &&
+                                    i.genres?.some(g => item.genres.includes(g))
+                                );
+                            }
+                        }
+                        this.filteredItems = [...this.items];
+                        this.searchQuery = 'Similar titles';
+                    } catch (error) {
+                        console.error('Find similar failed:', error);
+                    }
+                    this.loading = false;
+                },
+
+                // Helpers
+                getGradient(genre) {
+                    const gradients = {
+                        'Action': '#dc2626, #7c2d12',
+                        'Comedy': '#f59e0b, #78350f',
+                        'Drama': '#6366f1, #312e81',
+                        'Horror': '#18181b, #450a0a',
+                        'Sci-Fi': '#06b6d4, #164e63',
+                        'sci-fi': '#06b6d4, #164e63',
+                        'Thriller': '#4338ca, #1e1b4b',
+                        'thriller': '#4338ca, #1e1b4b',
+                        'Romance': '#ec4899, #831843',
+                        'Documentary': '#22c55e, #14532d',
+                        'documentary': '#22c55e, #14532d',
+                        'technology': '#8b5cf6, #4c1d95',
+                        'Adventure': '#f97316, #9a3412',
+                        'Crime': '#64748b, #1e293b',
+                        'default': '#374151, #111827'
+                    };
+                    return gradients[genre] || gradients.default;
+                },
+
+                getEmoji(type) {
+                    const emojis = {
+                        'movie': '🎬',
+                        'series': '📺',
+                        'episode': '🎞️'
+                    };
+                    return emojis[type] || '🎥';
+                }
+            };
+        }
+    </script>
+</body>
+</html>

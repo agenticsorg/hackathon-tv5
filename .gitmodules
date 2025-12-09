@@ -1,0 +1,4 @@
+[submodule "mondweep/vibe-cast"]
+	path = mondweep/vibe-cast
+	url = https://github.com/mondweep/vibe-cast.git
+	branch = claude/agentic-hackathon-setup-01MsFnEEndzVH9sYmgJwfLhn

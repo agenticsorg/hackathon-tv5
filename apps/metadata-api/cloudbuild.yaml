@@ -1,0 +1,137 @@
+# Nexus-UMMID Metadata API - Google Cloud Build Configuration
+# Automates: Build → Push → Deploy to Cloud Run
+
+substitutions:
+  _SERVICE_NAME: nexus-ummid-metadata-api
+  _REGION: us-central1
+  _GCP_PROJECT: agentics-foundation25lon-1899
+  _IMAGE_NAME: metadata-api
+  _ARTIFACT_REGISTRY: us-central1-docker.pkg.dev
+  _MIN_INSTANCES: '1'
+  _MAX_INSTANCES: '100'
+  _MEMORY: 512Mi
+  _CPU: '1'
+  _TIMEOUT: 300s
+  _CONCURRENCY: '80'
+  # Gemini API Key - Set via Cloud Build trigger substitution variables
+  _GEMINI_API_KEY: ''
+
+options:
+  machineType: 'N1_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  # ============================================
+  # Step 1: Build Docker Image
+  # ============================================
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-image'
+    args:
+      - 'build'
+      - '-t'
+      - '${_ARTIFACT_REGISTRY}/${_GCP_PROJECT}/${_IMAGE_NAME}/${_SERVICE_NAME}:$SHORT_SHA'
+      - '-t'
+      - '${_ARTIFACT_REGISTRY}/${_GCP_PROJECT}/${_IMAGE_NAME}/${_SERVICE_NAME}:latest'
+      - '--cache-from'
+      - '${_ARTIFACT_REGISTRY}/${_GCP_PROJECT}/${_IMAGE_NAME}/${_SERVICE_NAME}:latest'
+      - '--build-arg'
+      - 'NODE_ENV=production'
+      - '.'
+    dir: 'apps/metadata-api'
+    timeout: '600s'
+
+  # ============================================
+  # Step 2: Push to Artifact Registry
+  # ============================================
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-image'
+    args:
+      - 'push'
+      - '--all-tags'
+      - '${_ARTIFACT_REGISTRY}/${_GCP_PROJECT}/${_IMAGE_NAME}/${_SERVICE_NAME}'
+    waitFor:
+      - 'build-image'
+
+  # ============================================
+  # Step 3: Deploy to Cloud Run
+  # ============================================
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-cloud-run'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_NAME}'
+      - '--image=${_ARTIFACT_REGISTRY}/${_GCP_PROJECT}/${_IMAGE_NAME}/${_SERVICE_NAME}:$SHORT_SHA'
+      - '--platform=managed'
+      - '--region=${_REGION}'
+      - '--allow-unauthenticated'
+      - '--min-instances=${_MIN_INSTANCES}'
+      - '--max-instances=${_MAX_INSTANCES}'
+      - '--memory=${_MEMORY}'
+      - '--cpu=${_CPU}'
+      - '--timeout=${_TIMEOUT}'
+      - '--concurrency=${_CONCURRENCY}'
+      - '--port=8080'
+      - '--set-env-vars=NODE_ENV=production,GCP_PROJECT=${_GCP_PROJECT},GEMINI_API_KEY=${_GEMINI_API_KEY}'
+      - '--service-account=metadata-api-sa@${_GCP_PROJECT}.iam.gserviceaccount.com'
+      - '--labels=service=nexus-ummid,component=metadata-api,environment=production'
+    waitFor:
+      - 'push-image'
+
+  # ============================================
+  # Step 4: Verify Deployment
+  # ============================================
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'verify-deployment'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        echo "🔍 Verifying deployment..."
+
+        # Get service URL
+        SERVICE_URL=$(gcloud run services describe ${_SERVICE_NAME} \
+          --platform=managed \
+          --region=${_REGION} \
+          --format='value(status.url)')
+
+        echo "📡 Service URL: $SERVICE_URL"
+
+        # Wait for service to be ready
+        sleep 10
+
+        # Health check
+        HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$SERVICE_URL/health" || echo "000")
+
+        if [ "$HEALTH_STATUS" = "200" ]; then
+          echo "✅ Deployment successful! Health check passed."
+          echo "🚀 Service is live at: $SERVICE_URL"
+        else
+          echo "❌ Health check failed with status: $HEALTH_STATUS"
+          exit 1
+        fi
+    waitFor:
+      - 'deploy-cloud-run'
+
+# ============================================
+# Image Configuration
+# ============================================
+images:
+  - '${_ARTIFACT_REGISTRY}/${_GCP_PROJECT}/${_IMAGE_NAME}/${_SERVICE_NAME}:$SHORT_SHA'
+  - '${_ARTIFACT_REGISTRY}/${_GCP_PROJECT}/${_IMAGE_NAME}/${_SERVICE_NAME}:latest'
+
+# ============================================
+# Build Timeout
+# ============================================
+timeout: '1200s'
+
+# ============================================
+# Build Tags
+# ============================================
+tags:
+  - 'nexus-ummid'
+  - 'metadata-api'
+  - 'gcp-cloud-run'
+  - 'production'
