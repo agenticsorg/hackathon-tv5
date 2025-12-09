@@ -87,29 +87,54 @@ Your Goal: Help the user explore these movies or find new ones.
             contents = [{ role: 'user', parts: [{ text: systemInstruction + "\n\n(User sent empty message)" }] }];
         }
 
-        // Call Gemini API
+        // Call Gemini API using native https module to avoid dependency issues
+        const https = require('https');
         const model = 'gemini-1.5-flash';
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+        const hostname = 'generativelanguage.googleapis.com';
+        const path = `/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: contents,
-                generationConfig: {
-                    temperature: 0.7,
-                    maxOutputTokens: 500,
-                }
-            })
+        const requestBody = JSON.stringify({
+            contents: contents,
+            generationConfig: {
+                temperature: 0.7,
+                maxOutputTokens: 500,
+            }
         });
 
-        if (!response.ok) {
-            const errText = await response.text();
-            throw new Error(`Gemini API Error: ${response.status} ${errText}`);
-        }
+        const reply = await new Promise((resolve, reject) => {
+            const req = https.request({
+                hostname: hostname,
+                path: path,
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(requestBody)
+                }
+            }, (res) => {
+                let responseData = '';
+                res.on('data', (chunk) => { responseData += chunk; });
+                res.on('end', () => {
+                    if (res.statusCode >= 200 && res.statusCode < 300) {
+                        try {
+                            const data = JSON.parse(responseData);
+                            const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "I'm sorry, I couldn't generate a response.";
+                            resolve(text);
+                        } catch (e) {
+                            reject(new Error(`Failed to parse response: ${e.message}`));
+                        }
+                    } else {
+                        reject(new Error(`Gemini API Error: ${res.statusCode} ${responseData}`));
+                    }
+                });
+            });
 
-        const data = await response.json();
-        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "I'm sorry, I couldn't generate a response.";
+            req.on('error', (e) => {
+                reject(new Error(`Request error: ${e.message}`));
+            });
+
+            req.write(requestBody);
+            req.end();
+        });
 
         return {
             statusCode: 200,
