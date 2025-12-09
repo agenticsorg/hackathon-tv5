@@ -51,9 +51,10 @@ struct BenchmarkView: View {
 
     /// Build identifier - increment when making changes to verify deployment
     /// Format: v{version}.{build}-{revision}
-    private let buildIdentifier = "v1.0.1-r13"  // Log trap details to console
+    private let buildIdentifier = "v1.0.1-r15"  // Added vector embeddings count
     @State private var memoryUsage: String = "—"
     @State private var totalTime: String = "—"
+    @State private var vectorCount: Int = 0
 
     var body: some View {
         List {
@@ -65,6 +66,7 @@ struct BenchmarkView: View {
                 StatRow(label: "Watchlist Items", value: "\(watchlistItems.count)", icon: "bookmark")
                 StatRow(label: "Mood States", value: "\(MoodState.Energy.allCases.count * MoodState.Stress.allCases.count)", icon: "brain.head.profile")
                 StatRow(label: "Recommendation Hints", value: "7", icon: "sparkles")
+                StatRow(label: "Vector Embeddings (HNSW)", value: vectorCount > 0 ? "\(vectorCount)" : "—", icon: "arrow.triangle.branch")
             } header: {
                 Text("Data Context")
             } footer: {
@@ -349,6 +351,12 @@ struct BenchmarkView: View {
             let exports = bridge.listExports()
             let simdStatus = bridge.hasSIMD() ? "SIMD" : "scalar"
             let exportInfo = " (\(exports.count) fn, \(simdStatus))"
+
+            // Capture vector count from HNSW index
+            let count = bridge.getVectorCount()
+            await MainActor.run {
+                vectorCount = count
+            }
 
             return BenchmarkResult(
                 name: "WASM Module Load",
