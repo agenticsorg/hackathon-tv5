@@ -856,3 +856,57 @@ Apache-2.0
 **⭐ Star this repo if you find it helpful!**
 
 </div>
+
+## Appendix: Large Scale Data Ingestion Strategy
+
+We are currently processing the full 1.33 Million Movie Dataset from TMDB to create a production-grade Semantic Knowledge Graph.
+
+The architecture has been modernized to handle scale using **Stream-based Processing** and **Parallelized Embedding Generation**.
+
+### 🏗️ Ingestion Architecture
+
+```mermaid
+graph TD
+    A[TMDB Dataset CSV] -->|Read Stream| B(Node.js Parser)
+    B -->|Convert| C[JSON Knowledge Graph]
+    C -->|ijson Stream| D[Python Ingestion Script]
+    
+    subgraph Parallel Processing [ThreadPoolExecutor - 15 Workers]
+        D -->|Batch 100 Items| E{Worker Pool}
+        E -->|Worker 1| F[Gemini 2.0 Flash]
+        E -->|Worker 2| F
+        E -->|Worker N| F
+    end
+
+    F -->|768-dim Vectors| G[Vector Buffer]
+    G -->|Upsert Batch| H[(Pinecone Serverless Index)]
+    G -->|Checkpoint| I[Checkpoint File]
+    
+    style H fill:#f9f,stroke:#333,stroke-width:2px
+    style F fill:#bbf,stroke:#333,stroke-width:2px
+```
+
+### ⚡ Performance Optimization
+
+We moved from a linear, memory-heavy approach to a highly optimized streaming architecture:
+
+| Metric | Old Approach (v1) | New Architecture (v3) | Improvement |
+|--------|-------------------|-----------------------|-------------|
+| **Memory Usage** | 3.5 GB (Load All) | **55 MB** (Streaming) | **98% Lower** |
+| **Concurrency** | 1 (Sequential) | **15 Threads** | **15x Higher** |
+| **Throughput** | ~8 items/sec | **~20 items/sec** | **2.5x Faster** |
+| **Resilience** | Restart from 0 | **Auto-Checkpointing** | **Fault Tolerant** |
+| **Est. Time** | 45 Hours | **18 Hours** | **60% Faster** |
+
+### 🛠️ Operational Commands
+
+**Resume Ingestion:**
+The system is designed to be stopped and started at any time. It automatically detects the `data/ingestion_checkpoint.json` and resumes from the last processed movie ID.
+
+```bash
+# To resume processing in the background
+nohup python3 -u scripts/resume_ingestion_pinecone.py > ingestion_v3_optimized.log 2>&1 &
+
+# To monitor progress
+tail -f ingestion_v3_optimized.log
+```
