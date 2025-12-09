@@ -76,7 +76,8 @@ exports.handler = async (event, context) => {
 
         if (statsResponse.ok) {
           const pineconeStats = await statsResponse.json();
-          totalMoviesFromPinecone = pineconeStats.total_vector_count || 0;
+          // REST API returns camelCase
+          totalMoviesFromPinecone = pineconeStats.totalVectorCount || pineconeStats.total_vector_count || 0;
         } else {
           console.error("Pinecone stats failed:", await statsResponse.text());
         }
