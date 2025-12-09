@@ -116,6 +116,11 @@
                     class="py-4 px-2 font-medium transition-colors whitespace-nowrap">
                     👥 Team Output
                 </button>
+                <button @click="activeTab = 'about'" <button @click="activeTab = 'search'"
+                    :class="activeTab === 'search' ? 'tab-active' : 'text-gray-400 hover:text-white'"
+                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap">
+                    🔍 Semantic Search
+                </button>
                 <button @click="activeTab = 'about'"
                     :class="activeTab === 'about' ? 'tab-active' : 'text-gray-400 hover:text-white'"
                     class="py-4 px-2 font-medium transition-colors whitespace-nowrap">
@@ -140,11 +145,6 @@
                     :class="activeTab === 'feeds' ? 'tab-active' : 'text-gray-400 hover:text-white'"
                     class="py-4 px-2 font-medium transition-colors whitespace-nowrap">
                     📡 Feed Preview
-                </button>
-                <button @click="activeTab = 'search'"
-                    :class="activeTab === 'search' ? 'tab-active' : 'text-gray-400 hover:text-white'"
-                    class="py-4 px-2 font-medium transition-colors whitespace-nowrap">
-                    🔍 Semantic Search
                 </button>
                 <button @click="activeTab = 'ingest'"
                     :class="activeTab === 'ingest' ? 'tab-active' : 'text-gray-400 hover:text-white'"
@@ -1878,7 +1878,7 @@
         function knowledgeGraphApp() {
             return {
                 // State
-                activeTab: 'team',
+                activeTab: 'search',
                 loading: false,
 
                 // Data
