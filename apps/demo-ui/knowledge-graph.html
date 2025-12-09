@@ -2497,13 +2497,122 @@
                 fitGraph() {
                     if (this.graphNetwork) {
                         this.graphNetwork.fit({
-                            animation: {
-                                duration: 500,
-                                easingFunction: 'easeInOutQuad'
-                            }
+                            animation: { duration: 1000, easingFunction: 'easeInOutQuad' }
                         });
                     }
+                },
+
+                // --- Chatbot Logic ---
+                showChat: false,
+                chatInput: '',
+                chatMessages: [
+                    { role: 'model', content: "Hi! I'm your AI Movie Guide. I can explain search results, suggest movies, or help you refine your search. Try searching for something first!" }
+                ],
+                isChatProcessing: false,
+                isListening: false,
+                recognition: null,
+
+                toggleChat() {
+                    this.showChat = !this.showChat;
+                    // Auto-focus input when opened
+                    if (this.showChat) {
+                        setTimeout(() => document.getElementById('chatInputRef')?.focus(), 100);
+                    }
+                },
+
+                async sendChatMessage() {
+                    if (!this.chatInput.trim() || this.isChatProcessing) return;
+                    
+                    const userMsg = this.chatInput.trim();
+                    this.chatMessages.push({ role: 'user', content: userMsg });
+                    this.chatInput = '';
+                    this.isChatProcessing = true;
+
+                    // Scroll to bottom
+                    this.$nextTick(() => {
+                        const container = document.getElementById('chatMessagesRef');
+                        if (container) container.scrollTop = container.scrollHeight;
+                    });
+
+                    try {
+                        // Prepare context (current search results)
+                        const context = {
+                            searchResults: this.searchResults.slice(0, 10).map(m => ({
+                                title: m.title,
+                                year: m.year,
+                                overview: m.overview,
+                                id: m.id
+                            }))
+                        };
+
+                        const response = await fetch(`${API_BASE}/api/v1/knowledge-graph/chat`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                messages: this.chatMessages,
+                                context: context
+                            })
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            this.chatMessages.push({ role: 'model', content: data.reply });
+                        } else {
+                            this.chatMessages.push({ role: 'model', content: "Sorry, I encountered an error talking to the server." });
+                        }
+                    } catch (e) {
+                        console.error("Chat error", e);
+                        this.chatMessages.push({ role: 'model', content: "Network error. Please try again." });
+                    } finally {
+                        this.isChatProcessing = false;
+                        this.$nextTick(() => {
+                            const container = document.getElementById('chatMessagesRef');
+                            if (container) container.scrollTop = container.scrollHeight;
+                        });
+                    }
+                },
+
+                toggleVoice() {
+                    if (!('webkitSpeechRecognition' in window)) {
+                        alert("Voice input not supported in this browser. Try Chrome.");
+                        return;
+                    }
+
+                    if (this.isListening) {
+                        this.recognition.stop();
+                        this.isListening = false;
+                        return;
+                    }
+
+                    const recognition = new webkitSpeechRecognition();
+                    recognition.continuous = false;
+                    recognition.interimResults = false;
+                    recognition.lang = 'en-US';
+
+                    recognition.onstart = () => {
+                        this.isListening = true;
+                    };
+
+                    recognition.onresult = (event) => {
+                        const transcript = event.results[0][0].transcript;
+                        this.chatInput = transcript;
+                        // Optional: Auto-send
+                        // this.sendChatMessage(); 
+                    };
+
+                    recognition.onerror = (event) => {
+                        console.error(event.error);
+                        this.isListening = false;
+                    };
+
+                    recognition.onend = () => {
+                        this.isListening = false;
+                    };
+
+                    this.recognition = recognition;
+                    recognition.start();
                 }
+
             };
         }
 
