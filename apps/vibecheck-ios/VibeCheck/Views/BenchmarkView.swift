@@ -51,7 +51,7 @@ struct BenchmarkView: View {
 
     /// Build identifier - increment when making changes to verify deployment
     /// Format: v{version}.{build}-{revision}
-    private let buildIdentifier = "v1.0.1-r8"  // Build ID below button, WASM verification
+    private let buildIdentifier = "v1.0.1-r9"  // Added rec_init + ios_learner_init calls
     @State private var memoryUsage: String = "—"
     @State private var totalTime: String = "—"
 
