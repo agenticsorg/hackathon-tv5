@@ -89,7 +89,7 @@ Your Goal: Help the user explore these movies or find new ones.
 
         // Call Gemini API using native https module to avoid dependency issues
         const https = require('https');
-        const model = 'gemini-1.5-flash';
+        const model = 'gemini-2.0-flash-lite-001';
         const hostname = 'generativelanguage.googleapis.com';
         const path = `/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
 
