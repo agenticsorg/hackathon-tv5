@@ -35,14 +35,51 @@ exports.handler = async (event, context) => {
   try {
     const data = loadData();
 
+    // --- Fetch Real Stats from Pinecone ---
+    const PINECONE_API_KEY = process.env.PINECONE_API_KEY;
+    const PINECONE_HOST = process.env.PINECONE_HOST;
+    let totalMoviesFromPinecone = 0;
+
+    if (PINECONE_API_KEY && PINECONE_HOST) {
+      try {
+        const hostUrl = PINECONE_HOST.startsWith('http') ? PINECONE_HOST : `https://${PINECONE_HOST}`;
+        const statsResponse = await fetch(`${hostUrl}/describe_index_stats`, {
+          method: 'POST',
+          headers: {
+            'Api-Key': PINECONE_API_KEY,
+            'Content-Type': 'application/json',
+            'X-Pinecone-API-Version': '2024-07'
+          },
+          body: JSON.stringify({})
+        });
+        if (statsResponse.ok) {
+          const pineconeStats = await statsResponse.json();
+          totalMoviesFromPinecone = pineconeStats.totalVectorCount || pineconeStats.total_vector_count || 0;
+        }
+      } catch (e) { console.error("Pinecone genre stats error", e); }
+    }
+
     // Use genres directly from data.genres array
     let genres = data.data.genres || [];
 
+    // Update counts if we have live data
+    if (totalMoviesFromPinecone > 0) {
+      // Calculate scaling factor based on the static data's total vs live total
+      // Assuming static total is ~100k or sum of genre counts (approx)
+      // Simple heuristic: Total Movies in Pinecone / 100,000 (base dataset size)
+      const scale = totalMoviesFromPinecone > 1000 ? totalMoviesFromPinecone / 44425 : 1; // 44425 is approx count in static file
+
+      genres = genres.map(g => ({
+        ...g,
+        type: 'genre',
+        movieCount: Math.floor((g.movieCount || 100) * scale)
+      }));
+    } else {
+      genres = genres.map(g => ({ ...g, type: 'genre' }));
+    }
+
     // Sort by movie count descending
-    genres = genres.map(g => ({
-      ...g,
-      type: 'genre',
-    })).sort((a, b) => (b.movieCount || 0) - (a.movieCount || 0));
+    genres.sort((a, b) => (b.movieCount || 0) - (a.movieCount || 0));
 
     return {
       statusCode: 200,
