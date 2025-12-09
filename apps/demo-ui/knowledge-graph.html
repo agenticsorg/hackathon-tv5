@@ -1301,7 +1301,8 @@
                             </p>
                             <ul class="text-sm text-gray-400 space-y-2 mb-4">
                                 <li class="flex items-center gap-2"><span class="text-pink-400">✓</span> Prevents
-                                    <strong class="text-pink-300">40% revenue loss</strong> from metadata failures</li>
+                                    <strong class="text-pink-300">40% revenue loss</strong> from metadata failures
+                                </li>
                                 <li class="flex items-center gap-2"><span class="text-pink-400">✓</span> <strong
                                         class="text-pink-300">10x faster</strong> semantic content discovery</li>
                                 <li class="flex items-center gap-2"><span class="text-pink-400">✓</span> <strong
@@ -2631,11 +2632,24 @@
                             const data = await response.json();
                             this.chatMessages.push({ role: 'model', content: data.reply });
                         } else {
-                            this.chatMessages.push({ role: 'model', content: "Sorry, I encountered an error talking to the server." });
+                            // Try to parse error details
+                            let errorMessage = "Sorry, I encountered an error talking to the server.";
+                            try {
+                                const errData = await response.json();
+                                if (errData.details) {
+                                    errorMessage += `\n\nDetails: ${errData.details}`;
+                                }
+                                if (errData.debugKey) {
+                                    errorMessage += `\n(Key used starts with: ${errData.debugKey})`;
+                                }
+                            } catch (e) {
+                                console.error("Could not parse error response", e);
+                            }
+                            this.chatMessages.push({ role: 'model', content: errorMessage });
                         }
                     } catch (e) {
                         console.error("Chat error", e);
-                        this.chatMessages.push({ role: 'model', content: "Network error. Please try again." });
+                        this.chatMessages.push({ role: 'model', content: "Network error. Please try again. " + e.message });
                     } finally {
                         this.isChatProcessing = false;
                         this.$nextTick(() => {
