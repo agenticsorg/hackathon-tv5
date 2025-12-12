@@ -1,0 +1,55 @@
+{
+  "name": "@arw/movie-match",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-native movie matching platform with natural language search and preference learning",
+  "scripts": {
+    "dev": "next dev -p 3005",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "embed:sync": "tsx scripts/sync-embeddings.ts",
+    "deploy": "gcloud run deploy media-discovery --source ."
+  },
+  "dependencies": {
+    "@ai-sdk/google": "^1.0.0",
+    "@ai-sdk/openai": "^1.0.0",
+    "@tanstack/react-query": "^5.60.0",
+    "@types/leaflet": "^1.9.21",
+    "ai": "^4.0.0",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.23.25",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^0.556.0",
+    "next": "^14.2.16",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-leaflet": "^4.2.1",
+    "ruvector": "^0.1.31",
+    "tailwind-merge": "^2.6.0",
+    "tmdb-ts": "^2.0.3",
+    "zod": "^3.23.0",
+    "zustand": "^5.0.9"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.3.27",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^4.3.0",
+    "autoprefixer": "^10.4.20",
+    "dotenv": "^17.2.3",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.16",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
