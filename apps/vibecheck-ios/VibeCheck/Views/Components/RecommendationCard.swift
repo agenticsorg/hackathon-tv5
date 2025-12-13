@@ -4,6 +4,10 @@ struct RecommendationCard: View {
     let item: MediaItem
     let mood: MoodState
 
+    /// Optional callback when user interacts with thumbs up/down or seen toggle
+    @available(iOS 17.0, *)
+    var onInteractionChanged: ((MediaInteraction) -> Void)? = nil
+
     @State private var isPressed = false
 
     var body: some View {
@@ -126,7 +130,7 @@ struct RecommendationCard: View {
                             .foregroundStyle(.purple)
                             .font(.caption)
                             .padding(.top, 2)
-                        
+
                         Text(rationale)
                             .font(.caption2)
                             .foregroundStyle(.secondary)
@@ -134,6 +138,19 @@ struct RecommendationCard: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     .padding(.top, 4)
+                }
+
+                // Interaction Bar (thumbs up/down, seen toggle)
+                if #available(iOS 17.0, *) {
+                    Divider()
+                        .padding(.top, 8)
+
+                    MediaInteractionBar(
+                        mediaItem: item,
+                        mood: mood,
+                        onInteractionChanged: onInteractionChanged
+                    )
+                    .padding(.top, 8)
                 }
             }
             .padding()

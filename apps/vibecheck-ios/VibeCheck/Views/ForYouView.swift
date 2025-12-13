@@ -305,6 +305,7 @@ struct MediaDetailSheet: View {
     let item: MediaItem
     let mood: MoodState
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
 
     var body: some View {
         ScrollView {
@@ -441,6 +442,22 @@ struct MediaDetailSheet: View {
                             }
                         }
                     }
+
+                    // Interaction Bar (thumbs up/down, seen toggle)
+                    if #available(iOS 17.0, *) {
+                        Divider()
+                            .padding(.vertical, 8)
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Your Rating")
+                                .font(.headline)
+
+                            MediaInteractionBar(
+                                mediaItem: item,
+                                mood: mood
+                            )
+                        }
+                    }
                 }
                 .padding()
             }
@@ -497,5 +514,5 @@ struct FlowLayout: Layout {
 
 #Preview {
     ForYouView()
-        .modelContainer(for: [WatchHistory.self, UserPreferences.self, MoodLog.self], inMemory: true)
+        .modelContainer(for: [WatchHistory.self, UserPreferences.self, MoodLog.self, WatchlistItem.self, MediaInteraction.self], inMemory: true)
 }

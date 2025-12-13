@@ -8,7 +8,8 @@ struct VibeCheckApp: App {
             WatchHistory.self,
             UserPreferences.self,
             MoodLog.self,
-            WatchlistItem.self
+            WatchlistItem.self,
+            MediaInteraction.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
