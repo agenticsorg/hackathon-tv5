@@ -1,0 +1,550 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		00000001 /* VibeCheckApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000001 /* VibeCheckApp.swift */; };
+		00000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000002 /* ContentView.swift */; };
+		00000003 /* MoodState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000003 /* MoodState.swift */; };
+		00000004 /* MediaItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000004 /* MediaItem.swift */; };
+		00000005 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000005 /* HealthKitManager.swift */; };
+		00000006 /* LocalStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000006 /* LocalStore.swift */; };
+		00000007 /* MoodClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000007 /* MoodClassifier.swift */; };
+		00000008 /* RecommendationEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000008 /* RecommendationEngine.swift */; };
+		00000009 /* ForYouView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000009 /* ForYouView.swift */; };
+		0000000A /* VibeCheckView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1000000A /* VibeCheckView.swift */; };
+		0000000B /* WatchlistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1000000B /* WatchlistView.swift */; };
+		0000000C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1000000C /* SettingsView.swift */; };
+		0000000D /* MoodMeshBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1000000D /* MoodMeshBackground.swift */; };
+		0000000E /* VibeRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1000000E /* VibeRing.swift */; };
+		0000000F /* RecommendationCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1000000F /* RecommendationCard.swift */; };
+		00000010 /* QuickMoodOverride.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000010 /* QuickMoodOverride.swift */; };
+		00000011 /* VibeHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000011 /* VibeHeader.swift */; };
+		00000012 /* VibeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000012 /* VibeWidget.swift */; };
+		00000014 /* VibePredictor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000014 /* VibePredictor.swift */; };
+		00000015 /* VectorEmbeddingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000015 /* VectorEmbeddingService.swift */; };
+		00000018 /* CloudKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000018 /* CloudKitManager.swift */; };
+		00000016 /* SommelierAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000016 /* SommelierAgent.swift */; };
+		00000017 /* ARWService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000017 /* ARWService.swift */; };
+		00000019 /* BenchmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000019 /* BenchmarkView.swift */; };
+		00000020 /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 10000020 /* HealthKit.framework */; };
+		0000001A /* RuvectorBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1000001A /* RuvectorBridge.swift */; };
+		0000001B /* ruvector.wasm in Resources */ = {isa = PBXBuildFile; fileRef = 1000001B /* ruvector.wasm */; };
+		0000001C /* WasmKit in Frameworks */ = {isa = PBXBuildFile; productRef = 7000001C /* WasmKit */; };
+		0000001D /* WasmKitWASI in Frameworks */ = {isa = PBXBuildFile; productRef = 7000001D /* WasmKitWASI */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		10000001 /* VibeCheckApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VibeCheckApp.swift; sourceTree = "<group>"; };
+		10000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		10000003 /* MoodState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodState.swift; sourceTree = "<group>"; };
+		10000004 /* MediaItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaItem.swift; sourceTree = "<group>"; };
+		10000005 /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
+		10000006 /* LocalStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStore.swift; sourceTree = "<group>"; };
+		10000007 /* MoodClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodClassifier.swift; sourceTree = "<group>"; };
+		10000008 /* RecommendationEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendationEngine.swift; sourceTree = "<group>"; };
+		10000009 /* ForYouView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForYouView.swift; sourceTree = "<group>"; };
+		1000000A /* VibeCheckView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VibeCheckView.swift; sourceTree = "<group>"; };
+		1000000B /* WatchlistView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistView.swift; sourceTree = "<group>"; };
+		1000000C /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		1000000D /* MoodMeshBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodMeshBackground.swift; sourceTree = "<group>"; };
+		1000000E /* VibeRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VibeRing.swift; sourceTree = "<group>"; };
+		1000000F /* RecommendationCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendationCard.swift; sourceTree = "<group>"; };
+		10000010 /* QuickMoodOverride.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickMoodOverride.swift; sourceTree = "<group>"; };
+		10000011 /* VibeHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VibeHeader.swift; sourceTree = "<group>"; };
+		10000012 /* VibeWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VibeWidget.swift; sourceTree = "<group>"; };
+		10000014 /* VibePredictor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VibePredictor.swift; sourceTree = "<group>"; };
+		10000015 /* VectorEmbeddingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VectorEmbeddingService.swift; sourceTree = "<group>"; };
+		10000018 /* CloudKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitManager.swift; sourceTree = "<group>"; };
+		10000016 /* SommelierAgent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SommelierAgent.swift; sourceTree = "<group>"; };
+		10000017 /* ARWService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARWService.swift; sourceTree = "<group>"; };
+		10000019 /* BenchmarkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkView.swift; sourceTree = "<group>"; };
+		10000013 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		10000020 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
+		10000100 /* VibeCheck.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VibeCheck.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1000001A /* RuvectorBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuvectorBridge.swift; sourceTree = "<group>"; };
+		1000001B /* ruvector.wasm */ = {isa = PBXFileReference; lastKnownFileType = file; path = ruvector.wasm; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		20000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00000020 /* HealthKit.framework in Frameworks */,
+				0000001C /* WasmKit in Frameworks */,
+				0000001D /* WasmKitWASI in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		30000001 = {
+			isa = PBXGroup;
+			children = (
+				30000002 /* VibeCheck */,
+				30000010 /* Frameworks */,
+				30000011 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		30000002 /* VibeCheck */ = {
+			isa = PBXGroup;
+			children = (
+				30000003 /* App */,
+				30000004 /* Models */,
+				30000005 /* Data */,
+				30000006 /* Engine */,
+				30000007 /* Views */,
+				30000008 /* Widget */,
+				30000009 /* Resources */,
+			);
+			path = VibeCheck;
+			sourceTree = "<group>";
+		};
+		30000003 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				10000001 /* VibeCheckApp.swift */,
+				10000002 /* ContentView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		30000004 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				10000003 /* MoodState.swift */,
+				10000004 /* MediaItem.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		30000005 /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				10000005 /* HealthKitManager.swift */,
+				10000006 /* LocalStore.swift */,
+				10000018 /* CloudKitManager.swift */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
+		30000006 /* Engine */ = {
+			isa = PBXGroup;
+			children = (
+				10000007 /* MoodClassifier.swift */,
+				10000008 /* RecommendationEngine.swift */,
+				10000014 /* VibePredictor.swift */,
+				10000015 /* VectorEmbeddingService.swift */,
+				10000016 /* SommelierAgent.swift */,
+				10000017 /* ARWService.swift */,
+				1000001A /* RuvectorBridge.swift */,
+			);
+			path = Engine;
+			sourceTree = "<group>";
+		};
+		30000007 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				10000009 /* ForYouView.swift */,
+				1000000A /* VibeCheckView.swift */,
+				1000000B /* WatchlistView.swift */,
+				1000000C /* SettingsView.swift */,
+				10000019 /* BenchmarkView.swift */,
+				30000012 /* Components */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		30000008 /* Widget */ = {
+			isa = PBXGroup;
+			children = (
+				10000012 /* VibeWidget.swift */,
+			);
+			path = Widget;
+			sourceTree = "<group>";
+		};
+		30000009 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				10000013 /* Info.plist */,
+				1000001B /* ruvector.wasm */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		30000010 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				10000020 /* HealthKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		30000011 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				10000100 /* VibeCheck.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		30000012 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				1000000D /* MoodMeshBackground.swift */,
+				1000000E /* VibeRing.swift */,
+				1000000F /* RecommendationCard.swift */,
+				10000010 /* QuickMoodOverride.swift */,
+				10000011 /* VibeHeader.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		40000001 /* VibeCheck */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 50000003 /* Build configuration list for PBXNativeTarget "VibeCheck" */;
+			buildPhases = (
+				40000002 /* Sources */,
+				20000001 /* Frameworks */,
+				40000003 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = VibeCheck;
+			packageProductDependencies = (
+				7000001C /* WasmKit */,
+				7000001D /* WasmKitWASI */,
+			);
+			productName = VibeCheck;
+			productReference = 10000100 /* VibeCheck.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		60000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1640;
+				TargetAttributes = {
+					40000001 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = 50000001 /* Build configuration list for PBXProject "VibeCheck" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 30000001;
+			packageReferences = (
+				8000001C /* XCRemoteSwiftPackageReference "WasmKit" */,
+			);
+			productRefGroup = 30000011 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				40000001 /* VibeCheck */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		40000003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0000001B /* ruvector.wasm in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		40000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00000001 /* VibeCheckApp.swift in Sources */,
+				00000002 /* ContentView.swift in Sources */,
+				00000003 /* MoodState.swift in Sources */,
+				00000004 /* MediaItem.swift in Sources */,
+				00000005 /* HealthKitManager.swift in Sources */,
+				00000006 /* LocalStore.swift in Sources */,
+				00000007 /* MoodClassifier.swift in Sources */,
+				00000008 /* RecommendationEngine.swift in Sources */,
+				00000009 /* ForYouView.swift in Sources */,
+				0000000A /* VibeCheckView.swift in Sources */,
+				0000000B /* WatchlistView.swift in Sources */,
+				0000000C /* SettingsView.swift in Sources */,
+				0000000D /* MoodMeshBackground.swift in Sources */,
+				0000000E /* VibeRing.swift in Sources */,
+				0000000F /* RecommendationCard.swift in Sources */,
+				00000010 /* QuickMoodOverride.swift in Sources */,
+				00000011 /* VibeHeader.swift in Sources */,
+				00000012 /* VibeWidget.swift in Sources */,
+				00000014 /* VibePredictor.swift in Sources */,
+				00000015 /* VectorEmbeddingService.swift in Sources */,
+				00000018 /* CloudKitManager.swift in Sources */,
+				00000016 /* SommelierAgent.swift in Sources */,
+				00000017 /* ARWService.swift in Sources */,
+				00000019 /* BenchmarkView.swift in Sources */,
+				0000001A /* RuvectorBridge.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		50000002 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = YTT8AJUSP5;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		50000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = YTT8AJUSP5;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		50000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = VibeCheck/Resources/VibeCheck.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = VibeCheck/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = VibeCheck;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "VibeCheck reads your health data locally to understand your current energy and stress levels. This data never leaves your device.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.agentics.vibecheck;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		50000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = VibeCheck/Resources/VibeCheck.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = VibeCheck/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = VibeCheck;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "VibeCheck reads your health data locally to understand your current energy and stress levels. This data never leaves your device.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.agentics.vibecheck;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		50000001 /* Build configuration list for PBXProject "VibeCheck" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				50000002 /* Debug */,
+				50000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		50000003 /* Build configuration list for PBXNativeTarget "VibeCheck" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				50000005 /* Debug */,
+				50000006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		8000001C /* XCRemoteSwiftPackageReference "WasmKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/swiftwasm/WasmKit";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		7000001C /* WasmKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8000001C /* XCRemoteSwiftPackageReference "WasmKit" */;
+			productName = WasmKit;
+		};
+		7000001D /* WasmKitWASI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8000001C /* XCRemoteSwiftPackageReference "WasmKit" */;
+			productName = WasmKitWASI;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 60000001 /* Project object */;
+}
