@@ -1,5 +1,6 @@
 {
   "name": "agentdb",
+  "private": true,
   "version": "2.0.0-alpha.2.20",
   "description": "AgentDB v2 - RuVector-powered graph database with Cypher queries, hyperedges, and ACID persistence. 150x faster than SQLite with integrated vector search, GNN learning, semantic routing, and comprehensive memory patterns. Includes reflexion memory, skill library, causal reasoning, and MCP integration.",
   "type": "module",
