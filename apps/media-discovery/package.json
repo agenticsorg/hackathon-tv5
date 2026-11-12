@@ -52,6 +52,9 @@
     },
     "@ai-sdk/provider-utils": {
       "undici": "^6.29.1"
+    },
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "11.0.8"
     }
   }
 }
